@@ -1,0 +1,35 @@
+<project name="financien" default="jar" basedir=".">
+    <description>
+        Build financien jar
+    </description>
+    <property name="build"     location="../../build"/>
+    <property name="build.src" location="${build}/src"/>
+    <property name="java.libs" location="${user.home}/Java/libs"/>
+    <property name="jar"       location="${build}/financien.jar"/>
+
+    <target name="init">
+        <!-- Create the time stamp properties DSTAMP, TSTAMP, and TODAY -->
+        <tstamp/>
+
+        <!-- Create the build directory used by compile -->
+        <mkdir dir="${build}"/>
+        <mkdir dir="${build.src}"/>
+    </target>
+
+    <target name="compile" description="compile the source" depends="init">
+        <!-- Compile the java code -->
+        <javac srcdir="." destdir="${build.src}"
+               classpath="${java.libs}/table.jar"
+               includeAntRuntime="false"
+               listfiles="true"/>
+    </target>
+
+    <target name="jar" description="build the jar file" depends="compile">
+        <jar destfile="${jar}" basedir="${build.src}"/>
+    </target>
+
+    <target name="clean" description="clean the build dir">
+        <delete dir="${build.src}"/>
+        <delete file="${jar}"/>
+    </target>
+</project>
