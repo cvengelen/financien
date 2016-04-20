@@ -1,10 +1,9 @@
 // frame to load downloaded ING mutatie data into the financien database
 
-package financien.gui;
+package financien.loadingmutatiedata;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.*;
@@ -20,15 +19,14 @@ import java.io.IOException;
 import java.lang.Runtime;
 
 
-public class LoadIngMutatieDataFrame {
-    final private Logger logger = Logger.getLogger( LoadIngMutatieDataFrame.class.getCanonicalName( ) );
-    final JFrame frame = new JFrame( "Load ING export file" );
-    File ingMutatieDataFile;
-    final JLabel ingMutatieDataFileLabel = new JLabel( );
-    final JButton okButton = new JButton( "OK" );
+class LoadIngMutatieDataFrame {
+    private final Logger logger = Logger.getLogger( LoadIngMutatieDataFrame.class.getCanonicalName( ) );
+    private final JFrame frame = new JFrame( "Load ING export file" );
+    private File ingMutatieDataFile;
+    private final JLabel ingMutatieDataFileLabel = new JLabel( );
+    private final JButton okButton = new JButton( "OK" );
 
-
-    public LoadIngMutatieDataFrame( ) {
+    LoadIngMutatieDataFrame( ) {
 
         class CsvFilenameFilter implements FilenameFilter {
 	    public boolean accept( File directory, String filenameString ) {
@@ -84,19 +82,18 @@ public class LoadIngMutatieDataFrame {
         loadIngMutatieDataFileChooser.ensureFileIsVisible( ingMutatieDataFile );
         loadIngMutatieDataFileChooser.setDialogType( JFileChooser.OPEN_DIALOG );
         loadIngMutatieDataFileChooser.setVisible( false );
-        loadIngMutatieDataFileChooser.addActionListener( new ActionListener( ) {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
-                logger.info( "event: " + actionEvent.getActionCommand( ) );
-                if ( actionEvent.getActionCommand().equals( JFileChooser.APPROVE_SELECTION ) ) {
-                    ingMutatieDataFile = loadIngMutatieDataFileChooser.getSelectedFile( );
-                    ingMutatieDataFileLabel.setText( ingMutatieDataFile.getName( ) );
-                }
-                loadIngMutatieDataFileChooser.setVisible( false );
-                okButton.setEnabled( true );
-                frame.getRootPane( ).setDefaultButton( okButton );
-            }
-        });
+        loadIngMutatieDataFileChooser.addActionListener(
+                ( ActionEvent actionEvent ) -> {
+                    logger.info( "event: " + actionEvent.getActionCommand( ) );
+                    if ( actionEvent.getActionCommand().equals( JFileChooser.APPROVE_SELECTION ) ) {
+                        ingMutatieDataFile = loadIngMutatieDataFileChooser.getSelectedFile( );
+                        ingMutatieDataFileLabel.setText( ingMutatieDataFile.getName( ) );
+                    }
+                    loadIngMutatieDataFileChooser.setVisible( false );
+                    okButton.setEnabled( true );
+                    frame.getRootPane( ).setDefaultButton( okButton );
+
+                } );
 
         constraints.gridx = 0;
         constraints.gridy = 0;
@@ -124,54 +121,48 @@ public class LoadIngMutatieDataFrame {
         container.add( filePanel, constraints );
 
         final JButton cancelButton = new JButton( "Cancel" );
-        cancelButton.addActionListener( new ActionListener( ) {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
-                logger.info( "event: " + actionEvent.getActionCommand( ) );
-                if ( actionEvent.getActionCommand().equals( "Cancel" ) ) {
-                    System.exit( 1 );
-                }
-            }
-        });
+        cancelButton.addActionListener(
+                ( ActionEvent actionEvent ) -> {
+                    logger.info( "event: " + actionEvent.getActionCommand( ) );
+                    if ( actionEvent.getActionCommand().equals( "Cancel" ) ) {
+                        System.exit( 1 );
+                    }
+                } );
 
         final JButton selectFileButton = new JButton( "Zoek file" );
-        selectFileButton.addActionListener( new ActionListener( ) {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
-                logger.info( "event: " + actionEvent.getActionCommand( ) );
-                if ( actionEvent.getActionCommand().equals( "Zoek file" ) ) {
-                    loadIngMutatieDataFileChooser.setVisible( true );
-                    okButton.setEnabled( false );
-                }
-            }
-        });
-
-        okButton.addActionListener( new ActionListener( ) {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
-                logger.info( "event: " + actionEvent.getActionCommand( ) );
-                if ( actionEvent.getActionCommand().equals( "OK" ) ) {
-                    int exitStatus = 0;
-                    String loadIngMutatieDataCmd = "/Users/cvengelen/bin/load-ing-mutatie-data -f " +
-                            ingMutatieDataFile.getAbsolutePath( );
-                    try {
-                        logger.info( "Executing command: " + loadIngMutatieDataCmd );
-                        Process process = Runtime.getRuntime( ).exec( loadIngMutatieDataCmd );
-
-                        // The thread must wait for the process to finish
-                        exitStatus = process.waitFor( );
-                        logger.info( "Process exit status: " + exitStatus );
-                        if ( exitStatus != 0 ) {
-                            System.err.println( "Error in executing " + loadIngMutatieDataCmd );
-                        }
-                    } catch ( InterruptedException | IOException exception ) {
-                        logger.severe( exception.getMessage( ) );
-                        exitStatus = 1;
+        selectFileButton.addActionListener(
+                ( ActionEvent actionEvent ) -> {
+                    logger.info( "event: " + actionEvent.getActionCommand( ) );
+                    if ( actionEvent.getActionCommand().equals( "Zoek file" ) ) {
+                        loadIngMutatieDataFileChooser.setVisible( true );
+                        okButton.setEnabled( false );
                     }
-                    System.exit( exitStatus );
-                }
-            }
-        });
+                } );
+
+        okButton.addActionListener(
+                ( ActionEvent actionEvent ) -> {
+                  logger.info( "event: " + actionEvent.getActionCommand( ) );
+                    if ( actionEvent.getActionCommand().equals( "OK" ) ) {
+                        int exitStatus = 0;
+                        String loadIngMutatieDataCmd = "/Users/cvengelen/bin/load-ing-mutatie-data -f " +
+                                ingMutatieDataFile.getAbsolutePath( );
+                        try {
+                            logger.info( "Executing command: " + loadIngMutatieDataCmd );
+                            Process process = Runtime.getRuntime( ).exec( loadIngMutatieDataCmd );
+
+                            // The thread must wait for the process to finish
+                            exitStatus = process.waitFor( );
+                            logger.info( "Process exit status: " + exitStatus );
+                            if ( exitStatus != 0 ) {
+                                System.err.println( "Error in executing " + loadIngMutatieDataCmd );
+                            }
+                        } catch ( InterruptedException | IOException exception ) {
+                            logger.severe( exception.getMessage( ) );
+                            exitStatus = 1;
+                        }
+                       System.exit( exitStatus );
+                    }
+                } );
 
         final JPanel buttonPanel = new JPanel( );
         buttonPanel.add( okButton );

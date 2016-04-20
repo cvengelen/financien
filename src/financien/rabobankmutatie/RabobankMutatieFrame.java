@@ -1,7 +1,10 @@
 // frame to copy downloaded Rabo mutatie records to rekening_mutatie, and deb_cred
 
-package financien.gui;
+package financien.rabobankmutatie;
 
+import financien.gui.DebCredDialog;
+import financien.rekeningmutatie.RekeningMutatieTableModel;
+import financien.gui.RubriekComboBox;
 import table.TableSorter;
 
 import javax.swing.*;
@@ -26,64 +29,64 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class RaboMutatieFrame {
-    final private Logger logger = Logger.getLogger( RaboMutatieFrame.class.getCanonicalName( ) );
+class RabobankMutatieFrame {
+    final private Logger logger = Logger.getLogger( RabobankMutatieFrame.class.getCanonicalName( ) );
 
-    Connection connection;
+    private Connection connection;
 
-    final JFrame frame = new JFrame( "Rabo Mutatie" );
-    final Font dialogFont = new Font( "Dialog", Font.BOLD, 12 );
+    private final JFrame frame = new JFrame( "Rabobank Mutatie" );
+    private final Font dialogFont = new Font( "Dialog", Font.BOLD, 12 );
 
-    String mutatieDatumString;
-    JLabel mutatieDatumLabel;
+    private String mutatieDatumString;
+    private JLabel mutatieDatumLabel;
 
-    String mutatieTegenRekeningString;
-    JLabel mutatieTegenRekeningLabel;
+    private String mutatieTegenRekeningString;
+    private JLabel mutatieTegenRekeningLabel;
 
-    String mutatieNaamOmschrijvingString;
-    JLabel mutatieNaamOmschrijvingLabel;
+    private String mutatieNaamOmschrijvingString;
+    private JLabel mutatieNaamOmschrijvingLabel;
 
-    int    debCredId = 0;
-    JLabel debCredIdLabel;
+    private int    debCredId = 0;
+    private JLabel debCredIdLabel;
 
-    JSpinner volgNummerSpinner;
-    SpinnerNumberModel volgNummerSpinnerNumberModel;
+    private JSpinner volgNummerSpinner;
+    private SpinnerNumberModel volgNummerSpinnerNumberModel;
 
-    double mutatieBedrag;
-    JLabel mutatieBedragLabel;
+    private double mutatieBedrag;
+    private JLabel mutatieBedragLabel;
 
-    String mutatieDebetCreditString;
-    JLabel mutatieDebetCreditLabel;
+    private String mutatieDebetCreditString;
+    private JLabel mutatieDebetCreditLabel;
 
-    JSpinner jaarSpinner;
-    JSpinner maandSpinner;
+    private JSpinner jaarSpinner;
+    private JSpinner maandSpinner;
 
-    String mutatieMededelingenString;
-    JTextField mutatieMededelingenTextField;
+    private String mutatieMededelingenString;
+    private JTextField mutatieMededelingenTextField;
 
-    String mutatieCodeString;
-    String mutatieEigenRekeningString;
-    int eigenRekeningId = 0;
+    private String mutatieCodeString;
+    private String mutatieEigenRekeningString;
+    private int eigenRekeningId = 0;
 
-    int rubriekId = 0;
-    RubriekComboBox rubriekComboBox;
+    private int rubriekId = 0;
+    private RubriekComboBox rubriekComboBox;
 
-    RekeningMutatieTableModel rekeningMutatieTableModel;
-    TableSorter rekeningMutatieTableSorter;
-    JTable rekeningMutatieTable;
-    final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
+    private RekeningMutatieTableModel rekeningMutatieTableModel;
+    private TableSorter rekeningMutatieTableSorter;
+    private JTable rekeningMutatieTable;
+    private final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
 
-    final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
-    final GregorianCalendar calendar = new GregorianCalendar( );
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private final GregorianCalendar calendar = new GregorianCalendar( );
 
-    ResultSet mutatieResultSet;
+    private ResultSet mutatieResultSet;
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
 
-    public RaboMutatieFrame( final Connection connection ) {
+    RabobankMutatieFrame( final Connection connection ) {
 	this.connection = connection;
 
 	// frame.setBackground( Color.white );
@@ -348,7 +351,7 @@ public class RaboMutatieFrame {
 						       "mutatie, debet_credit, code, eigen_rekening, " +
                                                        "mededelingen_1, mededelingen_2, mededelingen_3, " +
                                                        "mededelingen_4, mededelingen_5, mededelingen_6, transactie_referentie " +
-						       "FROM rabo_mutatie ORDER BY datum, naam_omschrijving" );
+						       "FROM rabobank_mutatie ORDER BY datum, naam_omschrijving" );
 	} catch ( SQLException sqlException ) {
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    frame.setVisible( false );
@@ -366,7 +369,7 @@ public class RaboMutatieFrame {
 	final ListSelectionModel mutatieListSelectionModel = rekeningMutatieTable.getSelectionModel( );
 
 	class MutatieListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -427,7 +430,7 @@ public class RaboMutatieFrame {
 		deleteMutatieButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    private int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add mutatieListSelectionListener object to the selection model of the rekening mutatie table
@@ -647,7 +650,7 @@ public class RaboMutatieFrame {
     }
 
 
-    public boolean copyDownloadIngRecord( )
+    private boolean copyDownloadIngRecord( )
     {
 	if ( rubriekId == 0 ) {
 	    String errorString = "Geen rubriek geselecteerd";
@@ -732,7 +735,7 @@ public class RaboMutatieFrame {
     }
 
 
-    public void getNextMutatieRecord( )
+    private void getNextMutatieRecord( )
     {
 	try {
 	    if ( ! mutatieResultSet.next( ) ) {
@@ -927,9 +930,9 @@ public class RaboMutatieFrame {
                 // Check if Deb/Cred should be in field deb_cred of table deb_cred,
                 // or in field omschrijving of table deb_cred.
                 if ( omschrijvingNr == 0 ) {
-                    // Check deb_cred field from deb_cred with naam_omschrijving in the rabo_mutatie records
+                    // Check deb_cred field from deb_cred with naam_omschrijving in the rabobank_mutatie records
                     logger.fine( "comparing " + debCredString +
-                                 " from deb_cred with naam_omschrijving from rabo_mutatie: " + mutatieNaamOmschrijvingString );
+                                 " from deb_cred with naam_omschrijving from rabobank_mutatie: " + mutatieNaamOmschrijvingString );
                     if ( debCredString.equals( mutatieNaamOmschrijvingString ) ) {
                         logger.fine( "Match gevonden voor mutatie rekening " + mutatieTegenRekeningString +
                                      " voor mutatie naam_omschrijving: " + mutatieNaamOmschrijvingString );
@@ -945,7 +948,7 @@ public class RaboMutatieFrame {
 
                     //Try to find the deb_cred field in the mededelingen field
                     logger.fine( "comparing " + debCredString +
-                                 " from deb_cred with mededelingen from rabo_mutatie: " + mutatieMededelingenString );
+                                 " from deb_cred with mededelingen from rabobank_mutatie: " + mutatieMededelingenString );
                     if ( mutatieMededelingenString.contains( debCredString ) ) {
                         logger.fine( "Match gevonden voor mutatie rekening " + mutatieTegenRekeningString +
                                         " in mutatie mededelingen: " + mutatieMededelingenString );

@@ -5,11 +5,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class IngMededelingenParser {
-    final private Logger logger = Logger.getLogger( "financien.gui.IngMededelingenParser" );
+    private final Logger logger = Logger.getLogger( "financien.gui.IngMededelingenParser" );
 
-     String[ ] mutatieMededelingenSubString = new String[ 4 ];
-    String mutatieMededelingenStrippedString;
-    int nMatches = 0;
+    private final String[ ] mutatieMededelingenSubString = new String[ 4 ];
+    private String mutatieMededelingenStrippedString;
+    private int nMatches;
 
     public IngMededelingenParser( final String mutatieMededelingenString ) {
         logger.fine( "mutatieMededelingenString : " + mutatieMededelingenString );
@@ -96,5 +96,17 @@ public class IngMededelingenParser {
         nMatches = 1;
         logger.fine( "geen match, rest: " + mutatieMededelingenStrippedString );
         return;
+    }
+
+    public String getMutatieMededelingenSubString(int mutatieMededelingenSubStringIndex ) {
+        return mutatieMededelingenSubString[ mutatieMededelingenSubStringIndex ];
+    }
+
+    public String getMutatieMededelingenStrippedString() {
+        return mutatieMededelingenStrippedString;
+    }
+
+    public int getNMatches() {
+        return nMatches;
     }
 }

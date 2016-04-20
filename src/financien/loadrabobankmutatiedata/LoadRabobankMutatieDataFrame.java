@@ -1,12 +1,11 @@
 // frame to load downloaded Rabobank mutatie data into the financien database
 
-package financien.gui;
+package financien.loadrabobankmutatiedata;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -17,14 +16,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class LoadRabobankMutatieDataFrame {
-    final private Logger logger = Logger.getLogger( LoadRabobankMutatieDataFrame.class.getCanonicalName( ) );
-    final JFrame frame = new JFrame( "Load Rabobank transactions file" );
-    File rabobankMutatieDataFile;
-    final JLabel rabobankMutatieDataFileLabel = new JLabel( );
-    final JButton okButton = new JButton( "OK" );
+class LoadRabobankMutatieDataFrame {
+    private final Logger logger = Logger.getLogger( LoadRabobankMutatieDataFrame.class.getCanonicalName( ) );
+    private final JFrame frame = new JFrame( "Load Rabobank transactions file" );
+    private File rabobankMutatieDataFile;
+    private final JLabel rabobankMutatieDataFileLabel = new JLabel( );
+    private final JButton okButton = new JButton( "OK" );
 
-    public LoadRabobankMutatieDataFrame() {
+    LoadRabobankMutatieDataFrame() {
 
 	class TransactionsFilenameFilter implements FilenameFilter {
 	    public boolean accept( File directory, String filenameString ) {
@@ -80,19 +79,17 @@ public class LoadRabobankMutatieDataFrame {
         loadRabobankMutatieDataFileChooser.ensureFileIsVisible( rabobankMutatieDataFile );
         loadRabobankMutatieDataFileChooser.setDialogType( JFileChooser.OPEN_DIALOG );
         loadRabobankMutatieDataFileChooser.setVisible( false );
-        loadRabobankMutatieDataFileChooser.addActionListener( new ActionListener( ) {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
-                logger.info( "event: " + actionEvent.getActionCommand( ) );
-                if ( actionEvent.getActionCommand().equals( JFileChooser.APPROVE_SELECTION ) ) {
-                    rabobankMutatieDataFile = loadRabobankMutatieDataFileChooser.getSelectedFile( );
-                    rabobankMutatieDataFileLabel.setText( rabobankMutatieDataFile.getName( ) );
-                }
-                loadRabobankMutatieDataFileChooser.setVisible( false );
-                okButton.setEnabled( true );
-                frame.getRootPane( ).setDefaultButton( okButton );
-            }
-        });
+        loadRabobankMutatieDataFileChooser.addActionListener(
+                ( ActionEvent actionEvent ) -> {
+                    logger.info( "event: " + actionEvent.getActionCommand( ) );
+                    if ( actionEvent.getActionCommand().equals( JFileChooser.APPROVE_SELECTION ) ) {
+                        rabobankMutatieDataFile = loadRabobankMutatieDataFileChooser.getSelectedFile( );
+                        rabobankMutatieDataFileLabel.setText( rabobankMutatieDataFile.getName( ) );
+                    }
+                    loadRabobankMutatieDataFileChooser.setVisible( false );
+                    okButton.setEnabled( true );
+                    frame.getRootPane( ).setDefaultButton( okButton );
+                } );
 
         constraints.gridx = 0;
         constraints.gridy = 0;
@@ -120,54 +117,48 @@ public class LoadRabobankMutatieDataFrame {
         container.add( filePanel, constraints );
 
         final JButton cancelButton = new JButton( "Cancel" );
-        cancelButton.addActionListener( new ActionListener( ) {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
-                logger.info( "event: " + actionEvent.getActionCommand( ) );
-                if ( actionEvent.getActionCommand().equals( "Cancel" ) ) {
-                    System.exit( 1 );
-                }
-            }
-        });
+        cancelButton.addActionListener(
+                ( ActionEvent actionEvent ) -> {
+                    logger.info( "event: " + actionEvent.getActionCommand( ) );
+                    if ( actionEvent.getActionCommand().equals( "Cancel" ) ) {
+                        System.exit( 1 );
+                    }
+                } );
 
         final JButton selectFileButton = new JButton( "Zoek file" );
-        selectFileButton.addActionListener( new ActionListener( ) {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
-                logger.info( "event: " + actionEvent.getActionCommand( ) );
-                if ( actionEvent.getActionCommand().equals( "Zoek file" ) ) {
-                    loadRabobankMutatieDataFileChooser.setVisible( true );
-                    okButton.setEnabled( false );
-                }
-            }
-        });
-
-        okButton.addActionListener( new ActionListener( ) {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
-                logger.info( "event: " + actionEvent.getActionCommand( ) );
-                if ( actionEvent.getActionCommand().equals( "OK" ) ) {
-                    int exitStatus = 0;
-                    String loadRabobankMutatieDataCmd = "/Users/cvengelen/bin/load-rabo-mutatie-data -f " +
-                            rabobankMutatieDataFile.getAbsolutePath( );
-                    try {
-                        logger.info( "Executing command: " + loadRabobankMutatieDataCmd );
-                        Process process = Runtime.getRuntime( ).exec( loadRabobankMutatieDataCmd );
-
-                        // The thread must wait for the process to finish
-                        exitStatus = process.waitFor( );
-                        logger.info( "Process exit status: " + exitStatus );
-                        if ( exitStatus != 0 ) {
-                            System.err.println( "Error in executing " + loadRabobankMutatieDataCmd );
-                        }
-                    } catch ( InterruptedException | IOException exception ) {
-                        logger.severe( exception.getMessage( ) );
-                        exitStatus = 1;
+        selectFileButton.addActionListener(
+                ( ActionEvent actionEvent ) -> {
+                    logger.info( "event: " + actionEvent.getActionCommand( ) );
+                    if ( actionEvent.getActionCommand().equals( "Zoek file" ) ) {
+                        loadRabobankMutatieDataFileChooser.setVisible( true );
+                        okButton.setEnabled( false );
                     }
-                    System.exit( exitStatus );
-                }
-            }
-        });
+                } );
+
+        okButton.addActionListener(
+                ( ActionEvent actionEvent ) -> {
+                    logger.info( "event: " + actionEvent.getActionCommand( ) );
+                    if ( actionEvent.getActionCommand().equals( "OK" ) ) {
+                        int exitStatus = 0;
+                        String loadRabobankMutatieDataCmd = "/Users/cvengelen/bin/load-rabo-mutatie-data -f " +
+                                rabobankMutatieDataFile.getAbsolutePath( );
+                        try {
+                            logger.info( "Executing command: " + loadRabobankMutatieDataCmd );
+                            Process process = Runtime.getRuntime( ).exec( loadRabobankMutatieDataCmd );
+
+                            // The thread must wait for the process to finish
+                            exitStatus = process.waitFor( );
+                            logger.info( "Process exit status: " + exitStatus );
+                            if ( exitStatus != 0 ) {
+                                System.err.println( "Error in executing " + loadRabobankMutatieDataCmd );
+                            }
+                        } catch ( InterruptedException | IOException exception ) {
+                            logger.severe( exception.getMessage( ) );
+                            exitStatus = 1;
+                        }
+                        System.exit( exitStatus );
+                    }
+                } );
 
         final JPanel buttonPanel = new JPanel( );
         buttonPanel.add( okButton );

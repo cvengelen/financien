@@ -1,17 +1,16 @@
-// Main program to copy downloaded ING mutatie records to rekening_mutatie, and deb_cred
+// Main program to show rekening_mutatie records
 
-package financien;
-
-import financien.gui.RaboMutatieFrame;
+package financien.rekeningmutatie;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.logging.Logger;
 
-public class RaboMutatie {
+import java.util.logging.*;
+
+public class RekeningMutatie {
     public static void main( String[ ] args ) {
-	final Logger logger = Logger.getLogger( RaboMutatie.class.getCanonicalName( ) );
+	final Logger logger = Logger.getLogger( RekeningMutatie.class.getCanonicalName() );
 
         try {
             // The newInstance() call is a work around for some broken Java implementations
@@ -26,9 +25,10 @@ public class RaboMutatie {
 	try {
             logger.info( "Opening db connection" );
             connection = DriverManager.getConnection( "jdbc:mysql://localhost/financien?user=cvengelen&password=cve123" );
-	    RaboMutatieFrame raboMutatieFrame = new RaboMutatieFrame( connection );
+	    new RekeningMutatieFrame( connection );
 	} catch ( SQLException sqlException ) {
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
         }
     }
 }
+

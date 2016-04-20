@@ -1,9 +1,8 @@
 // Main program to load downloaded Rabo mutatie data into the financien database
 
-package financien;
+package financien.loadrabobankmutatiedata;
 
 import java.util.logging.*;
-import financien.gui.LoadRabobankMutatieDataFrame;
 
 public class LoadRabobankMutatieData {
     public static void main( String[ ] args ) {

@@ -1,13 +1,12 @@
 // Main program to load downloaded ING mutatie data into the financien database
 
-package financien;
+package financien.loadingmutatiedata;
 
 import java.util.logging.*;
-import financien.gui.LoadIngMutatieDataFrame;
 
 public class LoadIngMutatieData {
     public static void main( String[ ] args ) {
-	final Logger logger = Logger.getLogger( "financien.LoadIngMutatieData" );
+	final Logger logger = Logger.getLogger( "financien.loadingmutatiedata.LoadIngMutatieData" );
 
 	LoadIngMutatieDataFrame LoadIngMutatieDataFrame = new LoadIngMutatieDataFrame( );
     }

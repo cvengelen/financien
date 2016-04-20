@@ -1,6 +1,8 @@
 // Class to setup a TableModel for all records in deb_cred
 
-package financien.gui;
+package financien.debcred;
+
+import financien.gui.RubriekComboBox;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -14,16 +16,15 @@ import java.util.logging.*;
 import java.util.regex.*;
 
 
-public class DebCredTableModel extends AbstractTableModel {
-	private static final long serialVersionUID = 7782709968547613151L;
-
-	final Logger logger = Logger.getLogger( "financien.gui.DebCredTableModel" );
+class DebCredTableModel extends AbstractTableModel {
+    private static final long serialVersionUID = 7782709968547613151L;
+    final Logger logger = Logger.getLogger( DebCredTableModel.class.getCanonicalName() );
 
     private Connection connection;
     private String[ ] headings = { "Id", "Deb/Cred", "Omschrijving", "Rekening",
 				   "Rubriek", "GT Omschr. Nr." };
 
-    class DebCredRecord {
+    private class DebCredRecord {
 	int	debCredId;
 	String  debCredString;
 	String  omschrijvingString;
@@ -32,13 +33,13 @@ public class DebCredTableModel extends AbstractTableModel {
 	String  rubriekString;
 	int	gtOmschrijvingNr;
 
-	public DebCredRecord( int    debCredId,
-			      String debCredString,
-			      String omschrijvingString,
-			      String rekeningString,
-			      int    rubriekId,
-			      String rubriekString,
-			      int    gtOmschrijvingNr ) {
+	DebCredRecord( int    debCredId,
+                       String debCredString,
+                       String omschrijvingString,
+                       String rekeningString,
+                       int    rubriekId,
+                       String rubriekString,
+                       int    gtOmschrijvingNr ) {
 	    this.debCredId = debCredId;
 	    this.debCredString = debCredString;
 	    this.omschrijvingString = omschrijvingString;
@@ -49,7 +50,7 @@ public class DebCredTableModel extends AbstractTableModel {
 	}
 
 	// Copy constructor
-	public DebCredRecord( DebCredRecord debCredRecord ) {
+	DebCredRecord( DebCredRecord debCredRecord ) {
 	    this.debCredId = debCredRecord.debCredId;
 	    this.debCredString = debCredRecord.debCredString;
 	    this.omschrijvingString = debCredRecord.omschrijvingString;
@@ -60,28 +61,28 @@ public class DebCredTableModel extends AbstractTableModel {
 	}
     }
 
-    ArrayList< DebCredRecord > debCredRecordList = new ArrayList< >( 200 );
+    private ArrayList< DebCredRecord > debCredRecordList = new ArrayList< >( 200 );
 
     // Create rubriek combo box to get rubriek ID from rubriek string
     private RubriekComboBox rubriekComboBox;
 
-    JButton cancelDebCredButton;
-    JButton saveDebCredButton;
+    private JButton cancelDebCredButton;
+    private JButton saveDebCredButton;
 
-    boolean	  rowModified = false;
-    int		  editRow = -1;
-    DebCredRecord debCredRecord = null;
-    DebCredRecord originalDebCredRecord = null;
+    private boolean	  rowModified = false;
+    private int		  editRow = -1;
+    private DebCredRecord debCredRecord = null;
+    private DebCredRecord originalDebCredRecord = null;
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
 
     // Constructor
-    public DebCredTableModel( Connection connection,
-			      JButton    cancelDebCredButton,
-			      JButton    saveDebCredButton ) {
+    DebCredTableModel( Connection connection,
+                       JButton    cancelDebCredButton,
+                       JButton    saveDebCredButton ) {
 	this.connection = connection;
 	this.cancelDebCredButton = cancelDebCredButton;
 	this.saveDebCredButton = saveDebCredButton;
@@ -90,7 +91,7 @@ public class DebCredTableModel extends AbstractTableModel {
 	setupDebCredTableModel( null );
     }
 
-    public void setupDebCredTableModel( String debCredFilterString ) {
+    void setupDebCredTableModel( String debCredFilterString ) {
 	// Setup the table for the specified rekening
 	try {
 	    String debCredQueryString =
@@ -171,15 +172,14 @@ public class DebCredTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final DebCredRecord debCredRecord =
-	    ( DebCredRecord )debCredRecordList.get( row );
+	final DebCredRecord debCredRecord = debCredRecordList.get( row );
 
-	if ( column == 0 ) return new Integer( debCredRecord.debCredId );
+	if ( column == 0 ) return debCredRecord.debCredId;
 	if ( column == 1 ) return debCredRecord.debCredString;
 	if ( column == 2 ) return debCredRecord.omschrijvingString;
 	if ( column == 3 ) return debCredRecord.rekeningString;
 	if ( column == 4 ) return debCredRecord.rubriekString;
-	if ( column == 5 ) return new Integer( debCredRecord.gtOmschrijvingNr );
+	if ( column == 5 ) return debCredRecord.gtOmschrijvingNr;
 
 	return "";
     }
@@ -274,32 +274,32 @@ public class DebCredTableModel extends AbstractTableModel {
     }
 
 
-    public int getNumberOfRecords( ) { return debCredRecordList.size( ); }
+    int getNumberOfRecords( ) { return debCredRecordList.size( ); }
 
 
-    public int getDebCredId( int row ) {
+    int getDebCredId( int row ) {
 	if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return 0;
 	}
 
-	return ( ( DebCredRecord )debCredRecordList.get( row ) ).debCredId;
+	return ( debCredRecordList.get( row ) ).debCredId;
     }
 
 
-    public String getDebCredString( int row ) {
+    String getDebCredString( int row ) {
 	if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( DebCredRecord )debCredRecordList.get( row ) ).debCredString;
+	return ( debCredRecordList.get( row ) ).debCredString;
     }
 
 
-    public void setEditRow( int editRow ) {
+    void setEditRow( int editRow ) {
 	// Initialize record to be edited
-	debCredRecord = ( DebCredRecord )debCredRecordList.get( editRow );
+	debCredRecord = debCredRecordList.get( editRow );
 
 	// Copy record to use as key in table update
 	originalDebCredRecord = new DebCredRecord( debCredRecord );
@@ -311,11 +311,11 @@ public class DebCredTableModel extends AbstractTableModel {
 	this.editRow = editRow;
     }
 
-    public void unsetEditRow( ) {
+    void unsetEditRow( ) {
 	this.editRow = -1;
     }
 
-    public void cancelEditRow( int row ) {
+    void cancelEditRow( int row ) {
 	// Check if row being canceled equals the row currently being edited
 	if ( row != editRow ) return;
 
@@ -339,7 +339,7 @@ public class DebCredTableModel extends AbstractTableModel {
 	return additionalUpdateString;
     }
 
-    public void saveEditRow( int row ) {
+    void saveEditRow( int row ) {
 	String updateString = null;
 
 	// Compare each field with the value in the original record
@@ -431,5 +431,5 @@ public class DebCredTableModel extends AbstractTableModel {
 	}
     }
 
-    public boolean getRowModified( ) { return rowModified; }
+    boolean getRowModified( ) { return rowModified; }
 }

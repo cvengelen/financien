@@ -1,6 +1,6 @@
 // frame to copy downloaded ING mutatie records to rekening_mutatie, and deb_cred
 
-package financien.gui;
+package financien.ingmutatie;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -18,67 +18,71 @@ import javax.swing.table.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
+import financien.gui.DebCredDialog;
+import financien.gui.IngMededelingenParser;
+import financien.rekeningmutatie.RekeningMutatieTableModel;
+import financien.gui.RubriekComboBox;
 import table.*;
 
 public class IngMutatieFrame {
-    final private Logger logger = Logger.getLogger( "financien.gui.IngMutatieFrame" );
+    final private Logger logger = Logger.getLogger( IngMutatieFrame.class.getCanonicalName() );
 
-    Connection connection;
+    private Connection connection;
 
-    final JFrame frame = new JFrame( "Download ING" );
-    final Font dialogFont = new Font( "Dialog", Font.BOLD, 12 );
+    private final JFrame frame = new JFrame( "Download ING" );
+    private final Font dialogFont = new Font( "Dialog", Font.BOLD, 12 );
 
-    String mutatieDatumString;
-    JLabel mutatieDatumLabel;
+    private String mutatieDatumString;
+    private JLabel mutatieDatumLabel;
 
-    String mutatieTegenRekeningString;
-    JLabel mutatieTegenRekeningLabel;
+    private String mutatieTegenRekeningString;
+    private JLabel mutatieTegenRekeningLabel;
 
-    String mutatieNaamOmschrijvingString;
-    JLabel mutatieNaamOmschrijvingLabel;
+    private String mutatieNaamOmschrijvingString;
+    private JLabel mutatieNaamOmschrijvingLabel;
 
-    int    debCredId = 0;
-    JLabel debCredIdLabel;
+    private int    debCredId = 0;
+    private JLabel debCredIdLabel;
 
-    JSpinner volgNummerSpinner;
-    SpinnerNumberModel volgNummerSpinnerNumberModel;
+    private JSpinner volgNummerSpinner;
+    private SpinnerNumberModel volgNummerSpinnerNumberModel;
 
-    double mutatieBedrag;
-    JLabel mutatieBedragLabel;
+    private double mutatieBedrag;
+    private JLabel mutatieBedragLabel;
 
-    String mutatieAfBijString;
-    JLabel mutatieAfBijLabel;
+    private String mutatieAfBijString;
+    private JLabel mutatieAfBijLabel;
 
-    JSpinner jaarSpinner;
-    JSpinner maandSpinner;
+    private JSpinner jaarSpinner;
+    private JSpinner maandSpinner;
 
-    String mutatieMededelingenString;
-    JTextField mutatieMededelingenTextField;
+    private String mutatieMededelingenString;
+    private JTextField mutatieMededelingenTextField;
 
-    String mutatieCodeString;
-    String mutatieEigenRekeningString;
-    int eigenRekeningId = 0;
+    private String mutatieCodeString;
+    private String mutatieEigenRekeningString;
+    private int eigenRekeningId = 0;
 
-    int rubriekId = 0;
-    RubriekComboBox rubriekComboBox;
+    private int rubriekId = 0;
+    private RubriekComboBox rubriekComboBox;
 
-    RekeningMutatieTableModel rekeningMutatieTableModel;
-    TableSorter rekeningMutatieTableSorter;
-    JTable rekeningMutatieTable;
-    final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
+    private RekeningMutatieTableModel rekeningMutatieTableModel;
+    private TableSorter rekeningMutatieTableSorter;
+    private JTable rekeningMutatieTable;
+    private final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
 
-    final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
-    final GregorianCalendar calendar = new GregorianCalendar( );
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private final GregorianCalendar calendar = new GregorianCalendar( );
 
-    ResultSet mutatieResultSet;
+    private ResultSet mutatieResultSet;
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
 
     public IngMutatieFrame( final Connection connection ) {
-	this.connection = connection;
+        this.connection = connection;
 
 	// frame.setBackground( Color.white );
 
@@ -358,7 +362,7 @@ public class IngMutatieFrame {
 	final ListSelectionModel mutatieListSelectionModel = rekeningMutatieTable.getSelectionModel( );
 
 	class MutatieListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -419,7 +423,7 @@ public class IngMutatieFrame {
 		deleteMutatieButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    private int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add mutatieListSelectionListener object to the selection model of the rekening mutatie table
@@ -639,7 +643,7 @@ public class IngMutatieFrame {
     }
 
 
-    public boolean copyDownloadIngRecord( )
+    private boolean copyDownloadIngRecord( )
     {
 	if ( rubriekId == 0 ) {
 	    String errorString = "Geen rubriek geselecteerd";
@@ -724,7 +728,7 @@ public class IngMutatieFrame {
     }
 
 
-    public void getNextMutatieRecord( )
+    private void getNextMutatieRecord( )
     {
 	try {
 	    if ( ! mutatieResultSet.next( ) ) {
@@ -788,7 +792,7 @@ public class IngMutatieFrame {
             }
 
             IngMededelingenParser ingMededelingenParser = new IngMededelingenParser( mutatieMededelingenString );
-            mutatieMededelingenTextField.setText( ingMededelingenParser.mutatieMededelingenStrippedString );
+            mutatieMededelingenTextField.setText( ingMededelingenParser.getMutatieMededelingenStrippedString() );
 
 	    // Clear jaar and maand text field
 	    // jaarTextField.setText( "" );
@@ -975,13 +979,13 @@ public class IngMutatieFrame {
                     // Check deb_cred field from deb_cred with part of omschrijving field from ING mutatie record
 
                     // Controleer of het aantal omschrijving velden klopt
-                    if ( omschrijvingNr > ingMededelingenParser.nMatches ) {
+                    if ( omschrijvingNr > ingMededelingenParser.getNMatches() ) {
                         // not found
                         continue;
                     }
 
                     // Haal het omschrijving veld op
-                    final String testString = ingMededelingenParser.mutatieMededelingenSubString[ omschrijvingNr - 1 ];
+                    final String testString = ingMededelingenParser.getMutatieMededelingenSubString(omschrijvingNr - 1);
                     logger.fine( "comparing " + debCredString +
                             " from deb_cred with " + testString +
                             " from ING record omschrijving nr " + omschrijvingNr );
@@ -997,14 +1001,14 @@ public class IngMutatieFrame {
                         // Check if the deb cred is found at the start of
                         if ( omschrijvingNr == 1 ) {
                             logger.fine( "skip omschrijving veld 1" );
-                            if ( ingMededelingenParser.nMatches > 1 ) {
-                                StringBuilder mutatieMededelingen = new StringBuilder( ingMededelingenParser.mutatieMededelingenSubString[ 1 ] );
-                                if ( ingMededelingenParser.nMatches > 2 ) {
+                            if ( ingMededelingenParser.getNMatches() > 1 ) {
+                                StringBuilder mutatieMededelingen = new StringBuilder( ingMededelingenParser.getMutatieMededelingenSubString(1) );
+                                if ( ingMededelingenParser.getNMatches() > 2 ) {
                                     mutatieMededelingen.append( "; " );
-                                    mutatieMededelingen.append( ingMededelingenParser.mutatieMededelingenSubString[ 2 ] );
-                                    if ( ingMededelingenParser.nMatches > 3 ) {
+                                    mutatieMededelingen.append( ingMededelingenParser.getMutatieMededelingenSubString(2) );
+                                    if ( ingMededelingenParser.getNMatches() > 3 ) {
                                         mutatieMededelingen.append( "; " );
-                                        mutatieMededelingen.append( ingMededelingenParser.mutatieMededelingenSubString[ 3 ] );
+                                        mutatieMededelingen.append( ingMededelingenParser.getMutatieMededelingenSubString(3) );
                                     }
                                 }
                                 mutatieMededelingenTextField.setText( mutatieMededelingen.toString( ) );

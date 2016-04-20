@@ -1,41 +1,33 @@
 // frame to update a record in deb_cred
 
-package financien.gui;
+package financien.debcred;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import java.util.*;
 import java.util.logging.*;
-import java.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.border.*;
 import javax.swing.event.*;
 
+import financien.gui.RubriekComboBox;
 import table.*;
 
 
-public class DebCredFrame {
-    final private Logger logger = Logger.getLogger( "financien.gui.DebCredFrame" );
+class DebCredFrame {
+    final private Logger logger = Logger.getLogger( DebCredFrame.class.getCanonicalName() );
 
-    Connection connection;
+    private final JFrame frame = new JFrame( "DebCred" );
 
-    final JFrame frame = new JFrame( "DebCred" );
-
-    DebCredTableModel debCredTableModel;
-    TableSorter debCredTableSorter;
-    JTable debCredTable;
-    
-    JTextField debCredFilterTextField;
+    private DebCredTableModel debCredTableModel;
+    private TableSorter debCredTableSorter;
+    private JTextField debCredFilterTextField;
 
 
-    public DebCredFrame( final Connection connection ) {
-	this.connection = connection;
+    DebCredFrame( final Connection connection ) {
 
 	final Container container = frame.getContentPane( );
 
@@ -86,7 +78,7 @@ public class DebCredFrame {
 						   cancelDebCredButton,
 						   saveDebCredButton );
 	debCredTableSorter = new TableSorter( debCredTableModel );
-	debCredTable = new JTable( debCredTableSorter );
+	final JTable debCredTable = new JTable( debCredTableSorter );
 	debCredTableSorter.setTableHeader( debCredTable.getTableHeader( ) );
 
 	debCredTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
@@ -119,7 +111,7 @@ public class DebCredFrame {
 	final ListSelectionModel debCredListSelectionModel = debCredTable.getSelectionModel( );
 
 	class DebCredListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -177,7 +169,7 @@ public class DebCredFrame {
 		deleteDebCredButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add debCredListSelectionListener object to the selection model of the deb_cred table

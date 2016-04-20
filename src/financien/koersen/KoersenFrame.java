@@ -1,6 +1,6 @@
 // frame to show and update records in koersen
 
-package financien.gui;
+package financien.koersen;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -20,22 +20,18 @@ import javax.swing.event.*;
 import table.TableSorter;
 
 
-public class KoersenFrame {
+class KoersenFrame {
     final private Logger logger = Logger.getLogger( KoersenFrame.class.getCanonicalName( ) );
 
-    Connection connection;
+    private final JFrame frame = new JFrame( "Koersen" );
 
-    final JFrame frame = new JFrame( "Koersen" );
-
-    KoersenTableModel koersenTableModel;
-    TableSorter koersenTableSorter;
-    JTable koersenTable;
-    final DecimalFormat koersDecimalFormat = new DecimalFormat( "#0.0000;-#" );
-    final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private KoersenTableModel koersenTableModel;
+    private TableSorter koersenTableSorter;
+    private final DecimalFormat koersDecimalFormat = new DecimalFormat( "#0.0000;-#" );
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
 
-    public KoersenFrame( final Connection connection ) {
-	this.connection = connection;
+    KoersenFrame( final Connection connection ) {
 
 	final Container container = frame.getContentPane( );
 
@@ -56,7 +52,7 @@ public class KoersenFrame {
 						   cancelKoersenButton,
 						   saveKoersenButton );
 	koersenTableSorter = new TableSorter( koersenTableModel );
-	koersenTable = new JTable( koersenTableSorter );
+	final JTable koersenTable = new JTable( koersenTableSorter );
 	koersenTableSorter.setTableHeader( koersenTable.getTableHeader( ) );
 	// koersenTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
@@ -94,7 +90,7 @@ public class KoersenFrame {
 							    boolean isSelected,
 							    boolean hasFocus,
 							    int row, int column ) {
-		final double koers = ( ( Double )object ).doubleValue( );
+		final double koers = ( Double )object;
 		if ( koers == 0 ) {
 		    // Return empty string
 		    this.setText( "" );
@@ -134,7 +130,7 @@ public class KoersenFrame {
 	final ListSelectionModel mutatieListSelectionModel = koersenTable.getSelectionModel( );
 
 	class MutatieListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -192,7 +188,7 @@ public class KoersenFrame {
 		deleteKoersenButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    private int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add mutatieListSelectionListener object to the selection model of the musici table

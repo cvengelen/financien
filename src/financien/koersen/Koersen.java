@@ -1,6 +1,6 @@
-// Main program to copy downloaded ING mutatie records to rekening_mutatie, and deb_cred
+// Main program to show koersen records
 
-package financien;
+package financien.koersen;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -8,11 +8,9 @@ import java.sql.SQLException;
 
 import java.util.logging.*;
 
-import financien.gui.IngMutatieFrame;
-
-public class IngMutatie {
+public class Koersen {
     public static void main( String[ ] args ) {
-	final Logger logger = Logger.getLogger( "financien.IngMutatie" );
+	final Logger logger = Logger.getLogger( "financien.koersen.Koersen" );
 
         try {
             // The newInstance() call is a work around for some broken Java implementations
@@ -27,9 +25,10 @@ public class IngMutatie {
 	try {
             logger.info( "Opening db connection" );
             connection = DriverManager.getConnection( "jdbc:mysql://localhost/financien?user=cvengelen&password=cve123" );
-	    IngMutatieFrame IngMutatieFrame = new IngMutatieFrame( connection );
+	    KoersenFrame KoersenFrame = new KoersenFrame( connection );
 	} catch ( SQLException sqlException ) {
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
         }
     }
 }
+

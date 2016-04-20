@@ -1,6 +1,6 @@
 // Class to setup a TableModel for all records in koersen
 
-package financien.gui;
+package financien.koersen;
 
 import java.sql.Connection;
 import java.sql.SQLException;

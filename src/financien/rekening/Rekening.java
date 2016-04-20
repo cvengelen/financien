@@ -1,6 +1,6 @@
-// Main program to show koersen records
+// Main program to update rekening
 
-package financien;
+package financien.rekening;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -8,11 +8,9 @@ import java.sql.SQLException;
 
 import java.util.logging.*;
 
-import financien.gui.KoersenFrame;
-
-public class Koersen {
+public class Rekening {
     public static void main( String[ ] args ) {
-	final Logger logger = Logger.getLogger( "financien.Koersen" );
+	final Logger logger = Logger.getLogger( Rekening.class.getCanonicalName() );
 
         try {
             // The newInstance() call is a work around for some broken Java implementations
@@ -27,10 +25,9 @@ public class Koersen {
 	try {
             logger.info( "Opening db connection" );
             connection = DriverManager.getConnection( "jdbc:mysql://localhost/financien?user=cvengelen&password=cve123" );
-	    KoersenFrame KoersenFrame = new KoersenFrame( connection );
+	    RekeningFrame RekeningFrame = new RekeningFrame( connection );
 	} catch ( SQLException sqlException ) {
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
         }
     }
 }
-

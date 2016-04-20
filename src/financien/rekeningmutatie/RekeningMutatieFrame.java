@@ -1,6 +1,6 @@
 // frame to show and update records in rekening_mutatie
 
-package financien.gui;
+package financien.rekeningmutatie;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -19,59 +19,60 @@ import javax.swing.table.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
+import financien.gui.*;
 import table.*;
 
 
-public class RekeningMutatieFrame {
+class RekeningMutatieFrame {
     final private Logger logger = Logger.getLogger( RekeningMutatieFrame.class.getCanonicalName( ) );
 
-    Connection connection;
+    private Connection connection;
 
-    final JFrame frame = new JFrame( "RekeningMutatie" );
+    private final JFrame frame = new JFrame( "RekeningMutatie" );
 
-    RekeningMutatieTableModel rekeningMutatieTableModel;
-    TableSorter rekeningMutatieTableSorter;
-    JTable rekeningMutatieTable;
+    private RekeningMutatieTableModel rekeningMutatieTableModel;
+    private TableSorter rekeningMutatieTableSorter;
+    private JTable rekeningMutatieTable;
 
-    RekeningHouderComboBox rekeningHouderComboBox;
-    int selectedRekeningHouderId = 1;
+    private RekeningHouderComboBox rekeningHouderComboBox;
+    private int selectedRekeningHouderId = 1;
 
-    RekeningComboBox rekeningComboBox;
-    int selectedRekeningId = 0;
-    JLabel rekeningNummerLabel;
-    JLabel saldoLabel;
-    JLabel datumLabel;
-    final JButton updateSaldoButton = new JButton( "Update" );
+    private RekeningComboBox rekeningComboBox;
+    private int selectedRekeningId = 0;
+    private JLabel rekeningNummerLabel;
+    private JLabel saldoLabel;
+    private JLabel datumLabel;
+    private final JButton updateSaldoButton = new JButton( "Update" );
 
-    final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
-    DecimalFormat rekeningDecimalFormat;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private DecimalFormat rekeningDecimalFormat;
 
-    int rekeningTypeId = 0;
-    double startSaldo;
-    String startDatumString;
-    final String euroDatumString = "2002-01-01";
+    private int rekeningTypeId = 0;
+    private double startSaldo;
+    private String startDatumString;
+    private final String euroDatumString = "2002-01-01";
 
-    RubriekComboBox rubriekComboBox;
-    int selectedRubriekId = 0;
-    JLabel rubriekOmschrijvingLabel;
+    private RubriekComboBox rubriekComboBox;
+    private int selectedRubriekId = 0;
+    private JLabel rubriekOmschrijvingLabel;
 
-    DebCredComboBox debCredComboBox;
-    int selectedDebCredId = 0;
-    JLabel debCredOmschrijvingLabel;
-    String debCredFilterString = null;
+    private DebCredComboBox debCredComboBox;
+    private int selectedDebCredId = 0;
+    private JLabel debCredOmschrijvingLabel;
+    private String debCredFilterString = null;
 
-    JTextField omschrijvingFilterTextField = null;
+    private JTextField omschrijvingFilterTextField = null;
 
-    JLabel sumMutatieSaldoLabel;
-    JLabel sumMutatieInLabel;
-    JLabel sumMutatieOutLabel;
+    private JLabel sumMutatieSaldoLabel;
+    private JLabel sumMutatieInLabel;
+    private JLabel sumMutatieOutLabel;
 
     // Maximum value field rekening_type_id in table rekening_type
-    final int maximumRekeningTypeId = 9;
-    DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
+    private final int maximumRekeningTypeId = 9;
+    private DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
 
 
-    public RekeningMutatieFrame( final Connection connection ) {
+    RekeningMutatieFrame( final Connection connection ) {
         logger.fine( "Starting RekeningMutatieFrame" );
         this.connection = connection;
 
@@ -469,7 +470,7 @@ public class RekeningMutatieFrame {
                 switch ( column ) {
                 case 4:		// MutatieIn
                 case 5:		// MutatieUit
-                    final double mutatie = ( ( Double )object ).doubleValue( );
+                    final double mutatie = ( Double )object;
                     if ( mutatie == 0 ) {
                         // Return empty string
                         this.setText( "" );
@@ -483,7 +484,7 @@ public class RekeningMutatieFrame {
                     break;
 
                 case 10:	// Inleg aandelen
-                    final double inlegAandelen = ( ( Double )object ).doubleValue( );
+                    final double inlegAandelen = ( Double )object;
                     if ( inlegAandelen == 0 ) {
                         // Return empty string
                         this.setText( "" );
@@ -530,7 +531,7 @@ public class RekeningMutatieFrame {
         final ListSelectionModel mutatieListSelectionModel = rekeningMutatieTable.getSelectionModel( );
 
         class MutatieListSelectionListener implements ListSelectionListener {
-            int selectedRow = -1;
+            private int selectedRow = -1;
 
             public void valueChanged( ListSelectionEvent listSelectionEvent ) {
                 // Ignore extra messages.
@@ -594,7 +595,7 @@ public class RekeningMutatieFrame {
                 deleteMutatieButton.setEnabled( true );
             }
 
-            public int getSelectedRow ( ) { return selectedRow; }
+            private int getSelectedRow ( ) { return selectedRow; }
         }
 
         // Add mutatieListSelectionListener object to the selection model of the rekening mutatie table
@@ -634,12 +635,11 @@ public class RekeningMutatieFrame {
                     frame.setVisible( false );
                     System.exit( 0 );
                 } else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
-                    RekeningMutatieDialog rekeningMutatieDialog =
-                        new RekeningMutatieDialog( connection,
-                                                   frame,
-                                                   selectedRubriekId,
-                                                   0,
-                                                   selectedRekeningHouderId );
+                    new RekeningMutatieDialog( connection,
+                                               frame,
+                                               selectedRubriekId,
+                                               0,
+                                               selectedRekeningHouderId );
 
                     // Records may have been modified: setup the table model again
                     setupRekeningMutatieTable( );

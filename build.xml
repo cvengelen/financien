@@ -2,7 +2,8 @@
     <description>
         Build financien jar
     </description>
-    <property name="build"     location="../../build"/>
+    <property name="src"       location="src"/>
+    <property name="build"     location="build"/>
     <property name="build.src" location="${build}/src"/>
     <property name="java.libs" location="${user.home}/Java/libs"/>
     <property name="jar"       location="${build}/financien.jar"/>
@@ -18,7 +19,7 @@
 
     <target name="compile" description="compile the source" depends="init">
         <!-- Compile the java code -->
-        <javac srcdir="." destdir="${build.src}"
+        <javac srcdir="${src}" destdir="${build.src}"
                classpath="${java.libs}/table.jar"
                includeAntRuntime="false"
                listfiles="true"/>

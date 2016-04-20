@@ -1,6 +1,10 @@
 // Class to setup a TableModel for all records in rekening_mutatie
 
-package financien.gui;
+package financien.rekeningmutatie;
+
+import financien.gui.DebCredComboBox;
+import financien.gui.RekeningComboBox;
+import financien.gui.RubriekComboBox;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -16,14 +20,14 @@ import java.util.regex.*;
 
 public class RekeningMutatieTableModel extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
-    final Logger logger = Logger.getLogger( "financien.gui.RekeningMutatieTableModel" );
+    private final Logger logger = Logger.getLogger( "financien.rekeningmutatie.RekeningMutatieTableModel" );
 
     private Connection connection;
-    private String[ ] headings = { "Datum", "Rekening", "Rubriek", "Deb/Cred",
-				   "In", "Uit", "Nr", "Jaar", "Maand",
-				   "Omschrijving", "Inleg Aandelen" };
+    private final String[ ] headings = { "Datum", "Rekening", "Rubriek", "Deb/Cred",
+				         "In", "Uit", "Nr", "Jaar", "Maand",
+				         "Omschrijving", "Inleg Aandelen" };
 
-    class RekeningMutatieRecord {
+    private class RekeningMutatieRecord {
 	String  datumString;
 	int     rekeningId;
 	String  rekeningString;
@@ -40,21 +44,21 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
 	String  omschrijvingString;
 	double  inlegAandelen;
 
-	public RekeningMutatieRecord( String  datumString,
-				      int     rekeningId,
-				      String  rekeningString,
-				      int     rekeningTypeId,
-				      int     rubriekId,
-				      String  rubriekString,
-				      int     debCredId,
-				      String  debCredString,
-				      double  mutatieIn,
-				      double  mutatieUit,
-				      int     volgNummer,
-				      int     jaar,
-				      int     maand,
-				      String  omschrijvingString,
-				      double  inlegAandelen ) {
+	RekeningMutatieRecord( String  datumString,
+                               int     rekeningId,
+                               String  rekeningString,
+                               int     rekeningTypeId,
+                               int     rubriekId,
+                               String  rubriekString,
+                               int     debCredId,
+                               String  debCredString,
+                               double  mutatieIn,
+                               double  mutatieUit,
+                               int     volgNummer,
+                               int     jaar,
+                               int     maand,
+                               String  omschrijvingString,
+                               double  inlegAandelen ) {
 	    this.datumString = datumString;
 	    this.rekeningId = rekeningId;
 	    this.rekeningString = rekeningString;
@@ -73,7 +77,7 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
 	}
 
 	// Copy constructor
-	public RekeningMutatieRecord( RekeningMutatieRecord rekeningMutatieRecord ) {
+	RekeningMutatieRecord( RekeningMutatieRecord rekeningMutatieRecord ) {
 	    this.datumString = rekeningMutatieRecord.datumString;
 	    this.rekeningId = rekeningMutatieRecord.rekeningId;
 	    this.rekeningString = rekeningMutatieRecord.rekeningString;
@@ -92,32 +96,32 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
 	}
     }
 
-    ArrayList< RekeningMutatieRecord > rekeningMutatieRecordList = new ArrayList< >( 200 );
+    private final ArrayList< RekeningMutatieRecord > rekeningMutatieRecordList = new ArrayList< >( 200 );
 
-    RekeningComboBox rekeningComboBox;
-    RubriekComboBox  rubriekComboBox;
-    DebCredComboBox  debCredComboBox;
+    private RekeningComboBox rekeningComboBox;
+    private RubriekComboBox rubriekComboBox;
+    private DebCredComboBox debCredComboBox;
 
-    JButton cancelMutatieButton;
-    JButton saveMutatieButton;
+    private JButton cancelMutatieButton;
+    private JButton saveMutatieButton;
 
-    boolean		  rowModified = false;
-    int			  editRow = -1;
-    RekeningMutatieRecord rekeningMutatieRecord = null;
-    RekeningMutatieRecord originalRekeningMutatieRecord = null;
+    private boolean		  rowModified = false;
+    private int			  editRow = -1;
+    private RekeningMutatieRecord rekeningMutatieRecord = null;
+    private RekeningMutatieRecord originalRekeningMutatieRecord = null;
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
-    public double sumMutatieIn;
-    public double sumMutatieOut;
+    double sumMutatieIn;
+    double sumMutatieOut;
 
 
     // Constructor
     public RekeningMutatieTableModel( Connection connection,
-				      JButton    cancelMutatieButton,
-				      JButton    saveMutatieButton ) {
+                                      JButton    cancelMutatieButton,
+                                      JButton    saveMutatieButton ) {
 	this.connection = connection;
 	this.cancelMutatieButton = cancelMutatieButton;
 	this.saveMutatieButton = saveMutatieButton;
@@ -275,8 +279,7 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
     }
 
     public boolean isCellEditable( int row, int column ) {
-	if ( row == editRow ) return true;
-	return false;
+	return ( row == editRow );
     }
 
     public Object getValueAt( int row, int column ) {
@@ -475,7 +478,7 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
 	return rekeningMutatieRecordList.get( row ).rekeningString;
     }
 
-    public int getRekeningTypeId( int row ) {
+    int getRekeningTypeId( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return 0;

@@ -1,6 +1,6 @@
 // frame to show and update records in rekening
 
-package financien.gui;
+package financien.rekening;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -17,42 +17,37 @@ import javax.swing.table.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
+import financien.gui.CurrencyComboBox;
+import financien.gui.RekeningHouderComboBox;
+import financien.gui.RekeningTypeComboBox;
 import table.*;
 
 
-public class RekeningFrame {
-    final private Logger logger = Logger.getLogger( "financien.gui.RekeningFrame" );
+class RekeningFrame {
+    final private Logger logger = Logger.getLogger( RekeningFrame.class.getCanonicalName() );
 
-    Connection connection;
+    private Connection connection;
 
-    final JFrame frame = new JFrame( "Rekening" );
+    private final JFrame frame = new JFrame( "Rekening" );
 
-    JTextField rekeningTextField;
-    JTextField rekeningNummerTextField;
-    RekeningTypeComboBox rekeningTypeComboBox;
-    int selectedRekeningTypeId = 0;
-    CurrencyComboBox currencyComboBox;
-    int selectedCurrencyId = 0;
-    RekeningHouderComboBox rekeningHouderComboBox;
-    int selectedRekeningHouderId;
-    boolean onlyActiveAccounts = true;
+    private JTextField rekeningTextField;
+    private JTextField rekeningNummerTextField;
+    private RekeningTypeComboBox rekeningTypeComboBox;
+    private int selectedRekeningTypeId = 0;
+    private CurrencyComboBox currencyComboBox;
+    private int selectedCurrencyId = 0;
+    private RekeningHouderComboBox rekeningHouderComboBox;
+    private int selectedRekeningHouderId;
+    private boolean onlyActiveAccounts = true;
 
-    RekeningTableModel rekeningTableModel;
-    TableSorter rekeningTableSorter;
-    JTable rekeningTable;
-    final DecimalFormat decimalFormat = new DecimalFormat( "#0.0000;-#" );
-    final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private RekeningTableModel rekeningTableModel;
+    private TableSorter rekeningTableSorter;
+    private JTable rekeningTable;
+    private final DecimalFormat decimalFormat = new DecimalFormat( "#0.0000;-#" );
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
-    public RekeningFrame( final Connection connection ) {
+    RekeningFrame( final Connection connection ) {
         this.connection = connection;
-
-        class TextFilterActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                // Setup the rekening table
-                setupRekeningTableModel( );
-            }
-        }
-        TextFilterActionListener textFilterActionListener = new TextFilterActionListener( );
 
         final Container container = frame.getContentPane( );
 
@@ -70,19 +65,19 @@ public class RekeningFrame {
 
         JPanel rekeningPanel = new JPanel( );
 
+        ActionListener textFilterActionListener = ( ActionEvent actionEvent ) -> setupRekeningTableModel( );
+
         rekeningTextField = new JTextField( 20 );
         rekeningTextField.addActionListener( textFilterActionListener );
         rekeningPanel.add( rekeningTextField );
 
-        class RekeningSelectieActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                onlyActiveAccounts = actionEvent.getActionCommand( ).equals( "onlyActiveAccounts" );
 
-                // Setup the rekening table
-                setupRekeningTableModel( );
-            }
-        }
-        RekeningSelectieActionListener rekeningSelectieActionListener = new RekeningSelectieActionListener( );
+        ActionListener rekeningSelectieActionListener = ( ActionEvent actionEvent ) -> {
+            onlyActiveAccounts = actionEvent.getActionCommand( ).equals( "onlyActiveAccounts" );
+
+            // Setup the rekening table
+            setupRekeningTableModel( );
+        };
 
         JRadioButton onlyActiveAccountsButton = new JRadioButton( "Aktieve rekeningen",
                                                                   onlyActiveAccounts );
@@ -127,17 +122,13 @@ public class RekeningFrame {
 
         // Setup a JComboBox with the results of the query on rekeningType
         rekeningTypeComboBox = new RekeningTypeComboBox( connection, 0 );
+        rekeningTypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected Rekening Type ID
+            selectedRekeningTypeId = rekeningTypeComboBox.getSelectedRekeningTypeId( );
 
-        class RekeningTypeActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                // Get the selected Rekening Type ID
-                selectedRekeningTypeId = rekeningTypeComboBox.getSelectedRekeningTypeId( );
-
-                // Setup the rekening table
-                setupRekeningTableModel( );
-            }
-        }
-        rekeningTypeComboBox.addActionListener( new RekeningTypeActionListener( ) );
+            // Setup the rekening table
+            setupRekeningTableModel( );
+        } );
 
         constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.anchor = GridBagConstraints.WEST;
@@ -151,17 +142,13 @@ public class RekeningFrame {
 
         // Setup a JComboBox with the results of the query on currency
         currencyComboBox = new CurrencyComboBox( connection, 0 );
+        currencyComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected Rekening Type ID
+            selectedCurrencyId = currencyComboBox.getSelectedCurrencyId();
 
-        class CurrencyActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                // Get the selected Rekening Type ID
-                selectedCurrencyId = currencyComboBox.getSelectedCurrencyId();
-
-                // Setup the rekening table
-                setupRekeningTableModel( );
-            }
-        }
-        currencyComboBox.addActionListener( new CurrencyActionListener( ) );
+            // Setup the rekening table
+            setupRekeningTableModel( );
+        } );
 
         constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.anchor = GridBagConstraints.WEST;
@@ -175,17 +162,13 @@ public class RekeningFrame {
 
         // Setup a JComboBox with the results of the query on currency
         rekeningHouderComboBox = new RekeningHouderComboBox( connection, 1 );
+        rekeningHouderComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected Rekeninghouder ID
+            selectedRekeningHouderId = rekeningHouderComboBox.getSelectedRekeningHouderId( );
 
-        class RekeningHouderActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                // Get the selected Rekeninghouder ID
-                selectedRekeningHouderId = rekeningHouderComboBox.getSelectedRekeningHouderId( );
-
-                // Setup the rekening table
-                setupRekeningTableModel( );
-            }
-        }
-        rekeningHouderComboBox.addActionListener( new RekeningHouderActionListener( ) );
+            // Setup the rekening table
+            setupRekeningTableModel( );
+        } );
 
 
         constraints.gridx = GridBagConstraints.RELATIVE;
@@ -257,7 +240,7 @@ public class RekeningFrame {
         final ListSelectionModel rekeningListSelectionModel = rekeningTable.getSelectionModel( );
 
         class RekeningListSelectionListener implements ListSelectionListener {
-            int selectedRow = -1;
+            private int selectedRow = -1;
 
             public void valueChanged( ListSelectionEvent listSelectionEvent ) {
                 // Ignore extra messages.
@@ -318,7 +301,7 @@ public class RekeningFrame {
                 deleteRekeningButton.setEnabled( true );
             }
 
-            public int getSelectedRow ( ) { return selectedRow; }
+            private int getSelectedRow ( ) { return selectedRow; }
         }
 
         // Add rekeningListSelectionListener object to the selection model of the rekening table

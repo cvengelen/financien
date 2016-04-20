@@ -1,31 +1,31 @@
 // Class to setup a TableModel for all records in rekening
 
-package financien.gui;
+package financien.rekening;
+
+import financien.gui.CurrencyComboBox;
+import financien.gui.RekeningTypeComboBox;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.text.*;
 import java.util.*;
 import java.util.logging.*;
-import java.util.regex.*;
 
 
-public class RekeningTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( RekeningTableModel.class.getCanonicalName() );
+class RekeningTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( RekeningTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Rekening", "Nummer", "Type", "Fonds", "Currency",
-                                   "Aktief", "Start Datum", "Start saldo",
-                                   "Laatste update", "Saldo", "Waarde", "Koers" };
+    private final String[ ] headings = { "Id", "Rekening", "Nummer", "Type", "Fonds", "Currency",
+                                         "Aktief", "Start Datum", "Start saldo",
+                                         "Laatste update", "Saldo", "Waarde", "Koers" };
 
-    class RekeningRecord {
+    private class RekeningRecord {
         int	rekeningId;
         String	rekeningString;
         String	rekeningNummerString;
@@ -42,21 +42,21 @@ public class RekeningTableModel extends AbstractTableModel {
         double	waarde;
         double	koers;
 
-        public RekeningRecord( int	rekeningId,
-                               String	rekeningString,
-                               String	rekeningNummerString,
-                               int	rekeningTypeId,
-                               String	rekeningTypeString,
-                               String	fondsString,
-                               int	currencyId,
-                               String	currencyString,
-                               int	aktief,
-                               String	startDatumString,
-                               double	startSaldo,
-                               String	datumString,
-                               double	saldo,
-                               double	waarde,
-                               double	koers ) {
+        RekeningRecord( int	rekeningId,
+                        String	rekeningString,
+                        String	rekeningNummerString,
+                        int	rekeningTypeId,
+                        String	rekeningTypeString,
+                        String	fondsString,
+                        int	currencyId,
+                        String	currencyString,
+                        int	aktief,
+                        String	startDatumString,
+                        double	startSaldo,
+                        String	datumString,
+                        double	saldo,
+                        double	waarde,
+                        double	koers ) {
             this.rekeningId = rekeningId;
             this.rekeningString = rekeningString;
             this.rekeningNummerString = rekeningNummerString;
@@ -75,7 +75,7 @@ public class RekeningTableModel extends AbstractTableModel {
         }
 
         // Copy constructor
-        public RekeningRecord( RekeningRecord rekeningRecord ) {
+        RekeningRecord( RekeningRecord rekeningRecord ) {
             this.rekeningId = rekeningRecord.rekeningId;
             this.rekeningString = rekeningRecord.rekeningString;
             this.rekeningNummerString = rekeningRecord.rekeningNummerString;
@@ -94,7 +94,7 @@ public class RekeningTableModel extends AbstractTableModel {
         }
     }
 
-    ArrayList< RekeningRecord > rekeningRecordList = new ArrayList< >( 40 );
+    private final ArrayList< RekeningRecord > rekeningRecordList = new ArrayList< >( 40 );
 
     // Create rekeningType combo box to get rekening type ID from rekeningType string
     private RekeningTypeComboBox rekeningTypeComboBox;
@@ -102,21 +102,21 @@ public class RekeningTableModel extends AbstractTableModel {
     // Create currency combo box to get currency ID from Currency string
     private CurrencyComboBox currencyComboBox;
 
-    final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
-    JButton cancelRekeningButton;
-    JButton saveRekeningButton;
+    private JButton cancelRekeningButton;
+    private JButton saveRekeningButton;
 
-    boolean	   rowModified = false;
-    int		   editRow = -1;
-    RekeningRecord rekeningRecord = null;
-    RekeningRecord originalRekeningRecord = null;
+    private boolean	   rowModified = false;
+    private int		   editRow = -1;
+    private RekeningRecord rekeningRecord;
+    private RekeningRecord originalRekeningRecord;
 
 
     // Constructor
-    public RekeningTableModel( final Connection connection,
-                               JButton		cancelRekeningButton,
-                               JButton		saveRekeningButton ) {
+    RekeningTableModel( final Connection connection,
+                        JButton          cancelRekeningButton,
+                        JButton          saveRekeningButton ) {
         this.connection = connection;
         this.cancelRekeningButton = cancelRekeningButton;
         this.saveRekeningButton = saveRekeningButton;
@@ -130,12 +130,12 @@ public class RekeningTableModel extends AbstractTableModel {
         setupRekeningTableModel( null, null, 0, 0, 1, true );
     }
 
-    public void setupRekeningTableModel( String rekeningString,
-                                         String rekeningNummerString,
-                                         int rekeningTypeId,
-                                         int currencyId,
-                                         int selectedRekeningHouderId,
-                                         boolean onlyActiveAccounts ) {
+    void setupRekeningTableModel( String rekeningString,
+                                  String rekeningNummerString,
+                                  int rekeningTypeId,
+                                  int currencyId,
+                                  int selectedRekeningHouderId,
+                                  boolean onlyActiveAccounts ) {
         // Setup the table
         try {
             String rekeningQueryString =
@@ -238,12 +238,15 @@ public class RekeningTableModel extends AbstractTableModel {
         }
     }
 
+    @Override
     public int getRowCount( ) { return rekeningRecordList.size( ); }
 
+    @Override
     public int getColumnCount( ) { return 13; }
 
     // Indicate the class for each column for setting the correct default renderer
     // see file:///home/cvengelen/java/tutorial/uiswing/components/table.html
+    @Override
     public Class getColumnClass( int column ) {
         switch ( column ) {
         case 0:
@@ -259,6 +262,7 @@ public class RekeningTableModel extends AbstractTableModel {
         return String.class;
     }
 
+    @Override
     public boolean isCellEditable( int row, int column ) {
         // Only allow editing for the selected edit row
         if ( row != editRow ) return false;
@@ -279,6 +283,7 @@ public class RekeningTableModel extends AbstractTableModel {
         return false;
     }
 
+    @Override
     public Object getValueAt( int row, int column ) {
         if ( ( row < 0 ) || ( row >= rekeningRecordList.size( ) ) ) {
             logger.severe( "Invalid row: " + row );
@@ -304,6 +309,7 @@ public class RekeningTableModel extends AbstractTableModel {
         return "";
     }
 
+    @Override
     public void setValueAt( Object object, int row, int column ) {
         if ( ( row < 0 ) || ( row >= rekeningRecordList.size( ) ) ) {
             logger.severe( "Invalid row: " + row );
@@ -417,15 +423,16 @@ public class RekeningTableModel extends AbstractTableModel {
     }
 
 
+    @Override
     public String getColumnName( int column ) {
         return headings[ column ];
     }
 
 
-    public int getNumberOfRecords( ) { return rekeningRecordList.size( ); }
+    int getNumberOfRecords( ) { return rekeningRecordList.size( ); }
 
 
-    public int getRekeningId( int row ) {
+    int getRekeningId( int row ) {
         if ( ( row < 0 ) || ( row >= rekeningRecordList.size( ) ) ) {
             logger.severe( "Invalid row: " + row );
             return 0;
@@ -435,7 +442,7 @@ public class RekeningTableModel extends AbstractTableModel {
     }
 
 
-    public String getRekeningString( int row ) {
+    String getRekeningString( int row ) {
         if ( ( row < 0 ) || ( row >= rekeningRecordList.size( ) ) ) {
             logger.severe( "Invalid row: " + row );
             return null;
@@ -445,7 +452,7 @@ public class RekeningTableModel extends AbstractTableModel {
     }
 
 
-    public void setEditRow( int editRow ) {
+    void setEditRow( int editRow ) {
         // Initialize record to be edited
         rekeningRecord = rekeningRecordList.get( editRow );
 
@@ -459,11 +466,11 @@ public class RekeningTableModel extends AbstractTableModel {
         this.editRow = editRow;
     }
 
-    public void unsetEditRow( ) {
+    void unsetEditRow( ) {
         this.editRow = -1;
     }
 
-    public void cancelEditRow( int row ) {
+    void cancelEditRow( int row ) {
         // Check if row being canceled equals the row currently being edited
         if ( row != editRow ) return;
 
@@ -487,7 +494,7 @@ public class RekeningTableModel extends AbstractTableModel {
         return additionalUpdateString;
     }
 
-    public void saveEditRow( int row ) {
+    void saveEditRow( int row ) {
         String updateString = null;
 
         // Compare each field with the value in the original record
@@ -603,5 +610,5 @@ public class RekeningTableModel extends AbstractTableModel {
         }
     }
 
-    public boolean getRowModified( ) { return rowModified; }
+    boolean getRowModified( ) { return rowModified; }
 }

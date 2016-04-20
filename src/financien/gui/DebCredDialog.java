@@ -127,9 +127,9 @@ public class DebCredDialog {
         constraints.gridwidth = 1;
 
         ingMededelingenParser = new IngMededelingenParser( mutatieMededelingenString );
-        mutatieMededelingenTextField.setText( ingMededelingenParser.mutatieMededelingenStrippedString );
+        mutatieMededelingenTextField.setText( ingMededelingenParser.getMutatieMededelingenStrippedString() );
 
-	for ( int omschrijvingIndex = 0, gridy = 3; omschrijvingIndex < ingMededelingenParser.nMatches; omschrijvingIndex++, gridy++ ) {
+	for ( int omschrijvingIndex = 0, gridy = 3; omschrijvingIndex < ingMededelingenParser.getNMatches(); omschrijvingIndex++, gridy++ ) {
 	    // Put label on frame for this omschrijving substring
 	    constraints.gridx = 0;
 	    constraints.gridy = gridy;
@@ -139,8 +139,8 @@ public class DebCredDialog {
 	    container.add( new JLabel( "Mutatie mededelingen " + String.valueOf( omschrijvingIndex + 1 ) + ": " ), constraints );
 	    constraints.gridx = GridBagConstraints.RELATIVE;
 	    constraints.gridwidth = 2;
-	    logger.fine( "mutatieMededelingenSubString" + omschrijvingIndex + ":" + ingMededelingenParser.mutatieMededelingenSubString[ omschrijvingIndex ] );
-	    container.add( new JLabel( ingMededelingenParser.mutatieMededelingenSubString[ omschrijvingIndex ] ), constraints );
+	    logger.fine( "mutatieMededelingenSubString" + omschrijvingIndex + ":" + ingMededelingenParser.getMutatieMededelingenSubString(omschrijvingIndex) );
+	    container.add( new JLabel( ingMededelingenParser.getMutatieMededelingenSubString(omschrijvingIndex) ), constraints );
 	}
 
 	constraints.gridx = 0;
@@ -253,28 +253,28 @@ public class DebCredDialog {
 	selectMededelingen1RadioButton = new JRadioButton( "Mutatie mededelingen 1" );
 	selectMededelingen1RadioButton.setMnemonic(KeyEvent.VK_1);
 	selectMededelingen1RadioButton.setActionCommand( "selectMededelingen1" );
-	selectMededelingen1RadioButton.setEnabled( ingMededelingenParser.mutatieMededelingenSubString[ 0 ] != null );
+	selectMededelingen1RadioButton.setEnabled( ingMededelingenParser.getMutatieMededelingenSubString(0) != null );
 	selectButtonConstraints.gridy = 2;
 	selectButtonPanel.add( selectMededelingen1RadioButton, selectButtonConstraints );
 
 	selectMededelingen2RadioButton = new JRadioButton( "Mutatie mededelingen 2" );
 	selectMededelingen2RadioButton.setMnemonic(KeyEvent.VK_2);
 	selectMededelingen2RadioButton.setActionCommand( "selectMededelingen2" );
-	selectMededelingen2RadioButton.setEnabled( ingMededelingenParser.mutatieMededelingenSubString[ 1 ] != null );
+	selectMededelingen2RadioButton.setEnabled( ingMededelingenParser.getMutatieMededelingenSubString(1) != null );
 	selectButtonConstraints.gridy = 3;
 	selectButtonPanel.add( selectMededelingen2RadioButton, selectButtonConstraints );
 
 	selectMededelingen3RadioButton = new JRadioButton( "Mutatie mededelingen 3" );
 	selectMededelingen3RadioButton.setMnemonic(KeyEvent.VK_3);
 	selectMededelingen3RadioButton.setActionCommand( "selectMededelingen3" );
-	selectMededelingen3RadioButton.setEnabled( ingMededelingenParser.mutatieMededelingenSubString[ 2 ] != null );
+	selectMededelingen3RadioButton.setEnabled( ingMededelingenParser.getMutatieMededelingenSubString(2) != null );
 	selectButtonConstraints.gridy = 4;
 	selectButtonPanel.add( selectMededelingen3RadioButton, selectButtonConstraints );
 
 	selectMededelingen4RadioButton = new JRadioButton( "Mutatie mededelingen 4" );
 	selectMededelingen4RadioButton.setMnemonic(KeyEvent.VK_4);
 	selectMededelingen4RadioButton.setActionCommand( "selectMededelingen4" );
-	selectMededelingen4RadioButton.setEnabled( ingMededelingenParser.mutatieMededelingenSubString[ 3 ] != null );
+	selectMededelingen4RadioButton.setEnabled( ingMededelingenParser.getMutatieMededelingenSubString(3) != null );
 	selectButtonConstraints.gridy = 5;
 	selectButtonPanel.add( selectMededelingen4RadioButton, selectButtonConstraints );
 
@@ -450,16 +450,16 @@ public class DebCredDialog {
 	    insertDebCredString = selectSearchMededelingenTextField.getText( );
         } else if ( selectMededelingen1RadioButton.isSelected( ) ) {
             insertOmschrijvingNr = 1;
-            insertDebCredString = ingMededelingenParser.mutatieMededelingenSubString[ 0 ];
+            insertDebCredString = ingMededelingenParser.getMutatieMededelingenSubString(0);
 	} else if ( selectMededelingen2RadioButton.isSelected( ) ) {
 	    insertOmschrijvingNr = 2;
-	    insertDebCredString = ingMededelingenParser.mutatieMededelingenSubString[ 1 ];
+	    insertDebCredString = ingMededelingenParser.getMutatieMededelingenSubString(1);
 	} else if ( selectMededelingen3RadioButton.isSelected( ) ) {
 	    insertOmschrijvingNr = 3;
-	    insertDebCredString = ingMededelingenParser.mutatieMededelingenSubString[ 2 ];
+	    insertDebCredString = ingMededelingenParser.getMutatieMededelingenSubString(2);
 	} else if ( selectMededelingen4RadioButton.isSelected( ) ) {
 	    insertOmschrijvingNr = 4;
-	    insertDebCredString = ingMededelingenParser.mutatieMededelingenSubString[ 3 ];
+	    insertDebCredString = ingMededelingenParser.getMutatieMededelingenSubString(3);
 	}
 
 	insertString += " omschrijving_nr = " + insertOmschrijvingNr;
@@ -534,16 +534,16 @@ public class DebCredDialog {
 	    updateDebCredString = selectSearchMededelingenTextField.getText( );
         } else if ( selectMededelingen1RadioButton.isSelected( ) ) {
             updateOmschrijvingNr = 1;
-            updateDebCredString = ingMededelingenParser.mutatieMededelingenSubString[ 0 ];
+            updateDebCredString = ingMededelingenParser.getMutatieMededelingenSubString(0);
 	} else if ( selectMededelingen2RadioButton.isSelected( ) ) {
 	    updateOmschrijvingNr = 2;
-	    updateDebCredString = ingMededelingenParser.mutatieMededelingenSubString[ 1 ];
+	    updateDebCredString = ingMededelingenParser.getMutatieMededelingenSubString(1);
 	} else if ( selectMededelingen3RadioButton.isSelected( ) ) {
 	    updateOmschrijvingNr = 3;
-	    updateDebCredString = ingMededelingenParser.mutatieMededelingenSubString[ 2 ];
+	    updateDebCredString = ingMededelingenParser.getMutatieMededelingenSubString(2);
 	} else if ( selectMededelingen4RadioButton.isSelected( ) ) {
 	    updateOmschrijvingNr = 4;
-	    updateDebCredString = ingMededelingenParser.mutatieMededelingenSubString[ 3 ];
+	    updateDebCredString = ingMededelingenParser.getMutatieMededelingenSubString(3);
 	}
 
 	int result = JOptionPane.showConfirmDialog( dialog,
