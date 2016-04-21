@@ -1,6 +1,6 @@
 // frame to inspect waarde for all dates for a specific rekening
 
-package financien.gui;
+package financien.waarderekening;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -16,42 +16,44 @@ import javax.swing.*;
 import javax.swing.table.*;
 import javax.swing.border.*;
 
+import financien.gui.RekeningComboBox;
+import financien.gui.RekeningHouderComboBox;
 import table.*;
 
 
-public class WaardeRekeningFrame {
-    final private Logger logger = Logger.getLogger( WaardeRekeningFrame.class.getCanonicalName( ) );
+class WaardeRekeningFrame {
+    private final Logger logger = Logger.getLogger( WaardeRekeningFrame.class.getCanonicalName( ) );
 
-    Connection connection;
+    private Connection connection;
 
-    final JFrame frame = new JFrame( "Waarde geselecteerde rekening" );
+    private final JFrame frame = new JFrame( "Waarde geselecteerde rekening" );
 
-    WaardeRekeningTableModel waardeRekeningTableModel;
-    TableSorter waardeRekeningTableSorter;
-    JTable waardeRekeningTable;
+    private WaardeRekeningTableModel waardeRekeningTableModel;
+    private TableSorter waardeRekeningTableSorter;
+    private JTable waardeRekeningTable;
 
-    RekeningHouderComboBox rekeningHouderComboBox;
-    int selectedRekeningHouderId = 1;
+    private RekeningHouderComboBox rekeningHouderComboBox;
+    private int selectedRekeningHouderId = 1;
 
-    RekeningComboBox rekeningComboBox;
-    int selectedRekeningId = 0;
+    private RekeningComboBox rekeningComboBox;
+    private int selectedRekeningId = 0;
 
-    final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
-    final String euroDatumString = "2002-01-01";
-    final String euroKoersenDatumString = "1999-01-01";
-    Date euroDatumDate;
-    Date euroKoersenDatumDate;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private final String euroDatumString = "2002-01-01";
+    private final String euroKoersenDatumString = "1999-01-01";
+    private Date euroDatumDate;
+    private Date euroKoersenDatumDate;
 
-    int rekeningCurrencyId = 0;
-    DecimalFormat rekeningDecimalFormat;
+    private int rekeningCurrencyId = 0;
+    private DecimalFormat rekeningDecimalFormat;
 
-    final DecimalFormat euroDecimalFormat    = new DecimalFormat( "EUR #0.00;EUR -#" );
-    final DecimalFormat nlgDecimalFormat     = new DecimalFormat( "NLG #0.00;NLG -#" );
-    final DecimalFormat usdDecimalFormat     = new DecimalFormat( "USD #0.00;USD -#" );
-    final DecimalFormat percentDecimalFormat = new DecimalFormat( "% #0.00;% -#" );
+    private final DecimalFormat euroDecimalFormat    = new DecimalFormat( "EUR #0.00;EUR -#" );
+    private final DecimalFormat nlgDecimalFormat     = new DecimalFormat( "NLG #0.00;NLG -#" );
+    private final DecimalFormat usdDecimalFormat     = new DecimalFormat( "USD #0.00;USD -#" );
+    private final DecimalFormat percentDecimalFormat = new DecimalFormat( "% #0.00;% -#" );
 
 
-    public WaardeRekeningFrame( final Connection connection ) {
+    WaardeRekeningFrame( final Connection connection ) {
 	this.connection = connection;
 
 	// Get date from datum string objects
@@ -84,16 +86,10 @@ public class WaardeRekeningFrame {
         rekeningHouderComboBox = new RekeningHouderComboBox( connection, 1 );
         rekeningPanel.add( rekeningHouderComboBox );
 
-
-        class RekeningSelectieActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                rekeningComboBox.setupRekeningComboBox( selectedRekeningId,
-                        1,
-                        actionEvent.getActionCommand( ).equals( "onlyActiveAccounts" ) );
-            }
-        }
-        RekeningSelectieActionListener rekeningSelectieActionListener = new RekeningSelectieActionListener( );
-
+        ActionListener rekeningSelectieActionListener =
+                ( ActionEvent actionEvent ) -> rekeningComboBox.setupRekeningComboBox( selectedRekeningId,
+                                                                                       1,
+                                                                                        actionEvent.getActionCommand( ).equals( "onlyActiveAccounts" ) );
 
         final JRadioButton onlyActiveAccountsButton = new JRadioButton( "Alleen aktieve rekeningen", true );
         onlyActiveAccountsButton.setActionCommand( "onlyActiveAccounts" );
@@ -116,28 +112,24 @@ public class WaardeRekeningFrame {
 
 
         // Rekeninghouder actie listener, na declaratie van onlyActiveAccountsButton
-        class RekeningHouderActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                // Controleer of de rekeninghouder gewijzigd is
-                if ( rekeningHouderComboBox.getSelectedRekeningHouderId( ) != selectedRekeningHouderId ) {
-                    // Get the selected Rekeninghouder ID
-                    selectedRekeningHouderId = rekeningHouderComboBox.getSelectedRekeningHouderId();
+        rekeningHouderComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Controleer of de rekeninghouder gewijzigd is
+            if ( rekeningHouderComboBox.getSelectedRekeningHouderId( ) != selectedRekeningHouderId ) {
+                // Get the selected Rekeninghouder ID
+                selectedRekeningHouderId = rekeningHouderComboBox.getSelectedRekeningHouderId();
 
-                    // Reset de geselecteerde rekening
-                    selectedRekeningId = 0;
+                // Reset de geselecteerde rekening
+                selectedRekeningId = 0;
 
-                    // Setup the rekening combobox
-                    rekeningComboBox.setupRekeningComboBox( selectedRekeningId,
-                            selectedRekeningHouderId,
-                            onlyActiveAccountsButton.isSelected() );
+                // Setup the rekening combobox
+                rekeningComboBox.setupRekeningComboBox( selectedRekeningId,
+                                                        selectedRekeningHouderId,
+                                                        onlyActiveAccountsButton.isSelected() );
 
-                    // Setup the waarde table for the selected rekening
-                    setupWaardeRekeningTable( selectedRekeningId );
-                }
+                // Setup the waarde table for the selected rekening
+                setupWaardeRekeningTable( selectedRekeningId );
             }
-        }
-        rekeningHouderComboBox.addActionListener( new RekeningHouderActionListener() );
-
+        } );
 
         // Setup a JComboBox with the rekening
 	rekeningComboBox = new RekeningComboBox( connection, selectedRekeningId, 1, true );

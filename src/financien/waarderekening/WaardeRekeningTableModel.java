@@ -1,30 +1,26 @@
 // Class to setup a TableModel for all records in waarde for a specific rekening
 
-package financien.gui;
+package financien.waarderekening;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
 import javax.swing.table.*;
-import java.text.*;
 import java.util.*;
 import java.util.logging.*;
 
 
-public class WaardeRekeningTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "financien.gui.WaardeRekeningTableModel" );
+class WaardeRekeningTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( WaardeRekeningTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Datum", "Saldo", "Koers", "Waarde",
-				   "Inleg", "Waarde-Inleg", "Rendement" };
+    private final String[ ] headings = { "Datum", "Saldo", "Koers", "Waarde",
+				         "Inleg", "Waarde-Inleg", "Rendement" };
 
     // Class to store record in table model
-    class WaardeRekeningRecord {
+    private class WaardeRekeningRecord {
 	String  datumString;
 	Double  saldo;
 	Double  koers;
@@ -32,13 +28,13 @@ public class WaardeRekeningTableModel extends AbstractTableModel {
 	Double  inleg;
 	Double  waardeMinusInleg;
 	Double  rendement;
-	public WaardeRekeningRecord( String datumString,
-				     Double saldo,
-				     Double koers,
-				     Double waarde,
-				     Double inleg,
-				     Double waardeMinusInleg,
-				     Double rendement ) {
+	WaardeRekeningRecord( String datumString,
+                              Double saldo,
+                              Double koers,
+                              Double waarde,
+                              Double inleg,
+                              Double waardeMinusInleg,
+                              Double rendement ) {
 	    this.datumString = datumString;
 	    this.saldo = saldo;
 	    this.koers = koers;
@@ -49,18 +45,14 @@ public class WaardeRekeningTableModel extends AbstractTableModel {
 	}
     }
 
-    ArrayList waardeRekeningRecordList = new ArrayList( 200 );
-
-    private int rekeningId = 0;
-
+    private final ArrayList<WaardeRekeningRecord> waardeRekeningRecordList = new ArrayList<>( 200 );
 
     // Constructor
-    public WaardeRekeningTableModel( Connection connection ) {
+    WaardeRekeningTableModel( Connection connection ) {
 	this.connection = connection;
     }
 
-    public void setupWaardeRekeningTableModel( int rekeningId ) {
-	this.rekeningId = rekeningId;
+    void setupWaardeRekeningTableModel( int rekeningId ) {
 
 	// Setup the table for the specified rekeningId
 	try {
@@ -79,12 +71,12 @@ public class WaardeRekeningTableModel extends AbstractTableModel {
 	    // Add all query results to the list
 	    while ( resultSet.next( ) ) {
 		waardeRekeningRecordList.add( new WaardeRekeningRecord( resultSet.getString( 1 ),
-									new Double( resultSet.getDouble( 2 ) ),
-									new Double( resultSet.getDouble( 3 ) ),
-									new Double( resultSet.getDouble( 4 ) ),
-									new Double( resultSet.getDouble( 5 ) ),
-									new Double( resultSet.getDouble( 6 ) ),
-									new Double( resultSet.getDouble( 7 ) ) ) );
+									resultSet.getDouble( 2 ),
+									resultSet.getDouble( 3 ),
+									resultSet.getDouble( 4 ),
+									resultSet.getDouble( 5 ),
+									resultSet.getDouble( 6 ),
+									resultSet.getDouble( 7 ) ) );
 	    }
 
 	    waardeRekeningRecordList.trimToSize( );
@@ -122,8 +114,7 @@ public class WaardeRekeningTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final WaardeRekeningRecord waardeRekeningRecord =
-	    ( WaardeRekeningRecord )waardeRekeningRecordList.get( row );
+	final WaardeRekeningRecord waardeRekeningRecord = waardeRekeningRecordList.get( row );
 
 	if ( column == 0 ) return waardeRekeningRecord.datumString;
 	if ( column == 1 ) return waardeRekeningRecord.saldo;
@@ -140,13 +131,11 @@ public class WaardeRekeningTableModel extends AbstractTableModel {
 	if ( ( row < 0 ) || ( row >= waardeRekeningRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	}
-
-	return;
     }
 
     public String getColumnName( int column ) {
 	return headings[ column ];
     }
 
-    public int getNumberOfRecords( ) { return waardeRekeningRecordList.size( ); }
+    int getNumberOfRecords( ) { return waardeRekeningRecordList.size( ); }
 }

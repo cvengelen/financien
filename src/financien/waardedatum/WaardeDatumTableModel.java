@@ -1,6 +1,6 @@
 // Class to setup a TableModel for all records in waarde for a specific date
 
-package financien.gui;
+package financien.waardedatum;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,16 +12,16 @@ import java.util.*;
 import java.util.logging.*;
 
 
-public class WaardeDatumTableModel extends AbstractTableModel {
+class WaardeDatumTableModel extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
-    private final Logger logger = Logger.getLogger( "financien.gui.WaardeDatumTableModel" );
+    private final Logger logger = Logger.getLogger( "financien.waardedatum.WaardeDatumTableModel" );
 
     private final Connection connection;
     private final String[] headings = { "Rekening", "Type", "Saldo", "Koers", "Waarde",
             "Inleg", "Waarde-Inleg", "R. direct", "R. som", "Jaren som", "R. som/jaar", "R. 20150101/jaar" };
 
     // Class to store record in table model
-    class WaardeDatumRecord {
+    private class WaardeDatumRecord {
         int rekeningId;
         String rekeningString;
         int currencyId;
@@ -37,20 +37,20 @@ public class WaardeDatumTableModel extends AbstractTableModel {
         Double rendementPerJaar;
         Double rendementComparePerJaar;
 
-        public WaardeDatumRecord( int rekeningId,
-                                  String rekeningString,
-                                  int currencyId,
-                                  Integer rekeningTypeIdInteger,
-                                  Double saldo,
-                                  Double koers,
-                                  Double waarde,
-                                  Double inleg,
-                                  Double waardeMinusInleg,
-                                  Double rendement,
-                                  Double rendementTotaal,
-                                  Double aantalJaren,
-                                  Double rendementPerJaar,
-                                  Double rendementComparePerJaar ) {
+        WaardeDatumRecord( int rekeningId,
+                           String rekeningString,
+                           int currencyId,
+                           Integer rekeningTypeIdInteger,
+                           Double saldo,
+                           Double koers,
+                           Double waarde,
+                           Double inleg,
+                           Double waardeMinusInleg,
+                           Double rendement,
+                           Double rendementTotaal,
+                           Double aantalJaren,
+                           Double rendementPerJaar,
+                           Double rendementComparePerJaar ) {
             this.rekeningId = rekeningId;
             this.rekeningString = rekeningString;
             this.currencyId = currencyId;
@@ -68,14 +68,14 @@ public class WaardeDatumTableModel extends AbstractTableModel {
         }
     }
 
-    private ArrayList< WaardeDatumRecord > waardeDatumRecordList = new ArrayList< WaardeDatumRecord >( 100 );
+    private final ArrayList< WaardeDatumRecord > waardeDatumRecordList = new ArrayList< >( 100 );
 
     // Constructor
-    public WaardeDatumTableModel( Connection connection ) {
+    WaardeDatumTableModel( Connection connection ) {
         this.connection = connection;
     }
 
-    public void setupWaardeDatumTableModel( String datumString ) {
+    void setupWaardeDatumTableModel( String datumString ) {
 
         // Setup the table for the specified date
         try {
@@ -99,17 +99,17 @@ public class WaardeDatumTableModel extends AbstractTableModel {
                 waardeDatumRecordList.add( new WaardeDatumRecord( resultSet.getInt( 1 ),
                         resultSet.getString( 2 ),
                         resultSet.getInt( 3 ),
-                        new Integer( resultSet.getInt( 4 ) ),
-                        new Double( resultSet.getDouble( 5 ) ),
-                        new Double( resultSet.getDouble( 6 ) ),
-                        new Double( resultSet.getDouble( 7 ) ),
-                        new Double( resultSet.getDouble( 8 ) ),
-                        new Double( resultSet.getDouble( 9 ) ),
-                        new Double( resultSet.getDouble( 10 ) ),
-                        new Double( resultSet.getDouble( 11 ) ),
-                        new Double( resultSet.getDouble( 12 ) ),
-                        new Double( resultSet.getDouble( 13 ) ),
-                        new Double( resultSet.getDouble( 14 ) ) ) );
+                        resultSet.getInt( 4 ),
+                        resultSet.getDouble( 5 ),
+                        resultSet.getDouble( 6 ),
+                        resultSet.getDouble( 7 ),
+                        resultSet.getDouble( 8 ),
+                        resultSet.getDouble( 9 ),
+                        resultSet.getDouble( 10 ),
+                        resultSet.getDouble( 11 ),
+                        resultSet.getDouble( 12 ),
+                        resultSet.getDouble( 13 ),
+                        resultSet.getDouble( 14 ) ) );
             }
 
             waardeDatumRecordList.trimToSize( );
@@ -179,11 +179,11 @@ public class WaardeDatumTableModel extends AbstractTableModel {
         return headings[ column ];
     }
 
-    public int getNumberOfRecords( ) {
+    int getNumberOfRecords( ) {
         return waardeDatumRecordList.size( );
     }
 
-    public int getCurrencyId( int row ) {
+    int getCurrencyId( int row ) {
         if ( ( row < 0 ) || ( row >= waardeDatumRecordList.size( ) ) ) {
             logger.severe( "Invalid row: " + row );
         }

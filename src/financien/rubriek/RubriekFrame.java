@@ -183,7 +183,7 @@ class RubriekFrame {
 		deleteRubriekButton.setEnabled( true );
 	    }
 
-	    private int getSelectedRow ( ) { return selectedRow; }
+	    int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add rubriekListSelectionListener object to the selection model of the rubriek table

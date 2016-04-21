@@ -1,6 +1,6 @@
 // frame to inspect waarde for all rekeningen for a specific date
 
-package financien.gui;
+package financien.waardedatum;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,10 +18,11 @@ import javax.swing.*;
 import javax.swing.table.*;
 import javax.swing.border.*;
 
+import financien.gui.WaardeDatumComboBox;
 import table.*;
 
-public class WaardeDatumFrame {
-    final private Logger logger = Logger.getLogger( "financien.gui.WaardeDatumFrame" );
+class WaardeDatumFrame {
+    final private Logger logger = Logger.getLogger( WaardeDatumFrame.class.getCanonicalName() );
 
     private final Connection connection;
 
@@ -64,7 +65,7 @@ public class WaardeDatumFrame {
 
     private final long milliSecondsPerDay = 24 * 60 * 60 * 1000;
 
-    public WaardeDatumFrame( final Connection connection ) {
+    WaardeDatumFrame( final Connection connection ) {
         this.connection = connection;
 
         // Do not allow incorrect dates (e.g., day>31)
@@ -102,22 +103,19 @@ public class WaardeDatumFrame {
         constraints.insets = new Insets( 10, 5, 5, 450 );
         container.add( waardeDatumComboBox, constraints );
 
-        class WaardeDatumActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                // Get the selected waarde datum
-                selectedWaardeDatumString = waardeDatumComboBox.getSelectedWaardeDatumString( );
+        waardeDatumComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected waarde datum
+            selectedWaardeDatumString = waardeDatumComboBox.getSelectedWaardeDatumString( );
 
-                // Check if rekening has been selected
-                if ( ( selectedWaardeDatumString == null ) ||
-                        ( selectedWaardeDatumString.length( ) == 0 ) ) {
-                    return;
-                }
-
-                // Setup the totaal fields and waarde table for the specified date
-                setupWaardeDatumTable( selectedWaardeDatumString );
+            // Check if rekening has been selected
+            if ( ( selectedWaardeDatumString == null ) ||
+                    ( selectedWaardeDatumString.length( ) == 0 ) ) {
+                return;
             }
-        }
-        waardeDatumComboBox.addActionListener( new WaardeDatumActionListener( ) );
+
+            // Setup the totaal fields and waarde table for the specified date
+            setupWaardeDatumTable( selectedWaardeDatumString );
+        } );
 
 
         // Get the values for rekening_type, rekening_pattern, and rekening_totaal_field for all
@@ -833,7 +831,7 @@ public class WaardeDatumFrame {
                                         " WHERE rekening_id = " + rekeningId + " AND datum = '2015-01-01'" );
                         double compareWaardeTotaal = 0L;
                         if ( waardeCompareResultSet.next( ) ) compareWaardeTotaal = waardeCompareResultSet.getDouble( 1 );
-                        gregorianCalendar.set( 2015, 0, 1 );
+                        gregorianCalendar.set( 2015, Calendar.JANUARY, 1 );
                         Date compareDate = gregorianCalendar.getTime();
                         long compareTime = gregorianCalendar.getTimeInMillis( );
                         long diffCompareTimeDays = ( waardeDatumTime - compareTime ) / milliSecondsPerDay;

@@ -1,6 +1,6 @@
 // Main program to inspect table waarde for a selected date
 
-package financien;
+package financien.waardedatum;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -8,11 +8,9 @@ import java.sql.SQLException;
 
 import java.util.logging.*;
 
-import financien.gui.WaardeDatumFrame;
-
 public class WaardeDatum {
     public static void main( String[ ] args ) {
-	final Logger logger = Logger.getLogger( "financien.WaardeDatum" );
+	final Logger logger = Logger.getLogger( WaardeDatum.class.getCanonicalName() );
 
         try {
             // The newInstance() call is a work around for some broken Java implementations
