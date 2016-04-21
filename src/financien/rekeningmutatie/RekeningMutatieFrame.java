@@ -24,7 +24,7 @@ import table.*;
 
 
 class RekeningMutatieFrame {
-    final private Logger logger = Logger.getLogger( RekeningMutatieFrame.class.getCanonicalName( ) );
+    private final Logger logger = Logger.getLogger( RekeningMutatieFrame.class.getCanonicalName( ) );
 
     private Connection connection;
 
@@ -837,9 +837,9 @@ class RekeningMutatieFrame {
         rekeningMutatieTable.getColumnModel( ).getColumn( 3 ).setCellEditor( debCredDefaultCellEditor );
 
         DecimalFormat sumMutatieDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
-        sumMutatieInLabel.setText( sumMutatieDecimalFormat.format( rekeningMutatieTableModel.sumMutatieIn ) );
-        sumMutatieOutLabel.setText( sumMutatieDecimalFormat.format( rekeningMutatieTableModel.sumMutatieOut ) );
-        double saldo = rekeningMutatieTableModel.sumMutatieIn - rekeningMutatieTableModel.sumMutatieOut;
+        sumMutatieInLabel.setText( sumMutatieDecimalFormat.format( rekeningMutatieTableModel.getSumMutatieIn() ) );
+        sumMutatieOutLabel.setText( sumMutatieDecimalFormat.format( rekeningMutatieTableModel.getSumMutatieOut() ) );
+        double saldo = rekeningMutatieTableModel.getSumMutatieIn() - rekeningMutatieTableModel.getSumMutatieOut();
         sumMutatieSaldoLabel.setText( sumMutatieDecimalFormat.format( saldo ) );
     }
 

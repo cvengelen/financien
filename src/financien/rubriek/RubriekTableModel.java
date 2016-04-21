@@ -1,6 +1,9 @@
 // Class to setup a TableModel for all records in rubriek
 
-package financien.gui;
+package financien.rubriek;
+
+import financien.gui.DebCredComboBox;
+import financien.gui.GroepComboBox;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -14,13 +17,13 @@ import java.util.logging.*;
 import java.util.regex.*;
 
 
-public class RubriekTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( RubriekTableModel.class.getCanonicalName( ) );
+class RubriekTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( RubriekTableModel.class.getCanonicalName( ) );
 
     private Connection connection;
     private String[ ] headings = { "Id", "Rubriek", "Omschrijving", "Groep", "Deb/Cred" };
 
-    class RubriekRecord {
+    private class RubriekRecord {
 	int	rubriekId;
 	String  rubriekString;
 	String  omschrijvingString;
@@ -28,13 +31,14 @@ public class RubriekTableModel extends AbstractTableModel {
 	String  groepString;
 	int	debCredId;
 	String  debCredString;
-	public RubriekRecord( int    rubriekId,
-			      String rubriekString,
-			      String omschrijvingString,
-			      int    groepId,
-			      String groepString,
-			      int    debCredId,
-			      String debCredString ) {
+
+	RubriekRecord( int    rubriekId,
+                       String rubriekString,
+                       String omschrijvingString,
+                       int    groepId,
+                       String groepString,
+                       int    debCredId,
+                       String debCredString ) {
 	    this.rubriekId = rubriekId;
 	    this.rubriekString = rubriekString;
 	    this.omschrijvingString = omschrijvingString;
@@ -45,7 +49,7 @@ public class RubriekTableModel extends AbstractTableModel {
 	}
 
 	// Copy constructor
-	public RubriekRecord( RubriekRecord rubriekRecord ) {
+	RubriekRecord( RubriekRecord rubriekRecord ) {
 	    this.rubriekId = rubriekRecord.rubriekId;
 	    this.rubriekString = rubriekRecord.rubriekString;
 	    this.omschrijvingString = rubriekRecord.omschrijvingString;
@@ -56,9 +60,9 @@ public class RubriekTableModel extends AbstractTableModel {
 	}
     }
 
-    ArrayList< RubriekRecord > rubriekRecordList = new ArrayList< >( 200 );
+    private final ArrayList< RubriekRecord > rubriekRecordList = new ArrayList< >( 200 );
 
-    JFrame frame = null;
+    private JFrame frame;
 
     // Create groep combo box to get groe ID from groep string
     private GroepComboBox groepComboBox;
@@ -68,22 +72,22 @@ public class RubriekTableModel extends AbstractTableModel {
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
-    JButton cancelRubriekButton;
-    JButton saveRubriekButton;
+    private JButton cancelRubriekButton;
+    private JButton saveRubriekButton;
 
-    boolean	   rowModified = false;
-    int		   editRow = -1;
-    RubriekRecord rubriekRecord = null;
-    RubriekRecord originalRubriekRecord = null;
+    private boolean       rowModified = false;
+    private int	          editRow = -1;
+    private RubriekRecord rubriekRecord = null;
+    private RubriekRecord originalRubriekRecord = null;
 
 
     // Constructor
-    public RubriekTableModel( final Connection	connection,
-			      final JFrame	frame,
-			      final JButton	cancelRubriekButton,
-			      final JButton	saveRubriekButton ) {
+    RubriekTableModel( final Connection	connection,
+                       final JFrame	frame,
+                       final JButton	cancelRubriekButton,
+                       final JButton	saveRubriekButton ) {
 	this.connection = connection;
 	this.frame = frame;
 	this.cancelRubriekButton = cancelRubriekButton;
@@ -96,7 +100,7 @@ public class RubriekTableModel extends AbstractTableModel {
 	setupRubriekTableModel( null );
     }
 
-    public void setupRubriekTableModel( String rubriekFilterString ) {
+    void setupRubriekTableModel( String rubriekFilterString ) {
 	// Setup the table for the specified groep
 	try {
 	    String rubriekQueryString =
@@ -250,7 +254,6 @@ public class RubriekTableModel extends AbstractTableModel {
 	// Store record in list
 	rubriekRecordList.set( row, rubriekRecord );
 
-
 	if ( rowModified ) {
 	    // Enable cancel and save buttons
 	    cancelRubriekButton.setEnabled( true );
@@ -260,16 +263,13 @@ public class RubriekTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-
     public String getColumnName( int column ) {
 	return headings[ column ];
     }
 
+    int getNumberOfRecords( ) { return rubriekRecordList.size( ); }
 
-    public int getNumberOfRecords( ) { return rubriekRecordList.size( ); }
-
-
-    public int getRubriekId( int row ) {
+    int getRubriekId( int row ) {
 	if ( ( row < 0 ) || ( row >= rubriekRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return 0;
@@ -278,8 +278,7 @@ public class RubriekTableModel extends AbstractTableModel {
 	return ( rubriekRecordList.get( row ) ).rubriekId;
     }
 
-
-    public String getRubriekString( int row ) {
+    String getRubriekString( int row ) {
 	if ( ( row < 0 ) || ( row >= rubriekRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
@@ -288,10 +287,9 @@ public class RubriekTableModel extends AbstractTableModel {
 	return ( rubriekRecordList.get( row ) ).rubriekString;
     }
 
-
-    public void setEditRow( int editRow ) {
+    void setEditRow( int editRow ) {
 	// Initialize record to be edited
-	rubriekRecord = ( RubriekRecord )rubriekRecordList.get( editRow );
+	rubriekRecord = rubriekRecordList.get( editRow );
 
 	// Copy record to use as key in table update
 	originalRubriekRecord = new RubriekRecord( rubriekRecord );
@@ -303,11 +301,11 @@ public class RubriekTableModel extends AbstractTableModel {
 	this.editRow = editRow;
     }
 
-    public void unsetEditRow( ) {
+    void unsetEditRow( ) {
 	this.editRow = -1;
     }
 
-    public void cancelEditRow( int row ) {
+    void cancelEditRow( int row ) {
 	// Check if row being canceled equals the row currently being edited
 	if ( row != editRow ) return;
 
@@ -331,7 +329,7 @@ public class RubriekTableModel extends AbstractTableModel {
 	return additionalUpdateString;
     }
 
-    public boolean saveEditRow( int row ) {
+    boolean saveEditRow( int row ) {
 	String updateString = null;
 
 	// Compare each field with the value in the original record
@@ -480,5 +478,5 @@ public class RubriekTableModel extends AbstractTableModel {
 	}
     }
 
-    public boolean getRowModified( ) { return rowModified; }
+    boolean getRowModified( ) { return rowModified; }
 }

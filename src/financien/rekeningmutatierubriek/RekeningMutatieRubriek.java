@@ -1,6 +1,6 @@
-// Main program to show and update records in rubriek
+// Main program to show rekening_mutatie records for a specific rubriek
 
-package financien;
+package financien.rekeningmutatierubriek;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -8,11 +8,9 @@ import java.sql.SQLException;
 
 import java.util.logging.*;
 
-import financien.gui.RubriekFrame;
-
-public class Rubriek {
+public class RekeningMutatieRubriek {
     public static void main( String[ ] args ) {
-	final Logger logger = Logger.getLogger( "financien.Rubriek" );
+	final Logger logger = Logger.getLogger( RekeningMutatieRubriek.class.getCanonicalName() );
 
         try {
             // The newInstance() call is a work around for some broken Java implementations
@@ -27,7 +25,7 @@ public class Rubriek {
 	try {
             logger.info( "Opening db connection" );
             connection = DriverManager.getConnection( "jdbc:mysql://localhost/financien?user=cvengelen&password=cve123" );
-	    RubriekFrame RubriekFrame = new RubriekFrame( connection );
+	    RekeningMutatieRubriekFrame RekeningMutatieRubriekFrame = new RekeningMutatieRubriekFrame( connection );
 	} catch ( SQLException sqlException ) {
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
         }

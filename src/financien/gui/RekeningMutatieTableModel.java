@@ -1,6 +1,6 @@
 // Class to setup a TableModel for all records in rekening_mutatie
 
-package financien.rekeningmutatie;
+package financien.gui;
 
 import financien.gui.DebCredComboBox;
 import financien.gui.RekeningComboBox;
@@ -20,7 +20,7 @@ import java.util.regex.*;
 
 public class RekeningMutatieTableModel extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
-    private final Logger logger = Logger.getLogger( "financien.rekeningmutatie.RekeningMutatieTableModel" );
+    private final Logger logger = Logger.getLogger( "financien.gui.RekeningMutatieTableModel" );
 
     private Connection connection;
     private final String[ ] headings = { "Datum", "Rekening", "Rubriek", "Deb/Cred",
@@ -114,8 +114,8 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
     // with escaped quote (the double slashes are really necessary)
     private final Pattern quotePattern = Pattern.compile( "\\'" );
 
-    double sumMutatieIn;
-    double sumMutatieOut;
+    private double sumMutatieIn;
+    private double sumMutatieOut;
 
 
     // Constructor
@@ -478,7 +478,7 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
 	return rekeningMutatieRecordList.get( row ).rekeningString;
     }
 
-    int getRekeningTypeId( int row ) {
+    public int getRekeningTypeId( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return 0;
@@ -677,4 +677,8 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
     }
 
     public boolean getRowModified( ) { return rowModified; }
+
+    public double getSumMutatieIn() { return sumMutatieIn; }
+
+    public double getSumMutatieOut() { return sumMutatieOut; }
 }

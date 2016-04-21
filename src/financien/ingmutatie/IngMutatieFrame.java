@@ -20,7 +20,7 @@ import javax.swing.event.*;
 
 import financien.gui.DebCredDialog;
 import financien.gui.IngMededelingenParser;
-import financien.rekeningmutatie.RekeningMutatieTableModel;
+import financien.gui.RekeningMutatieTableModel;
 import financien.gui.RubriekComboBox;
 import table.*;
 

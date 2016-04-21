@@ -1,13 +1,12 @@
 // frame to show and update records in rekening_mutatie selected on rubriek
 
-package financien.gui;
+package financien.rekeningmutatierubriek;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import java.util.*;
 import java.util.logging.*;
 import java.text.*;
 import java.awt.*;
@@ -17,30 +16,29 @@ import javax.swing.table.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
+import financien.gui.RekeningMutatieDialog;
+import financien.gui.RubriekComboBox;
 import table.*;
 
 
-public class RekeningMutatieRubriekFrame {
-    final private Logger logger = Logger.getLogger( "financien.gui.RekeningMutatieRubriekFrame" );
+class RekeningMutatieRubriekFrame {
+    private final Logger logger = Logger.getLogger( RekeningMutatieRubriekFrame.class.getCanonicalName() );
 
-    Connection connection;
+    private final JFrame frame = new JFrame( "RekeningMutatieRubriek" );
 
-    final JFrame frame = new JFrame( "RekeningMutatieRubriek" );
+    private RekeningMutatieRubriekTableModel rekeningMutatieRubriekTableModel;
+    private TableSorter rekeningMutatieRubriekTableSorter;
+    private JTable rekeningMutatieRubriekTable;
 
-    RekeningMutatieRubriekTableModel rekeningMutatieRubriekTableModel;
-    TableSorter rekeningMutatieRubriekTableSorter;
-    JTable rekeningMutatieRubriekTable;
+    private RubriekComboBox rubriekComboBox;
+    private int selectedRubriekId;
 
-    RubriekComboBox rubriekComboBox;
-    int selectedRubriekId;
+    private JLabel omschrijvingLabel;
 
-    JLabel omschrijvingLabel;
+    private final int maximumRekeningTypeId = 9;	// Maximum value field rekening_type_id in table rekening_type
+    private final DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
 
-    final int maximumRekeningTypeId = 9;	// Maximum value field rekening_type_id in table rekening_type
-    DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
-
-    public RekeningMutatieRubriekFrame( final Connection connection ) {
-	this.connection = connection;
+    RekeningMutatieRubriekFrame( final Connection connection ) {
 
 	// Get the values for rekening_pattern, used for rendering mutatieIn and mutatieUit,
 	// for all records in table rekening_type and store in array indexed by rekening_type_id.
@@ -141,7 +139,7 @@ public class RekeningMutatieRubriekFrame {
 		switch ( column ) {
 		case 3:		// MutatieIn
 		case 4:		// MutatieUit
-		    final double mutatie = ( ( Double )object ).doubleValue( );
+		    final double mutatie = ( Double )object;
 		    if ( mutatie == 0 ) {
 			// Return empty string
 			this.setText( "" );
@@ -195,7 +193,7 @@ public class RekeningMutatieRubriekFrame {
 	final ListSelectionModel mutatieListSelectionModel = rekeningMutatieRubriekTable.getSelectionModel( );
 
 	class MutatieListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -215,7 +213,7 @@ public class RekeningMutatieRubriekFrame {
 		deleteMutatieButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+            private int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add mutatieListSelectionListener object to the selection model of the musici table
@@ -230,11 +228,10 @@ public class RekeningMutatieRubriekFrame {
 		    frame.setVisible( false );
 		    System.exit( 0 );
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
-		    RekeningMutatieDialog rekeningMutatieDialog =
-			new RekeningMutatieDialog( connection,
-						   frame,
-						   selectedRubriekId,
-						   0, 1 );
+		    new RekeningMutatieDialog( connection,
+                                               frame,
+                                               selectedRubriekId,
+                                               0, 1 );
 		} else {
 		    int selectedRow = mutatieListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
@@ -253,14 +250,14 @@ public class RekeningMutatieRubriekFrame {
 		    final int volgNummer = rekeningMutatieRubriekTableModel.getVolgNummer( selectedRow );
 
 		    if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
-			RekeningMutatieDialog rekeningMutatieDialog = new RekeningMutatieDialog( connection,
-												 frame,
-												 rubriekId,
-												 datumString,
-												 debCredId,
-												 rekeningId,
-												 rekeningHouderId,
-												 volgNummer );
+			new RekeningMutatieDialog( connection,
+                                                   frame,
+                                                   rubriekId,
+                                                   datumString,
+                                                   debCredId,
+                                                   rekeningId,
+                                                   rekeningHouderId,
+                                                   volgNummer );
 		    } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
 			int result =
 			    JOptionPane.showConfirmDialog( frame,

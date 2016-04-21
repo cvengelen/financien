@@ -1,6 +1,6 @@
 // Class to setup a TableModel for all records in rekening_mutatie for a specific rubriek
 
-package financien.gui;
+package financien.rekeningmutatierubriek;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,16 +12,16 @@ import java.util.*;
 import java.util.logging.*;
 
 
-public class RekeningMutatieRubriekTableModel extends AbstractTableModel {
-    final Logger logger = Logger.getLogger( "financien.gui.RekeningMutatieRubriekTableModel" );
+class RekeningMutatieRubriekTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( RekeningMutatieRubriekTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Datum", "Deb/Cred",
-				   "Rekening", "In", "Uit", "Nr",
-				   "Jaar", "Maand", "Omschrijving" };
+    private final String[ ] headings = { "Datum", "Deb/Cred",
+				         "Rekening", "In", "Uit", "Nr",
+				         "Jaar", "Maand", "Omschrijving" };
 
     // Jaar, maand and volgNummer are stored as Integer for correct default table renderer.
-    class RekeningMutatieRubriekRecord {
+    private class RekeningMutatieRubriekRecord {
 
 	String  datumString;
 	int     debCredId;
@@ -36,19 +36,19 @@ public class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 	Integer jaarInteger;
 	Integer maandInteger;
 	String  omschrijvingString;
-	public RekeningMutatieRubriekRecord( String  datumString,
-					     int     debCredId,
-					     String  debCredString,
-					     int     rekeningId,
-					     String  rekeningString,
-                                             int     rekeningHouderId,
-					     int     rekeningTypeId,
-					     Double  mutatieInDouble,
-					     Double  mutatieUitDouble,
-					     Integer volgNummerInteger,
-					     Integer jaarInteger,
-					     Integer maandInteger,
-					     String  omschrijvingString ) {
+	RekeningMutatieRubriekRecord( String  datumString,
+                                      int     debCredId,
+                                      String  debCredString,
+                                      int     rekeningId,
+                                      String  rekeningString,
+                                      int     rekeningHouderId,
+                                      int     rekeningTypeId,
+                                      Double  mutatieInDouble,
+                                      Double  mutatieUitDouble,
+                                      Integer volgNummerInteger,
+                                      Integer jaarInteger,
+                                      Integer maandInteger,
+                                      String  omschrijvingString ) {
 	    this.datumString = datumString;
 	    this.debCredId = debCredId;
 	    this.debCredString = debCredString;
@@ -65,17 +65,17 @@ public class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 	}
     }
 
-    ArrayList< RekeningMutatieRubriekRecord > rekeningMutatieRubriekRecordList = new ArrayList< >( 100 );
+    private final ArrayList< RekeningMutatieRubriekRecord > rekeningMutatieRubriekRecordList = new ArrayList< >( 100 );
 
     private int rubriekId = 0;
 
 
     // Constructor
-    public RekeningMutatieRubriekTableModel( Connection connection ) {
+    RekeningMutatieRubriekTableModel( Connection connection ) {
 	this.connection = connection;
     }
 
-    public void setupRekeningMutatieRubriekTableModel( int rubriekId ) {
+    void setupRekeningMutatieRubriekTableModel( int rubriekId ) {
 	this.rubriekId = rubriekId;
 
 	// Setup the table for the specified rubriek
@@ -198,15 +198,15 @@ public class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 	try {
 	    switch ( column ) {
 	    case 5:
-		rekeningMutatieRubriekRecord.volgNummerInteger.parseInt( ( String )object );
+		rekeningMutatieRubriekRecord.volgNummerInteger = Integer.parseInt( ( String )object );
 		updateString += "volgnummer = " + rekeningMutatieRubriekRecord.volgNummerInteger;
 		break;
 	    case 6:
-		rekeningMutatieRubriekRecord.jaarInteger.parseInt( ( String )object );
+		rekeningMutatieRubriekRecord.jaarInteger = Integer.parseInt( ( String )object );
 		updateString += "jaar = " + rekeningMutatieRubriekRecord.jaarInteger;
 		break;
 	    case 7:
-		rekeningMutatieRubriekRecord.maandInteger.parseInt( ( String )object );
+		rekeningMutatieRubriekRecord.maandInteger = Integer.parseInt( ( String )object );
 		updateString += "maand = " + rekeningMutatieRubriekRecord.maandInteger;
 		break;
 	    case 8:
@@ -260,13 +260,14 @@ public class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 	return headings[ column ];
     }
 
-    public int getNumberOfRecords( ) { return rekeningMutatieRubriekRecordList.size( ); }
+
+    int getNumberOfRecords( ) { return rekeningMutatieRubriekRecordList.size( ); }
 
 
-    public int getRubriekId( ) { return rubriekId; }
+    int getRubriekId( ) { return rubriekId; }
 
 
-    public String getDatumString( int row ) {
+    String getDatumString( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
@@ -276,7 +277,7 @@ public class RekeningMutatieRubriekTableModel extends AbstractTableModel {
     }
 
 
-    public int getDebCredId( int row ) {
+    int getDebCredId( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return 0;
@@ -286,7 +287,7 @@ public class RekeningMutatieRubriekTableModel extends AbstractTableModel {
     }
 
 
-    public int getRekeningId( int row ) {
+    int getRekeningId( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return 0;
@@ -296,7 +297,7 @@ public class RekeningMutatieRubriekTableModel extends AbstractTableModel {
     }
 
 
-    public String getRekeningString( int row ) {
+    String getRekeningString( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
@@ -306,7 +307,7 @@ public class RekeningMutatieRubriekTableModel extends AbstractTableModel {
     }
 
 
-    public int getRekeningHouderId( int row ) {
+    int getRekeningHouderId( int row ) {
         if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
             logger.severe( "Invalid row: " + row );
             return 0;
@@ -316,7 +317,7 @@ public class RekeningMutatieRubriekTableModel extends AbstractTableModel {
     }
 
 
-    public int getRekeningTypeId( int row ) {
+    int getRekeningTypeId( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return 0;
@@ -326,7 +327,7 @@ public class RekeningMutatieRubriekTableModel extends AbstractTableModel {
     }
 
 
-    public int getVolgNummer( int row ) {
+    int getVolgNummer( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return 0;

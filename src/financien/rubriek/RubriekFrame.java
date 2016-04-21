@@ -1,41 +1,35 @@
 // frame to show and update records in rubriek
 
-package financien.gui;
+package financien.rubriek;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import java.util.*;
 import java.util.logging.*;
-import java.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.border.*;
 import javax.swing.event.*;
 
+import financien.gui.DebCredComboBox;
+import financien.gui.GroepComboBox;
 import table.*;
 
 
-public class RubriekFrame {
-    final private Logger logger = Logger.getLogger( "financien.gui.RubriekFrame" );
+class RubriekFrame {
+    private final Logger logger = Logger.getLogger( RubriekFrame.class.getCanonicalName() );
 
-    Connection connection;
+    private final JFrame frame = new JFrame( "Rubriek" );
 
-    final JFrame frame = new JFrame( "Rubriek" );
+    private RubriekTableModel rubriekTableModel;
+    private TableSorter rubriekTableSorter;
 
-    RubriekTableModel rubriekTableModel;
-    TableSorter rubriekTableSorter;
-    JTable rubriekTable;
-    
-    JTextField rubriekFilterTextField;
+    private JTextField rubriekFilterTextField;
 
 
     public RubriekFrame( final Connection connection ) {
-	this.connection = connection;
 
 	final Container container = frame.getContentPane( );
 
@@ -87,7 +81,7 @@ public class RubriekFrame {
 						   cancelRubriekButton,
 						   saveRubriekButton );
 	rubriekTableSorter = new TableSorter( rubriekTableModel );
-	rubriekTable = new JTable( rubriekTableSorter );
+	final JTable rubriekTable = new JTable( rubriekTableSorter );
 	rubriekTableSorter.setTableHeader( rubriekTable.getTableHeader( ) );
 
 	rubriekTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
@@ -123,7 +117,7 @@ public class RubriekFrame {
 	final ListSelectionModel rubriekListSelectionModel = rubriekTable.getSelectionModel( );
 
 	class RubriekListSelectionListener implements ListSelectionListener {
-	    int selectedRow = -1;
+	    private int selectedRow = -1;
 
 	    public void valueChanged( ListSelectionEvent listSelectionEvent ) {
 		// Ignore extra messages.
@@ -189,7 +183,7 @@ public class RubriekFrame {
 		deleteRubriekButton.setEnabled( true );
 	    }
 
-	    public int getSelectedRow ( ) { return selectedRow; }
+	    private int getSelectedRow ( ) { return selectedRow; }
 	}
 
 	// Add rubriekListSelectionListener object to the selection model of the rubriek table
@@ -208,10 +202,10 @@ public class RubriekFrame {
 		    frame.setVisible( false );
 		    System.exit( 0 );
 		} else if ( actionEvent.getActionCommand( ).equals( "add" ) ) {
-		    String resultString = ( String )JOptionPane.showInputDialog( frame,
-										 "Enter rubriek ID:",
-										 "Input Rubriek Id",
-										 JOptionPane.PLAIN_MESSAGE );
+		    String resultString = JOptionPane.showInputDialog( frame,
+                                                                       "Enter rubriek ID:",
+                                                                       "Input Rubriek Id",
+                                                                       JOptionPane.PLAIN_MESSAGE );
 		    logger.info( "resultString:" + resultString );
 		    if ( resultString == null ) return;
 

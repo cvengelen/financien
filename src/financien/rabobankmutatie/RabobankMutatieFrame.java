@@ -3,7 +3,7 @@
 package financien.rabobankmutatie;
 
 import financien.gui.DebCredDialog;
-import financien.rekeningmutatie.RekeningMutatieTableModel;
+import financien.gui.RekeningMutatieTableModel;
 import financien.gui.RubriekComboBox;
 import table.TableSorter;
 
