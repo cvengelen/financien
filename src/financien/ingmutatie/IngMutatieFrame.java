@@ -1,5 +1,3 @@
-// frame to copy downloaded ING mutatie records to rekening_mutatie, and deb_cred
-
 package financien.ingmutatie;
 
 import java.sql.Connection;
@@ -24,6 +22,12 @@ import financien.gui.RekeningMutatieTableModel;
 import financien.gui.RubriekComboBox;
 import table.*;
 
+/**
+ * Frame to copy downloaded ING mutatie records to rekening_mutatie, and deb_cred tables in schema financien.
+ * An instance of IngMutatieFrame is created by class financien.Main.
+ *
+ * @author Chris van Engelen
+ */
 public class IngMutatieFrame {
     final private Logger logger = Logger.getLogger( IngMutatieFrame.class.getCanonicalName() );
 
@@ -115,7 +119,7 @@ public class IngMutatieFrame {
 	mutatieTegenRekeningLabel = new JLabel( );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.insets = insetsRight;
-	constraints.weightx = 1.0;
+	constraints.weightx = 1d;
 	constraints.gridwidth = 2;
 	container.add( mutatieTegenRekeningLabel, constraints );
 
@@ -127,36 +131,33 @@ public class IngMutatieFrame {
 
 	debCredIdLabel = new JLabel( );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
+	constraints.weightx = 1d;
 	container.add( debCredIdLabel, constraints );
 
-	class EditDebCredButtonActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		DebCredDialog debCredDialog = new DebCredDialog( connection, frame,
-								 debCredId,
-								 mutatieTegenRekeningString,
-								 mutatieNaamOmschrijvingString,
-								 mutatieMededelingenString,
-								 mutatieCodeString );
-
-		debCredId = debCredDialog.getDebCredId( );
-		rubriekId = debCredDialog.getRubriekId( );
-
-		// Setup the rekening_mutatie table for the selected rubriek and deb-cred id
-		setupRekeningMutatieTable( );
-	    }
-	}
-
 	JButton editDebCredButton = new JButton( "Edit Deb/Cred" );
-	editDebCredButton.addActionListener( new EditDebCredButtonActionListener( ) );
+	editDebCredButton.addActionListener( ( ActionEvent actionEvent ) -> {
+            DebCredDialog debCredDialog = new DebCredDialog( connection, frame,
+                    debCredId,
+                    mutatieTegenRekeningString,
+                    mutatieNaamOmschrijvingString,
+                    mutatieMededelingenString,
+                    mutatieCodeString );
+
+            debCredId = debCredDialog.getDebCredId( );
+            rubriekId = debCredDialog.getRubriekId( );
+
+            // Setup the rekening_mutatie table for the selected rubriek and deb-cred id
+            setupRekeningMutatieTable( );
+        } );
+
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
+	constraints.weightx = 1d;
 	container.add( editDebCredButton, constraints );
 
 
 	constraints.gridx = 0;
 	constraints.gridy = 2;
-	constraints.weightx = 0.0;
+	constraints.weightx = 0d;
 	constraints.insets = insetsLeft;
 	container.add( new JLabel( "Mutatie:" ), constraints );
 
@@ -228,7 +229,7 @@ public class IngMutatieFrame {
 
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 5;
-	constraints.weightx = 1.0;
+	constraints.weightx = 1d;
 	constraints.insets = insetsRight;
 	constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( mutatieMededelingenTextField, constraints );
@@ -237,33 +238,30 @@ public class IngMutatieFrame {
 	constraints.gridx = 0;
 	constraints.gridy = 6;
 	constraints.gridwidth = 1;
-	constraints.weightx = 0.0;
+	constraints.weightx = 0d;
 	constraints.insets = insetsLeft;
 	constraints.fill = GridBagConstraints.NONE;
 	container.add( new JLabel( "Rubriek:" ), constraints );
 
 	// Setup a JComboBox with the results of the query on rubriek
 	rubriekComboBox = new RubriekComboBox( connection, 0, true );
+        rubriekComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected Rubriek ID
+            rubriekId = rubriekComboBox.getSelectedRubriekId( );
+
+            // Check if rubriek has been selected
+            if ( rubriekId == 0 ) {
+                return;
+            }
+
+            // Setup the rekening_mutatie table for the selected rubriek
+            setupRekeningMutatieTable( );
+        } );
+
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 4;
 	constraints.insets = insetsRight;
 	container.add( rubriekComboBox, constraints );
-
-	class RubriekActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected Rubriek ID
-		rubriekId = rubriekComboBox.getSelectedRubriekId( );
-
-		// Check if rubriek has been selected
-		if ( rubriekId == 0 ) {
-		    return;
-		}
-
-		// Setup the rekening_mutatie table for the selected rubriek
-		setupRekeningMutatieTable( );
-	    }
-	}
-	rubriekComboBox.addActionListener( new RubriekActionListener( ) );
 
 	// Define the edit, cancel, save and buttons because
 	// the cancel/save buttons are enabled by the table model.
@@ -286,7 +284,7 @@ public class IngMutatieFrame {
 	rekeningMutatieTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 
 	// Set vertical size just enough for 12 entries
-	rekeningMutatieTable.setPreferredScrollableViewportSize( new Dimension( 886, 192 ) );
+	rekeningMutatieTable.setPreferredScrollableViewportSize( new Dimension( 1200, 192 ) );
 
 	// Set renderer for Double objects
 	class DoubleRenderer extends JTextField implements TableCellRenderer {
@@ -334,8 +332,8 @@ public class IngMutatieFrame {
 	constraints.gridwidth = 6;
 	constraints.insets = new Insets( 10, 20, 5, 20 );
 	// Setting weighty and fill is necessary for proper filling the frame when resized.
-	constraints.weightx = 1.0;
-	constraints.weighty = 1.0;
+	constraints.weightx = 1d;
+	constraints.weighty = 1d;
 	constraints.fill = GridBagConstraints.BOTH;
 	constraints.anchor = GridBagConstraints.CENTER;
 	container.add( scrollPane, constraints );
@@ -439,7 +437,8 @@ public class IngMutatieFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+                    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "copy" ) ) {
 		    // Copy the record to the rekening mutatie table
 		    if ( copyDownloadIngRecord( ) ) {
@@ -631,13 +630,26 @@ public class IngMutatieFrame {
 	constraints.gridx = 0;
 	constraints.gridy = 10;
 	constraints.gridwidth = 6;
-	constraints.weightx = 0.0;
-	constraints.weighty = 0.0;
+	constraints.weightx = 0d;
+	constraints.weighty = 0d;
 	constraints.fill = GridBagConstraints.NONE;
 	constraints.anchor = GridBagConstraints.CENTER;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 980, 550 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 1260, 550 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible( true );
     }

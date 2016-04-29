@@ -1,10 +1,4 @@
-// Class to setup a TableModel for all records in rekening_mutatie
-
 package financien.gui;
-
-import financien.gui.DebCredComboBox;
-import financien.gui.RekeningComboBox;
-import financien.gui.RubriekComboBox;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -17,7 +11,9 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
+/**
+ * TableModel for records in rekening_mutatie
+ */
 public class RekeningMutatieTableModel extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
     private final Logger logger = Logger.getLogger( "financien.gui.RekeningMutatieTableModel" );
@@ -233,6 +229,7 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
 	    }
 
 	    rekeningMutatieRecordList.trimToSize( );
+            logger.info("Table shows " + rekeningMutatieRecordList.size() + " rekening_mutatie records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );

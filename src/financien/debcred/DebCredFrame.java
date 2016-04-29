@@ -1,5 +1,3 @@
-// frame to update a record in deb_cred
-
 package financien.debcred;
 
 import java.sql.Connection;
@@ -16,9 +14,14 @@ import javax.swing.event.*;
 import financien.gui.RubriekComboBox;
 import table.*;
 
-
-class DebCredFrame {
-    final private Logger logger = Logger.getLogger( DebCredFrame.class.getCanonicalName() );
+/**
+ * Frame to show, insert and update records in the deb_cred table in schema financien.
+ * An instance of DebCredFrame is created by class financien.Main.
+ *
+ * @author Chris van Engelen
+ */
+public class DebCredFrame {
+    private final Logger logger = Logger.getLogger( DebCredFrame.class.getCanonicalName() );
 
     private final JFrame frame = new JFrame( "DebCred" );
 
@@ -26,45 +29,38 @@ class DebCredFrame {
     private TableSorter debCredTableSorter;
     private JTextField debCredFilterTextField;
 
-
-    DebCredFrame( final Connection connection ) {
+    public DebCredFrame( final Connection connection ) {
 
 	final Container container = frame.getContentPane( );
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 0, 0, 10, 10 );
-
-
-	/////////////////////////////////
-	// Deb/Cred filter action listener
-	/////////////////////////////////
-
-	class DebCredFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the Deb/Cred table
-		debCredTableModel.setupDebCredTableModel( debCredFilterTextField.getText( ) );
-	    }
-	}
+        constraints.gridwidth = 1;
 
 	/////////////////////////////////
 	// Deb/Cred filter string
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.anchor = GridBagConstraints.EAST;
-	constraints.gridwidth = 1;
 	container.add( new JLabel( "Deb/Cred Filter:" ), constraints );
 
 	debCredFilterTextField = new JTextField( 20 );
-	debCredFilterTextField.addActionListener( new DebCredFilterActionListener( ) );
+	debCredFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the Deb/Cred table
+            debCredTableSorter.clearSortingState();
+            debCredTableModel.setupDebCredTableModel( debCredFilterTextField.getText( ) );
+        } );
+
+        constraints.insets = new Insets( 20, 5, 5, 400 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( debCredFilterTextField, constraints );
-
 
 	// Define the edit, cancel, save and delete buttons
 	// These are enabled/disabled by the table model and the list selection listener.
@@ -97,9 +93,14 @@ class DebCredFrame {
 	// Set vertical size just enough for 20 entries
 	debCredTable.setPreferredScrollableViewportSize( new Dimension( 900, 320 ) );
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 3;
+	constraints.gridy = 1;
 	constraints.gridwidth = 2;
+        constraints.anchor = GridBagConstraints.CENTER;
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
 	container.add( new JScrollPane( debCredTable ), constraints );
 
 
@@ -186,7 +187,8 @@ class DebCredFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "add" ) ) {
 		    try {
 			Statement statement = connection.createStatement( );
@@ -209,6 +211,7 @@ class DebCredFrame {
 		    }
 
 		    // Records may have been modified: setup the table model again
+                    debCredTableSorter.clearSortingState();
 		    debCredTableModel.setupDebCredTableModel( debCredFilterTextField.getText( ) );
 		} else {
 		    int selectedRow = debCredListSelectionListener.getSelectedRow( );
@@ -279,6 +282,7 @@ class DebCredFrame {
 			}
 
 			// Records may have been modified: setup the table model again
+                        debCredTableSorter.clearSortingState();
 			debCredTableModel.setupDebCredTableModel( debCredFilterTextField.getText( ) );
 		    } else if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
 			// Allow to edit the selected row
@@ -320,7 +324,7 @@ class DebCredFrame {
 
 	JPanel buttonPanel = new JPanel( );
 
-	final JButton addDebCredButton = new JButton( "add" );
+	final JButton addDebCredButton = new JButton( "Add" );
 	addDebCredButton.setActionCommand( "add" );
 	addDebCredButton.addActionListener( buttonActionListener );
 	buttonPanel.add( addDebCredButton );
@@ -350,14 +354,28 @@ class DebCredFrame {
 	closeButton.setActionCommand( "close" );
 	buttonPanel.add( closeButton );
 
-
-	constraints.gridx = 0;
-	constraints.gridy = 10;
-	constraints.gridwidth = 4;
-	constraints.anchor = GridBagConstraints.CENTER;
+        constraints.insets = new Insets( 5, 20, 20, 20 );
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 970, 500 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+        frame.setSize( 960, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible( true );
     }

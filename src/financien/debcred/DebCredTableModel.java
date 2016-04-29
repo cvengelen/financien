@@ -1,5 +1,3 @@
-// Class to setup a TableModel for all records in deb_cred
-
 package financien.debcred;
 
 import financien.gui.RubriekComboBox;
@@ -15,14 +13,16 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
+/**
+ * TableModel for records in deb_cred
+ */
 class DebCredTableModel extends AbstractTableModel {
     private static final long serialVersionUID = 7782709968547613151L;
-    final Logger logger = Logger.getLogger( DebCredTableModel.class.getCanonicalName() );
+    private final Logger logger = Logger.getLogger( DebCredTableModel.class.getCanonicalName() );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Deb/Cred", "Omschrijving", "Rekening",
-				   "Rubriek", "GT Omschr. Nr." };
+    private final String[ ] headings = { "Id", "Deb/Cred", "Omschrijving", "Rekening",
+                                         "Rubriek", "GT Omschr. Nr." };
 
     private class DebCredRecord {
 	int	debCredId;
@@ -61,7 +61,7 @@ class DebCredTableModel extends AbstractTableModel {
 	}
     }
 
-    private ArrayList< DebCredRecord > debCredRecordList = new ArrayList< >( 200 );
+    private ArrayList< DebCredRecord > debCredRecordList = new ArrayList< >( 1300 );
 
     // Create rubriek combo box to get rubriek ID from rubriek string
     private RubriekComboBox rubriekComboBox;
@@ -76,8 +76,7 @@ class DebCredTableModel extends AbstractTableModel {
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    private final Pattern quotePattern = Pattern.compile( "\\'" );
-
+    private final static Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
     DebCredTableModel( Connection connection,
@@ -129,6 +128,7 @@ class DebCredTableModel extends AbstractTableModel {
 	    }
 
 	    debCredRecordList.trimToSize( );
+            logger.info("Table shows " + debCredRecordList.size() + " deb_cred records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
@@ -239,7 +239,7 @@ class DebCredTableModel extends AbstractTableModel {
 		break;
 
 	    case 5:
-		int gtOmschrijvingNr = ( ( Integer )object ).intValue( );
+		int gtOmschrijvingNr = ( Integer )object;
 		if ( gtOmschrijvingNr != debCredRecord.gtOmschrijvingNr ) {
 		    debCredRecord.gtOmschrijvingNr = gtOmschrijvingNr;
 		    rowModified = true;
@@ -268,14 +268,9 @@ class DebCredTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-
     public String getColumnName( int column ) {
 	return headings[ column ];
     }
-
-
-    int getNumberOfRecords( ) { return debCredRecordList.size( ); }
-
 
     int getDebCredId( int row ) {
 	if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
@@ -283,9 +278,8 @@ class DebCredTableModel extends AbstractTableModel {
 	    return 0;
 	}
 
-	return ( debCredRecordList.get( row ) ).debCredId;
+	return debCredRecordList.get( row ).debCredId;
     }
-
 
     String getDebCredString( int row ) {
 	if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
@@ -293,9 +287,8 @@ class DebCredTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	return ( debCredRecordList.get( row ) ).debCredString;
+	return debCredRecordList.get( row ).debCredString;
     }
-
 
     void setEditRow( int editRow ) {
 	// Initialize record to be edited
