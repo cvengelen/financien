@@ -1,6 +1,6 @@
-// frame to load downloaded Rabobank mutatie data into the financien database
-
 package financien.loadrabobankmutatiedata;
+
+import financien.gui.PasswordPanel;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -15,7 +15,11 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
+/**
+ * Frame to load downloaded Rabobank mutatie data into the financien database.
+ *
+ * @author Chris van Engelen
+ */
 class LoadRabobankMutatieDataFrame {
     private final Logger logger = Logger.getLogger( LoadRabobankMutatieDataFrame.class.getCanonicalName( ) );
     private final JFrame frame = new JFrame( "Load Rabobank transactions file" );
@@ -139,9 +143,17 @@ class LoadRabobankMutatieDataFrame {
                 ( ActionEvent actionEvent ) -> {
                     logger.info( "event: " + actionEvent.getActionCommand( ) );
                     if ( actionEvent.getActionCommand().equals( "OK" ) ) {
+                        // Get the password for the financien account, which gives access to schema financien.
+                        final PasswordPanel passwordPanel = new PasswordPanel();
+                        final String password = passwordPanel.getPassword();
+                        if (password == null) {
+                            logger.info("No password");
+                            System.err.println("Geen password gegeven");
+                            System.exit( 1 );
+                        }
                         int exitStatus = 0;
-                        String loadRabobankMutatieDataCmd = "/Users/cvengelen/bin/load-rabo-mutatie-data -f " +
-                                rabobankMutatieDataFile.getAbsolutePath( );
+                        String loadRabobankMutatieDataCmd = "/Users/cvengelen/bin/load-rabobank-mutatie-data -f " +
+                                rabobankMutatieDataFile.getAbsolutePath( ) + " -p " + password;
                         try {
                             logger.info( "Executing command: " + loadRabobankMutatieDataCmd );
                             Process process = Runtime.getRuntime( ).exec( loadRabobankMutatieDataCmd );

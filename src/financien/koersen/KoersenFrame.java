@@ -1,5 +1,3 @@
-// frame to show and update records in koersen
-
 package financien.koersen;
 
 import java.sql.Connection;
@@ -19,19 +17,23 @@ import javax.swing.event.*;
 
 import table.TableSorter;
 
-
-class KoersenFrame {
+/**
+ * Frame to show, insert and update records in the koersen table in schema financien.
+ * An instance of KoersenFrame is created by class financien.Main.
+ *
+ * @author Chris van Engelen
+ */
+public class KoersenFrame {
     final private Logger logger = Logger.getLogger( KoersenFrame.class.getCanonicalName( ) );
 
     private final JFrame frame = new JFrame( "Koersen" );
 
     private KoersenTableModel koersenTableModel;
     private TableSorter koersenTableSorter;
-    private final DecimalFormat koersDecimalFormat = new DecimalFormat( "#0.0000;-#" );
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private static final DecimalFormat koersDecimalFormat = new DecimalFormat( "#0.0000;-#" );
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
-
-    KoersenFrame( final Connection connection ) {
+    public KoersenFrame( final Connection connection ) {
 
 	final Container container = frame.getContentPane( );
 
@@ -55,9 +57,6 @@ class KoersenFrame {
 	final JTable koersenTable = new JTable( koersenTableSorter );
 	koersenTableSorter.setTableHeader( koersenTable.getTableHeader( ) );
 	// koersenTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
-
-	// Initialize the table model
-	koersenTableModel.setupKoersenTableModel( );
 
 	// Setup table column width
 	final int fullTableWidth = 800;
@@ -111,12 +110,12 @@ class KoersenFrame {
 	constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.gridwidth = 1;
-	constraints.insets = new Insets( 10, 10, 10, 10 );
+	constraints.insets = new Insets( 10, 10, 5, 10 );
 	constraints.anchor = GridBagConstraints.CENTER;
 
         // Setting weightx, weighty and fill is necessary for proper filling the frame when resized.
-        constraints.weightx = 1.0;
-        constraints.weighty = 1.0;
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
         constraints.fill = GridBagConstraints.BOTH;
 
         container.add( new JScrollPane( koersenTable ), constraints );
@@ -205,7 +204,8 @@ class KoersenFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    // final KoersenAex koersenAex = new KoersenAex( );
 		    // final KoersenPostbank koersenPostbank = new KoersenPostbank( );
@@ -380,8 +380,25 @@ class KoersenFrame {
 
 	constraints.gridx = 0;
 	constraints.gridy = 1;
-	constraints.insets = new Insets( 0, 0, 0, 0 );
+        constraints.insets = new Insets( 5, 10, 10, 10 );
+        constraints.anchor = GridBagConstraints.CENTER;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
+
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
 
 	frame.setSize( fullTableWidth + 40, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );

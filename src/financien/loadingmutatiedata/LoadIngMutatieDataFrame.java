@@ -1,6 +1,6 @@
-// frame to load downloaded ING mutatie data into the financien database
-
 package financien.loadingmutatiedata;
+
+import financien.gui.PasswordPanel;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -18,7 +18,11 @@ import java.io.IOException;
 
 import java.lang.Runtime;
 
-
+/**
+ * Frame to load downloaded ING mutatie data into the financien database.
+ *
+ * @author Chris van Engelen
+ */
 class LoadIngMutatieDataFrame {
     private final Logger logger = Logger.getLogger( LoadIngMutatieDataFrame.class.getCanonicalName( ) );
     private final JFrame frame = new JFrame( "Load ING export file" );
@@ -143,9 +147,17 @@ class LoadIngMutatieDataFrame {
                 ( ActionEvent actionEvent ) -> {
                   logger.info( "event: " + actionEvent.getActionCommand( ) );
                     if ( actionEvent.getActionCommand().equals( "OK" ) ) {
+                        // Get the password for the financien account, which gives access to schema financien.
+                        final PasswordPanel passwordPanel = new PasswordPanel();
+                        final String password = passwordPanel.getPassword();
+                        if (password == null) {
+                            logger.info("No password");
+                            System.err.println("Geen password gegeven");
+                            System.exit( 1 );
+                        }
                         int exitStatus = 0;
                         String loadIngMutatieDataCmd = "/Users/cvengelen/bin/load-ing-mutatie-data -f " +
-                                ingMutatieDataFile.getAbsolutePath( );
+                                ingMutatieDataFile.getAbsolutePath( ) + " -p " + password;
                         try {
                             logger.info( "Executing command: " + loadIngMutatieDataCmd );
                             Process process = Runtime.getRuntime( ).exec( loadIngMutatieDataCmd );

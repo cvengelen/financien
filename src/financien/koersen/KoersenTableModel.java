@@ -1,5 +1,3 @@
-// Class to setup a TableModel for all records in koersen
-
 package financien.koersen;
 
 import java.sql.Connection;
@@ -14,63 +12,59 @@ import java.util.logging.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
-public class KoersenTableModel extends AbstractTableModel {
-    private static final long serialVersionUID = 1L;
-    final Logger logger = Logger.getLogger( KoersenTableModel.class.getCanonicalName( ) );
-
+/**
+ * TableModel for records in koersen
+ */
+class KoersenTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( KoersenTableModel.class.getCanonicalName( ) );
     private Connection connection;
-    private String[ ] headings = { "Datum", "AEX", "Opmerkingen" };
-    ArrayList< String > fondsenList = new ArrayList< String >( 10 );
+    private final String[ ] headings = { "Datum", "AEX", "Opmerkingen" };
+    private final ArrayList< String > fondsenList = new ArrayList<>( 20 );
 
-    class KoersenRecord {
+    private class KoersenRecord {
 	String    datumString;
 	int       aexIndex;
 	String    opmerkingen;
 	ArrayList< Double > koersenList;
 
-	public KoersenRecord( String  datumString,
+	KoersenRecord( String  datumString,
 			      int     aexIndex,
 			      String  opmerkingen ) {
 	    this.datumString = datumString;
 	    this.aexIndex = aexIndex;
 	    this.opmerkingen = opmerkingen;
 
-	    koersenList = new ArrayList< Double >( 100 );
+	    koersenList = new ArrayList<>( 20 );
 	}
 
 	// Copy constructor
-	public KoersenRecord( KoersenRecord koersenRecord ) {
+	KoersenRecord( KoersenRecord koersenRecord ) {
 	    this.datumString = koersenRecord.datumString;
 	    this.aexIndex = koersenRecord.aexIndex;
 	    this.opmerkingen = koersenRecord.opmerkingen;
 
-	    koersenList = new ArrayList< Double >( 20 );
-	    for ( int koersenListIndex = 0;
-		  koersenListIndex < koersenRecord.koersenList.size( );
-		  koersenListIndex++ ) {
-		this.koersenList.add( koersenListIndex, koersenRecord.koersenList.get( koersenListIndex ) );
-	    }
+	    koersenList = new ArrayList<>( 20 );
+            koersenList.addAll(koersenRecord.koersenList);
 	}
     }
-    ArrayList< KoersenRecord > koersenRecordList = new ArrayList< KoersenRecord >( 100 );
+    private final ArrayList< KoersenRecord > koersenRecordList = new ArrayList<>( 300 );
 
-    JButton cancelKoersenButton;
-    JButton saveKoersenButton;
+    private JButton cancelKoersenButton;
+    private JButton saveKoersenButton;
 
-    boolean	  rowModified = false;
-    int		  editRow = -1;
-    KoersenRecord koersenRecord = null;
-    KoersenRecord originalKoersenRecord = null;
+    private boolean	  rowModified = false;
+    private int		  editRow = -1;
+    private KoersenRecord koersenRecord = null;
+    private KoersenRecord originalKoersenRecord = null;
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    final Pattern quotePattern = Pattern.compile( "\\'" );
+    private static final Pattern quotePattern = Pattern.compile( "\\'" );
 
     // Constructor
-    public KoersenTableModel( Connection connection,
-			      JButton    cancelKoersenButton,
-			      JButton    saveKoersenButton ) {
+    KoersenTableModel( Connection connection,
+                       JButton    cancelKoersenButton,
+                       JButton    saveKoersenButton ) {
 	this.connection = connection;
 	this.cancelKoersenButton = cancelKoersenButton;
 	this.saveKoersenButton = saveKoersenButton;
@@ -78,7 +72,7 @@ public class KoersenTableModel extends AbstractTableModel {
 	setupKoersenTableModel( );
     }
 
-    public void setupKoersenTableModel( ) {
+    void setupKoersenTableModel( ) {
 	// Setup the table
 	try {
 	    Statement statement = connection.createStatement( );
@@ -100,9 +94,8 @@ public class KoersenTableModel extends AbstractTableModel {
 	    }
 
 	    String koersenQueryString = "SELECT datum, aex_index, opmerkingen";
-	    Iterator< String > fondsenListIterator = fondsenList.iterator( );
-	    while ( fondsenListIterator.hasNext(  ) ) {
-		koersenQueryString += ", " + fondsenListIterator.next( );
+            for (String fonds: fondsenList) {
+		koersenQueryString += ", " + fonds;
 	    }
 	    koersenQueryString += " FROM koersen ORDER BY datum DESC";
 
@@ -120,7 +113,7 @@ public class KoersenTableModel extends AbstractTableModel {
 				       resultSet.getString( 3 ) );
 
 		int resultSetIndex = 4;
-		fondsenListIterator = fondsenList.iterator( );
+                Iterator< String > fondsenListIterator = fondsenList.iterator( );
 		while ( fondsenListIterator.hasNext(  ) ) {
 		    koersenRecord.koersenList.add( resultSet.getDouble( resultSetIndex++ ) );
 		    fondsenListIterator.next(  );
@@ -129,6 +122,7 @@ public class KoersenTableModel extends AbstractTableModel {
 		koersenRecordList.add( koersenRecord );
 	    }
 	    koersenRecordList.trimToSize( );
+            logger.info("Table shows " + koersenRecordList.size() + " koersen records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
@@ -163,8 +157,7 @@ public class KoersenTableModel extends AbstractTableModel {
 
     public boolean isCellEditable( int row, int column ) {
 	// Only allow editing for the selected edit row
-	if ( row == editRow ) return true;
-	return false;
+	return ( row == editRow );
     }
 
     public Object getValueAt( int row, int column ) {
@@ -173,14 +166,14 @@ public class KoersenTableModel extends AbstractTableModel {
 	    return null;
 	}
 
-	final KoersenRecord koersenRecord = ( KoersenRecord )koersenRecordList.get( row );
+	final KoersenRecord koersenRecord = koersenRecordList.get( row );
 
 	if ( column ==  0 ) return koersenRecord.datumString;
-	if ( column ==  1 ) return new Integer( koersenRecord.aexIndex );
+	if ( column ==  1 ) return koersenRecord.aexIndex;
 	if ( column ==  2 ) return koersenRecord.opmerkingen;
 
 	if ( column < fondsenList.size( ) + 3 ) {
-	    return ( Double )( koersenRecord.koersenList.get( column - 3 ) );
+	    return koersenRecord.koersenList.get( column - 3 );
 	}
 
 	return "";
@@ -191,9 +184,6 @@ public class KoersenTableModel extends AbstractTableModel {
 	    logger.severe( "Invalid row: " + row );
 	    return;
 	}
-
-	// Save datum to use as record key when updating
-	final String keyDatumString = new String( ( String )( koersenRecord.datumString ) );
 
 	try {
 	    switch ( column ) {
@@ -207,7 +197,7 @@ public class KoersenTableModel extends AbstractTableModel {
 		break;
 
 	    case 1:
-		int aexIndex =  ( ( Integer )object ).intValue( );
+		int aexIndex =  ( Integer )object;
 		if ( aexIndex != koersenRecord.aexIndex ) {
 		    koersenRecord.aexIndex = aexIndex;
 		    rowModified = true;
@@ -216,15 +206,15 @@ public class KoersenTableModel extends AbstractTableModel {
 
 	    case 2:
 		String opmerkingen =( String )object;
-		if ( opmerkingen != koersenRecord.opmerkingen ) {
+		if ( !( opmerkingen.equals(koersenRecord.opmerkingen) ) ) {
 		    koersenRecord.opmerkingen = opmerkingen;
 		    rowModified = true;
 		}
 		break;
 
 	    default:
-		double koersFromTable = ( ( Double )object ).doubleValue( );
-		double koersFromRecord = ( ( Double )( koersenRecord.koersenList.get( column - 3 ) ) ).doubleValue( );
+		double koersFromTable = ( Double )object;
+		double koersFromRecord = koersenRecord.koersenList.get( column - 3 );
 		if ( koersFromTable != koersFromRecord ) {
 		    koersenRecord.koersenList.set( column - 3, ( Double )object );
 		    rowModified = true;
@@ -253,26 +243,24 @@ public class KoersenTableModel extends AbstractTableModel {
 	if ( column < 3 ) return headings[ column ];
 
 	if ( column < fondsenList.size( ) + 3 ) {
-	    return ( String )( fondsenList.get( column - 3 ) );
+	    return fondsenList.get( column - 3 );
 	}
 
 	return "";
     }
 
-    public int getNumberOfRecords( ) { return koersenRecordList.size( ); }
-
-    public String getDatumString( int row ) {
+    String getDatumString( int row ) {
 	if ( ( row < 0 ) || ( row >= koersenRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
 	    return null;
 	}
 
-	return ( ( KoersenRecord )koersenRecordList.get( row ) ).datumString;
+	return koersenRecordList.get( row ).datumString;
     }
 
-    public void setEditRow( int editRow ) {
+    void setEditRow( int editRow ) {
 	// Initialize record to be edited
-	koersenRecord = ( KoersenRecord )koersenRecordList.get( editRow );
+	koersenRecord = koersenRecordList.get( editRow );
 
 	// Copy record to use as key in table update
 	originalKoersenRecord = new KoersenRecord( koersenRecord );
@@ -284,11 +272,11 @@ public class KoersenTableModel extends AbstractTableModel {
 	this.editRow = editRow;
     }
 
-    public void unsetEditRow( ) {
+    void unsetEditRow( ) {
 	this.editRow = -1;
     }
 
-    public void cancelEditRow( int row ) {
+    void cancelEditRow( int row ) {
 	// Check if row being canceled equals the row currently being edited
 	if ( row != editRow ) return;
 
@@ -312,7 +300,7 @@ public class KoersenTableModel extends AbstractTableModel {
 	return additionalUpdateString;
     }
 
-    public void saveEditRow( int row ) {
+    void saveEditRow( int row ) {
 	String updateString = null;
 
 	// Compare each field with the value in the original record
@@ -334,7 +322,7 @@ public class KoersenTableModel extends AbstractTableModel {
 	}
 
 	String opmerkingen = koersenRecord.opmerkingen;
-	if ( opmerkingen != originalKoersenRecord.opmerkingen ) {
+	if ( !( opmerkingen.equals( originalKoersenRecord.opmerkingen ) ) ) {
             final Matcher quoteMatcher = quotePattern.matcher( opmerkingen );
 	    updateString = addToUpdateString( updateString,
 					      "opmerkingen = '" + quoteMatcher.replaceAll( "\\\\'" ) + "'" );
@@ -343,10 +331,10 @@ public class KoersenTableModel extends AbstractTableModel {
 	for ( int koersenListIndex = 0;
 	      koersenListIndex < koersenRecord.koersenList.size( );
 	      koersenListIndex++ ) {
-	    double koers         = ( ( Double )( koersenRecord.koersenList.get( koersenListIndex ) ) ).doubleValue( );;
-	    double originalKoers = ( ( Double )( originalKoersenRecord.koersenList.get( koersenListIndex ) ) ).doubleValue( );
+	    double koers         = koersenRecord.koersenList.get( koersenListIndex );
+	    double originalKoers = originalKoersenRecord.koersenList.get( koersenListIndex );
 	    if ( koers != originalKoers ) {
-		String fondsString = ( String )( fondsenList.get( koersenListIndex ) );
+		String fondsString = fondsenList.get( koersenListIndex );
 		updateString = addToUpdateString( updateString,
 						  fondsString + " = " + koers );
 	    }
@@ -390,5 +378,5 @@ public class KoersenTableModel extends AbstractTableModel {
 	}
     }
 
-    public boolean getRowModified( ) { return rowModified; }
+    boolean getRowModified( ) { return rowModified; }
 }
