@@ -1,5 +1,3 @@
-// frame to show and update records in rekening
-
 package financien.rekening;
 
 import java.sql.Connection;
@@ -22,8 +20,13 @@ import financien.gui.RekeningHouderComboBox;
 import financien.gui.RekeningTypeComboBox;
 import table.*;
 
-
-class RekeningFrame {
+/**
+ * Frame to show, insert and update records in the rekening table in schema financien.
+ * An instance of RekeningFrame is created by class financien.Main.
+ *
+ * @author Chris van Engelen
+ */
+public class RekeningFrame {
     final private Logger logger = Logger.getLogger( RekeningFrame.class.getCanonicalName() );
 
     private Connection connection;
@@ -43,34 +46,38 @@ class RekeningFrame {
     private RekeningTableModel rekeningTableModel;
     private TableSorter rekeningTableSorter;
     private JTable rekeningTable;
-    private final DecimalFormat decimalFormat = new DecimalFormat( "#0.0000;-#" );
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private static final DecimalFormat decimalFormat = new DecimalFormat( "#0.0000;-#" );
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
-    RekeningFrame( final Connection connection ) {
+    public RekeningFrame( final Connection connection ) {
         this.connection = connection;
 
         final Container container = frame.getContentPane( );
 
+        final ActionListener textFilterActionListener = ( ActionEvent actionEvent ) -> setupRekeningTableModel( );
+
         // Set grid bag layout manager
         container.setLayout( new GridBagLayout( ) );
         GridBagConstraints constraints = new GridBagConstraints( );
-        constraints.anchor = GridBagConstraints.EAST;
-        constraints.insets = new Insets( 5, 10, 5, 10 );
-        constraints.weightx = 1;
-        constraints.weighty = 0;
+        constraints.gridwidth = 1;
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 0;
+        constraints.anchor = GridBagConstraints.EAST;
         container.add( new JLabel( "Rekening filter:" ), constraints );
-
-        JPanel rekeningPanel = new JPanel( );
-
-        ActionListener textFilterActionListener = ( ActionEvent actionEvent ) -> setupRekeningTableModel( );
 
         rekeningTextField = new JTextField( 20 );
         rekeningTextField.addActionListener( textFilterActionListener );
-        rekeningPanel.add( rekeningTextField );
 
+        constraints.insets = new Insets( 20, 5, 5, 5 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        container.add( rekeningTextField, constraints );
+        constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
         ActionListener rekeningSelectieActionListener = ( ActionEvent actionEvent ) -> {
             onlyActiveAccounts = actionEvent.getActionCommand( ).equals( "onlyActiveAccounts" );
@@ -97,12 +104,13 @@ class RekeningFrame {
         rekeningSelectieButtonPanel.add( onlyActiveAccountsButton );
         rekeningSelectieButtonPanel.add( allAccountsButton );
 
-        rekeningPanel.add( rekeningSelectieButtonPanel );
-
+        constraints.insets = new Insets( 20, 5, 5, 500 );
         constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.anchor = GridBagConstraints.WEST;
-        container.add( rekeningPanel, constraints );
+        container.add( rekeningSelectieButtonPanel , constraints );
 
+
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.anchor = GridBagConstraints.EAST;
@@ -110,11 +118,20 @@ class RekeningFrame {
 
         rekeningNummerTextField = new JTextField( 20 );
         rekeningNummerTextField.addActionListener( textFilterActionListener );
+
+        constraints.insets = new Insets( 5, 5, 5, 500 );
         constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
         constraints.anchor = GridBagConstraints.WEST;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
         container.add( rekeningNummerTextField, constraints );
+        constraints.gridwidth = 1;
+        constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 2;
         constraints.anchor = GridBagConstraints.EAST;
@@ -130,11 +147,15 @@ class RekeningFrame {
             setupRekeningTableModel( );
         } );
 
+        constraints.insets = new Insets( 5, 5, 5, 20 );
         constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
         constraints.anchor = GridBagConstraints.WEST;
         container.add( rekeningTypeComboBox, constraints );
+        constraints.gridwidth = 1;
 
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 3;
         constraints.anchor = GridBagConstraints.EAST;
@@ -150,11 +171,15 @@ class RekeningFrame {
             setupRekeningTableModel( );
         } );
 
+        constraints.insets = new Insets( 5, 5, 5, 20 );
         constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
         constraints.anchor = GridBagConstraints.WEST;
         container.add( currencyComboBox, constraints );
+        constraints.gridwidth = 1;
 
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 4;
         constraints.anchor = GridBagConstraints.EAST;
@@ -171,9 +196,12 @@ class RekeningFrame {
         } );
 
 
+        constraints.insets = new Insets( 5, 5, 5, 20 );
         constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
         constraints.anchor = GridBagConstraints.WEST;
         container.add( rekeningHouderComboBox, constraints );
+        constraints.gridwidth = 1;
 
 
         // Define the edit, cancel, save and delete buttons
@@ -198,7 +226,7 @@ class RekeningFrame {
         rekeningTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 
         // Set vertical size just enough for 20 entries
-        rekeningTable.setPreferredScrollableViewportSize( new Dimension( 900, 320 ) );
+        rekeningTable.setPreferredScrollableViewportSize( new Dimension( 1230, 320 ) );
 
         // Set renderer for Double objects
         class DoubleRenderer extends JTextField implements TableCellRenderer {
@@ -219,14 +247,15 @@ class RekeningFrame {
         rekeningTable.setDefaultRenderer( Double.class, doubleRenderer );
 
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
         constraints.gridx = 0;
         constraints.gridy = 5;
-        constraints.gridwidth = 2;
+        constraints.gridwidth = 3;
         constraints.anchor = GridBagConstraints.CENTER;
-        constraints.insets = new Insets( 10, 20, 5, 20 );
 
-        // Setting weighty and fill is necessary for proper filling the frame when resized.
-        constraints.weighty = 1;
+        // Setting weightx, weighty and fill is necessary for proper filling the frame when resized.
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
         constraints.fill = GridBagConstraints.BOTH;
 
         container.add( new JScrollPane( rekeningTable ), constraints );
@@ -318,7 +347,8 @@ class RekeningFrame {
             public void actionPerformed( ActionEvent actionEvent ) {
                 if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
                     frame.setVisible( false );
-                    System.exit( 0 );
+                    frame.dispose();
+                    return;
                 } else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
                     try {
                         Statement statement = connection.createStatement( );
@@ -488,14 +518,26 @@ class RekeningFrame {
 
         constraints.gridx = 0;
         constraints.gridy = 6;
-        constraints.gridwidth = 2;
-        constraints.anchor = GridBagConstraints.CENTER;
-        constraints.weighty = 0;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
         constraints.fill = GridBagConstraints.NONE;
 
         container.add( buttonPanel, constraints );
 
-        frame.setSize( 1080, 680 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+        frame.setSize( 1290, 680 );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         frame.setVisible( true );
     }

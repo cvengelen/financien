@@ -119,19 +119,16 @@ public class IngMutatieFrame {
 	mutatieTegenRekeningLabel = new JLabel( );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.insets = insetsRight;
-	constraints.weightx = 1d;
 	constraints.gridwidth = 2;
 	container.add( mutatieTegenRekeningLabel, constraints );
 
 	mutatieNaamOmschrijvingLabel = new JLabel( );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 4.0;
 	constraints.gridwidth = 1;
 	container.add( mutatieNaamOmschrijvingLabel, constraints );
 
 	debCredIdLabel = new JLabel( );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1d;
 	container.add( debCredIdLabel, constraints );
 
 	JButton editDebCredButton = new JButton( "Edit Deb/Cred" );
@@ -151,13 +148,11 @@ public class IngMutatieFrame {
         } );
 
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1d;
 	container.add( editDebCredButton, constraints );
 
 
 	constraints.gridx = 0;
 	constraints.gridy = 2;
-	constraints.weightx = 0d;
 	constraints.insets = insetsLeft;
 	container.add( new JLabel( "Mutatie:" ), constraints );
 
@@ -229,7 +224,6 @@ public class IngMutatieFrame {
 
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 5;
-	constraints.weightx = 1d;
 	constraints.insets = insetsRight;
 	constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( mutatieMededelingenTextField, constraints );
@@ -238,7 +232,6 @@ public class IngMutatieFrame {
 	constraints.gridx = 0;
 	constraints.gridy = 6;
 	constraints.gridwidth = 1;
-	constraints.weightx = 0d;
 	constraints.insets = insetsLeft;
 	constraints.fill = GridBagConstraints.NONE;
 	container.add( new JLabel( "Rubriek:" ), constraints );
@@ -284,7 +277,7 @@ public class IngMutatieFrame {
 	rekeningMutatieTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 
 	// Set vertical size just enough for 12 entries
-	rekeningMutatieTable.setPreferredScrollableViewportSize( new Dimension( 1200, 192 ) );
+	rekeningMutatieTable.setPreferredScrollableViewportSize( new Dimension( 1220, 192 ) );
 
 	// Set renderer for Double objects
 	class DoubleRenderer extends JTextField implements TableCellRenderer {
@@ -331,7 +324,7 @@ public class IngMutatieFrame {
 	constraints.gridy = 7;
 	constraints.gridwidth = 6;
 	constraints.insets = new Insets( 10, 20, 5, 20 );
-	// Setting weighty and fill is necessary for proper filling the frame when resized.
+	// Setting weightx, weighty and fill is necessary for proper filling the frame when resized.
 	constraints.weightx = 1d;
 	constraints.weighty = 1d;
 	constraints.fill = GridBagConstraints.BOTH;
@@ -628,12 +621,11 @@ public class IngMutatieFrame {
 	buttonPanel.add( closeButton );
 
 	constraints.gridx = 0;
-	constraints.gridy = 10;
-	constraints.gridwidth = 6;
+	constraints.gridy = 8;
 	constraints.weightx = 0d;
 	constraints.weighty = 0d;
 	constraints.fill = GridBagConstraints.NONE;
-	constraints.anchor = GridBagConstraints.CENTER;
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	container.add( buttonPanel, constraints );
 
         // Add a window listener to close the connection when the frame is disposed
@@ -649,7 +641,7 @@ public class IngMutatieFrame {
             }
         } );
 
-	frame.setSize( 1260, 550 );
+	frame.setSize( 1280, 550 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible( true );
     }

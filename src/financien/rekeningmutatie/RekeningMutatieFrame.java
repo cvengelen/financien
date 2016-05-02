@@ -1,5 +1,3 @@
-// frame to show and update records in rekening_mutatie
-
 package financien.rekeningmutatie;
 
 import java.sql.Connection;
@@ -22,8 +20,13 @@ import javax.swing.event.*;
 import financien.gui.*;
 import table.*;
 
-
-class RekeningMutatieFrame {
+/**
+ * Frame to show, insert and update records in the rekening_mutatie table in schema financien.
+ * An instance of RekeningFrame is created by class financien.Main.
+ *
+ * @author Chris van Engelen
+ */
+public class RekeningMutatieFrame {
     private final Logger logger = Logger.getLogger( RekeningMutatieFrame.class.getCanonicalName( ) );
 
     private Connection connection;
@@ -50,7 +53,7 @@ class RekeningMutatieFrame {
     private int rekeningTypeId = 0;
     private double startSaldo;
     private String startDatumString;
-    private final String euroDatumString = "2002-01-01";
+    private static final String euroDatumString = "2002-01-01";
 
     private RubriekComboBox rubriekComboBox;
     private int selectedRubriekId = 0;
@@ -71,8 +74,7 @@ class RekeningMutatieFrame {
     private final int maximumRekeningTypeId = 9;
     private DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
 
-
-    RekeningMutatieFrame( final Connection connection ) {
+    public RekeningMutatieFrame( final Connection connection ) {
         logger.fine( "Starting RekeningMutatieFrame" );
         this.connection = connection;
 
@@ -96,13 +98,12 @@ class RekeningMutatieFrame {
         // Set grid bag layout manager
         container.setLayout( new GridBagLayout( ) );
         GridBagConstraints constraints = new GridBagConstraints( );
-        constraints.anchor = GridBagConstraints.EAST;
-        constraints.insets = new Insets( 5, 10, 5, 10 );
-        constraints.weightx = 1.0;
-        constraints.weighty = 0.0;
+        constraints.gridwidth = 1;
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 0;
+        constraints.anchor = GridBagConstraints.EAST;
         container.add( new JLabel( "Rekening:" ), constraints );
 
         JPanel rekeningPanel = new JPanel( );
@@ -111,14 +112,10 @@ class RekeningMutatieFrame {
         rekeningHouderComboBox = new RekeningHouderComboBox( connection, 1 );
         rekeningPanel.add( rekeningHouderComboBox );
 
-        class RekeningSelectieActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                rekeningComboBox.setupRekeningComboBox( selectedRekeningId,
-                                                        selectedRekeningHouderId,
-                                                        actionEvent.getActionCommand( ).equals( "onlyActiveAccounts" ) );
-            }
-        }
-        RekeningSelectieActionListener rekeningSelectieActionListener = new RekeningSelectieActionListener( );
+        ActionListener rekeningSelectieActionListener = ( ActionEvent actionEvent ) ->
+            rekeningComboBox.setupRekeningComboBox( selectedRekeningId,
+                                                    selectedRekeningHouderId,
+                                                    actionEvent.getActionCommand( ).equals( "onlyActiveAccounts" ) );
 
         final JRadioButton onlyActiveAccountsButton = new JRadioButton( "Aktieve rekeningen", true );
         onlyActiveAccountsButton.setActionCommand( "onlyActiveAccounts" );
@@ -138,32 +135,29 @@ class RekeningMutatieFrame {
 
         rekeningPanel.add( rekeningSelectieButtonPanel );
 
-        class RekeningHouderActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                // Controleer of de rekeninghouder gewijzigd is
-                if ( rekeningHouderComboBox.getSelectedRekeningHouderId( ) != selectedRekeningHouderId ) {
-                    // Get the selected Rekeninghouder ID
-                    selectedRekeningHouderId = rekeningHouderComboBox.getSelectedRekeningHouderId();
+        rekeningHouderComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Controleer of de rekeninghouder gewijzigd is
+            if ( rekeningHouderComboBox.getSelectedRekeningHouderId( ) != selectedRekeningHouderId ) {
+                // Get the selected Rekeninghouder ID
+                selectedRekeningHouderId = rekeningHouderComboBox.getSelectedRekeningHouderId();
 
-                    // Reset de geselecteerde rekening
-                    selectedRekeningId = 0;
+                // Reset de geselecteerde rekening
+                selectedRekeningId = 0;
 
-                    // Setup the rekening combobox
-                    rekeningComboBox.setupRekeningComboBox( selectedRekeningId,
-                                                            selectedRekeningHouderId,
-                                                            onlyActiveAccountsButton.isSelected() );
+                // Setup the rekening combobox
+                rekeningComboBox.setupRekeningComboBox( selectedRekeningId,
+                                                        selectedRekeningHouderId,
+                                                        onlyActiveAccountsButton.isSelected() );
 
-                    // Setup the rekening_mutatie table for the selected debCred
-                    setupRekeningMutatieTable();
-                }
+                // Setup the rekening_mutatie table for the selected debCred
+                setupRekeningMutatieTable();
             }
-        }
-        rekeningHouderComboBox.addActionListener( new RekeningHouderActionListener() );
+        } );
 
         // Setup a JComboBox with the results of the query on rekening
         rekeningComboBox = new RekeningComboBox( connection, selectedRekeningId,
-                selectedRekeningHouderId,
-                true );
+                                                 selectedRekeningHouderId,
+                                                 true );
         rekeningPanel.add( rekeningComboBox );
 
         class RekeningActionListener implements ActionListener {
@@ -223,10 +217,12 @@ class RekeningMutatieFrame {
         rekeningNummerLabel = new JLabel( );
         rekeningPanel.add( rekeningNummerLabel );
 
+        constraints.insets = new Insets( 20, 5, 5, 20 );
         constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.anchor = GridBagConstraints.WEST;
         container.add( rekeningPanel, constraints );
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.anchor = GridBagConstraints.EAST;
@@ -251,10 +247,12 @@ class RekeningMutatieFrame {
         updateSaldoButton.setEnabled( false );
         saldoPanel.add( updateSaldoButton );
 
+        constraints.insets = new Insets( 5, 5, 5, 20 );
         constraints.gridx = GridBagConstraints.RELATIVE;
         container.add( saldoPanel, constraints );
 
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 2;
         constraints.anchor = GridBagConstraints.EAST;
@@ -300,10 +298,13 @@ class RekeningMutatieFrame {
         rubriekOmschrijvingLabel = new JLabel( );
         rubriekPanel.add( rubriekOmschrijvingLabel );
 
+        constraints.insets = new Insets( 5, 5, 5, 20 );
         constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.anchor = GridBagConstraints.WEST;
         container.add( rubriekPanel, constraints );
 
+
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 3;
         constraints.anchor = GridBagConstraints.EAST;
@@ -381,6 +382,7 @@ class RekeningMutatieFrame {
         debCredFilterButton.addActionListener( debCredFilterButtonActionListener );
         debCredPanel.add( debCredFilterButton );
 
+        constraints.insets = new Insets( 5, 5, 5, 20 );
         constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.anchor = GridBagConstraints.WEST;
         container.add( debCredPanel, constraints );
@@ -390,33 +392,31 @@ class RekeningMutatieFrame {
         // Omschrijving filter
         ///////////////////////
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 4;
-        constraints.weightx = 1;
         constraints.anchor = GridBagConstraints.EAST;
         container.add( new JLabel( "Omschrijving:" ), constraints );
+
         omschrijvingFilterTextField = new JTextField( 50 );
+        omschrijvingFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> setupRekeningMutatieTable( ) );
+
         JPanel omschrijvingPanel = new JPanel( );
         omschrijvingPanel.add( omschrijvingFilterTextField );
 
+        constraints.insets = new Insets( 5, 5, 5, 600 );
         constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.anchor = GridBagConstraints.WEST;
-        // constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.weightx = 1;
-        container.add( omschrijvingPanel, constraints );
-
-        class OmschrijvingFilterActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                // Setup the rekening_mutatie table
-                setupRekeningMutatieTable( );
-            }
-        }
-        omschrijvingFilterTextField.addActionListener( new OmschrijvingFilterActionListener( ) );
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        container.add( omschrijvingFilterTextField, constraints );
+        constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 5;
-        constraints.weightx = 1;
         constraints.anchor = GridBagConstraints.EAST;
         container.add( new JLabel( "Saldo in/uit:" ), constraints );
 
@@ -428,10 +428,9 @@ class RekeningMutatieFrame {
         sumMutatiePanel.add( sumMutatieOutLabel );
         sumMutatiePanel.add( sumMutatieSaldoLabel );
 
+        constraints.insets = new Insets( 5, 5, 5, 20 );
         constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.anchor = GridBagConstraints.WEST;
-        // constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.weightx = 1;
         container.add( sumMutatiePanel, constraints );
 
 
@@ -458,7 +457,7 @@ class RekeningMutatieFrame {
         rekeningMutatieTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 
         // Set vertical size just enough for 20 entries
-        rekeningMutatieTable.setPreferredScrollableViewportSize( new Dimension( 900, 320 ) );
+        rekeningMutatieTable.setPreferredScrollableViewportSize( new Dimension( 1220, 320 ) );
 
         // Set renderer for Double objects
         class DoubleRenderer extends JTextField implements TableCellRenderer {
@@ -509,19 +508,16 @@ class RekeningMutatieFrame {
         doubleRenderer.setBorder( emptyBorder );
         rekeningMutatieTable.setDefaultRenderer( Double.class, doubleRenderer );
 
-
+        constraints.insets = new Insets( 5, 20, 5, 20 );
         constraints.gridx = 0;
         constraints.gridy = 6;
         constraints.gridwidth = 2;
         constraints.anchor = GridBagConstraints.CENTER;
-
-        // Setting weighty and fill is necessary for proper filling the frame when resized.
-        constraints.weighty = 1.0;
+        // Setting weightx, weighty and fill is necessary for proper filling the frame when resized.
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
         constraints.fill = GridBagConstraints.BOTH;
-
         container.add( new JScrollPane( rekeningMutatieTable ), constraints );
-
-
 
         ////////////////////////////////////////////////
         // List selection listener
@@ -633,7 +629,8 @@ class RekeningMutatieFrame {
             public void actionPerformed( ActionEvent actionEvent ) {
                 if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
                     frame.setVisible( false );
-                    System.exit( 0 );
+                    frame.dispose();
+                    return;
                 } else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
                     new RekeningMutatieDialog( connection,
                                                frame,
@@ -783,18 +780,28 @@ class RekeningMutatieFrame {
         closeButton.setActionCommand( "close" );
         buttonPanel.add( closeButton );
 
-
+        constraints.insets = new Insets( 5, 20, 20, 20 );
         constraints.gridx = 0;
         constraints.gridy = 7;
-
-        constraints.weighty = 0.0;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
         constraints.fill = GridBagConstraints.NONE;
-
-        constraints.gridwidth = 6;
-        constraints.anchor = GridBagConstraints.CENTER;
         container.add( buttonPanel, constraints );
 
-        frame.setSize( 980, 750 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+        frame.setSize( 1280, 750 );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         frame.setVisible( true );
     }

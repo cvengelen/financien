@@ -1,5 +1,3 @@
-// Class to setup a TableModel for all records in rekening
-
 package financien.rekening;
 
 import financien.gui.CurrencyComboBox;
@@ -16,7 +14,9 @@ import java.text.*;
 import java.util.*;
 import java.util.logging.*;
 
-
+/**
+ * TableModel for records in deb_cred
+ */
 class RekeningTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( RekeningTableModel.class.getCanonicalName() );
 
@@ -230,6 +230,7 @@ class RekeningTableModel extends AbstractTableModel {
             }
 
             rekeningRecordList.trimToSize( );
+            logger.info("Table shows " + rekeningRecordList.size() + " rekening records");
 
             // Trigger update of table data
             fireTableDataChanged( );

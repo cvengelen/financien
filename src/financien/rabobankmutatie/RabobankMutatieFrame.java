@@ -1,5 +1,3 @@
-// frame to copy downloaded Rabo mutatie records to rekening_mutatie, and deb_cred
-
 package financien.rabobankmutatie;
 
 import financien.gui.DebCredDialog;
@@ -15,6 +13,8 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,7 +29,13 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class RabobankMutatieFrame {
+/**
+ * Frame to copy downloaded Rabobank mutatie records to rekening_mutatie, and deb_cred tables in schema financien.
+ * An instance of RabobankMutatieFrame is created by class financien.Main.
+ *
+ * @author Chris van Engelen
+ */
+public class RabobankMutatieFrame {
     final private Logger logger = Logger.getLogger( RabobankMutatieFrame.class.getCanonicalName( ) );
 
     private Connection connection;
@@ -74,19 +80,18 @@ class RabobankMutatieFrame {
     private RekeningMutatieTableModel rekeningMutatieTableModel;
     private TableSorter rekeningMutatieTableSorter;
     private JTable rekeningMutatieTable;
-    private final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
+    private static final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
     private final GregorianCalendar calendar = new GregorianCalendar( );
 
     private ResultSet mutatieResultSet;
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    private final Pattern quotePattern = Pattern.compile( "\\'" );
+    private static final Pattern quotePattern = Pattern.compile( "\\'" );
 
-
-    RabobankMutatieFrame( final Connection connection ) {
+    public RabobankMutatieFrame( final Connection connection ) {
 	this.connection = connection;
 
 	// frame.setBackground( Color.white );
@@ -120,48 +125,40 @@ class RabobankMutatieFrame {
 	mutatieTegenRekeningLabel = new JLabel( );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.insets = insetsRight;
-	constraints.weightx = 1.0;
 	constraints.gridwidth = 2;
 	container.add( mutatieTegenRekeningLabel, constraints );
 
 	mutatieNaamOmschrijvingLabel = new JLabel( );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 2.0;
 	constraints.gridwidth = 1;
 	container.add( mutatieNaamOmschrijvingLabel, constraints );
 
 	debCredIdLabel = new JLabel( );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	container.add( debCredIdLabel, constraints );
 
-	class EditDebCredButtonActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		DebCredDialog debCredDialog = new DebCredDialog( connection, frame,
-								 debCredId,
-								 mutatieTegenRekeningString,
-								 mutatieNaamOmschrijvingString,
-								 mutatieMededelingenString,
-								 mutatieCodeString );
-
-		debCredId = debCredDialog.getDebCredId( );
-		rubriekId = debCredDialog.getRubriekId( );
-
-		// Setup the rekening_mutatie table for the selected rubriek and deb-cred id
-		setupRekeningMutatieTable( );
-	    }
-	}
-
 	JButton editDebCredButton = new JButton( "Edit Deb/Cred" );
-	editDebCredButton.addActionListener( new EditDebCredButtonActionListener( ) );
+	editDebCredButton.addActionListener( ( ActionEvent actionEvent ) -> {
+            DebCredDialog debCredDialog = new DebCredDialog( connection, frame,
+                    debCredId,
+                    mutatieTegenRekeningString,
+                    mutatieNaamOmschrijvingString,
+                    mutatieMededelingenString,
+                    mutatieCodeString );
+
+            debCredId = debCredDialog.getDebCredId( );
+            rubriekId = debCredDialog.getRubriekId( );
+
+            // Setup the rekening_mutatie table for the selected rubriek and deb-cred id
+            setupRekeningMutatieTable( );
+        } );
+
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.weightx = 1.0;
 	container.add( editDebCredButton, constraints );
 
 
 	constraints.gridx = 0;
 	constraints.gridy = 2;
-	constraints.weightx = 0.0;
 	constraints.insets = insetsLeft;
 	container.add( new JLabel( "Mutatie:" ), constraints );
 
@@ -233,7 +230,6 @@ class RabobankMutatieFrame {
 
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 5;
-	constraints.weightx = 1.0;
 	constraints.insets = insetsRight;
 	constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( mutatieMededelingenTextField, constraints );
@@ -242,33 +238,29 @@ class RabobankMutatieFrame {
 	constraints.gridx = 0;
 	constraints.gridy = 6;
 	constraints.gridwidth = 1;
-	constraints.weightx = 0.0;
 	constraints.insets = insetsLeft;
 	constraints.fill = GridBagConstraints.NONE;
 	container.add( new JLabel( "Rubriek:" ), constraints );
 
 	// Setup a JComboBox with the results of the query on rubriek
 	rubriekComboBox = new RubriekComboBox( connection, 0, true );
+        rubriekComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected Rubriek ID
+            rubriekId = rubriekComboBox.getSelectedRubriekId( );
+
+            // Check if rubriek has been selected
+            if ( rubriekId == 0 ) {
+                return;
+            }
+
+            // Setup the rekening_mutatie table for the selected rubriek
+            setupRekeningMutatieTable( );
+        } );
+
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 4;
 	constraints.insets = insetsRight;
 	container.add( rubriekComboBox, constraints );
-
-	class RubriekActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected Rubriek ID
-		rubriekId = rubriekComboBox.getSelectedRubriekId( );
-
-		// Check if rubriek has been selected
-		if ( rubriekId == 0 ) {
-		    return;
-		}
-
-		// Setup the rekening_mutatie table for the selected rubriek
-		setupRekeningMutatieTable( );
-	    }
-	}
-	rubriekComboBox.addActionListener( new RubriekActionListener( ) );
 
 	// Define the edit, cancel, save and buttons because
 	// the cancel/save buttons are enabled by the table model.
@@ -291,7 +283,7 @@ class RabobankMutatieFrame {
 	rekeningMutatieTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 
 	// Set vertical size just enough for 12 entries
-	rekeningMutatieTable.setPreferredScrollableViewportSize( new Dimension( 886, 192 ) );
+	rekeningMutatieTable.setPreferredScrollableViewportSize( new Dimension( 1220, 192 ) );
 
 	// Set renderer for Double objects
 	class DoubleRenderer extends JTextField implements TableCellRenderer {
@@ -338,9 +330,9 @@ class RabobankMutatieFrame {
 	constraints.gridy = 7;
 	constraints.gridwidth = 6;
 	constraints.insets = new Insets( 10, 20, 5, 20 );
-	// Setting weighty and fill is necessary for proper filling the frame when resized.
-	constraints.weightx = 1.0;
-	constraints.weighty = 1.0;
+	// Setting weightx, weighty and fill is necessary for proper filling the frame when resized.
+	constraints.weightx = 1d;
+	constraints.weighty = 1d;
 	constraints.fill = GridBagConstraints.BOTH;
 	constraints.anchor = GridBagConstraints.CENTER;
 	container.add( scrollPane, constraints );
@@ -446,7 +438,8 @@ class RabobankMutatieFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "copy" ) ) {
 		    // Copy the record to the rekening mutatie table
 		    if ( copyDownloadIngRecord( ) ) {
@@ -636,15 +629,27 @@ class RabobankMutatieFrame {
 	buttonPanel.add( closeButton );
 
 	constraints.gridx = 0;
-	constraints.gridy = 10;
-	constraints.gridwidth = 6;
-	constraints.weightx = 0.0;
-	constraints.weighty = 0.0;
+	constraints.gridy = 8;
+	constraints.weightx = 0d;
+	constraints.weighty = 0d;
 	constraints.fill = GridBagConstraints.NONE;
-	constraints.anchor = GridBagConstraints.CENTER;
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 980, 550 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 1280, 550 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible( true );
     }
