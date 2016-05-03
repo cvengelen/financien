@@ -21,7 +21,13 @@ import javax.swing.border.*;
 import financien.gui.WaardeDatumComboBox;
 import table.*;
 
-class WaardeDatumFrame {
+/**
+ * Frame to show, insert and update waarde for all rekeningen for a specific date.
+ * An instance of WaardeDatumFrame is created by class financien.Main.
+ *
+ * @author Chris van Engelen
+ */
+public class WaardeDatumFrame {
     final private Logger logger = Logger.getLogger( WaardeDatumFrame.class.getCanonicalName() );
 
     private final Connection connection;
@@ -35,13 +41,13 @@ class WaardeDatumFrame {
     private WaardeDatumComboBox waardeDatumComboBox;
     private String selectedWaardeDatumString = null;
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
-    private final String euroDatumString = "2002-01-01";
-    private final String euroKoersenDatumString = "1999-01-01";
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private static final String euroDatumString = "2002-01-01";
+    private static final String euroKoersenDatumString = "1999-01-01";
     private Date euroDatumDate;
     private Date euroKoersenDatumDate;
 
-    private final int maximumRekeningTypeId = 9;    // Maximum value field rekening_type_id in table rekening_type
+    private static final int maximumRekeningTypeId = 9;    // Maximum value field rekening_type_id in table rekening_type
 
     private final String[] rekeningTypeString = new String[ maximumRekeningTypeId + 1 ];
     private final String[] rekeningTypeTotaalFieldString = new String[ maximumRekeningTypeId + 1 ];
@@ -55,17 +61,17 @@ class WaardeDatumFrame {
 
     private final DecimalFormat[] saldoDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
 
-    private final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
-    private final DecimalFormat nlgDecimalFormat = new DecimalFormat( "NLG #0.00;NLG -#" );
-    private final DecimalFormat usdDecimalFormat = new DecimalFormat( "USD #0.00;USD -#" );
-    private final DecimalFormat percentDecimalFormat = new DecimalFormat( "% #0.00;% -#" );
+    private static final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
+    private static final DecimalFormat nlgDecimalFormat = new DecimalFormat( "NLG #0.00;NLG -#" );
+    private static final DecimalFormat usdDecimalFormat = new DecimalFormat( "USD #0.00;USD -#" );
+    private static final DecimalFormat percentDecimalFormat = new DecimalFormat( "% #0.00;% -#" );
 
-    private final String insertActionCommandString = "insert";
-    private final String updateActionCommandString = "update";
+    private static final String insertActionCommandString = "insert";
+    private static final String updateActionCommandString = "update";
 
-    private final long milliSecondsPerDay = 24 * 60 * 60 * 1000;
+    private static final long milliSecondsPerDay = 24 * 60 * 60 * 1000;
 
-    WaardeDatumFrame( final Connection connection ) {
+    public WaardeDatumFrame( final Connection connection ) {
         this.connection = connection;
 
         // Do not allow incorrect dates (e.g., day>31)
@@ -85,24 +91,15 @@ class WaardeDatumFrame {
         // Set grid bag layout manager
         container.setLayout( new GridBagLayout( ) );
         GridBagConstraints constraints = new GridBagConstraints( );
+
         constraints.anchor = GridBagConstraints.EAST;
-        constraints.insets = new Insets( 10, 50, 5, 5 );
-        constraints.gridwidth = 1;
-        constraints.gridheight = 1;
-        constraints.weightx = 1.0;
-        constraints.weighty = 0.0;
+        constraints.insets = new Insets( 20, 50, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 0;
         container.add( new JLabel( "Datum:" ), constraints );
 
         // Setup a JComboBox with the results of the query on datum in table waarde
         waardeDatumComboBox = new WaardeDatumComboBox( connection, null );
-        constraints.anchor = GridBagConstraints.WEST;
-        constraints.gridx = GridBagConstraints.RELATIVE;
-        constraints.weightx = 1.0;
-        constraints.insets = new Insets( 10, 5, 5, 450 );
-        container.add( waardeDatumComboBox, constraints );
-
         waardeDatumComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected waarde datum
             selectedWaardeDatumString = waardeDatumComboBox.getSelectedWaardeDatumString( );
@@ -117,6 +114,10 @@ class WaardeDatumFrame {
             setupWaardeDatumTable( selectedWaardeDatumString );
         } );
 
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.insets = new Insets( 20, 5, 5, 450 );
+        container.add( waardeDatumComboBox, constraints );
 
         // Get the values for rekening_type, rekening_pattern, and rekening_totaal_field for all
         // records in table rekening_type and store in the arrays indexed by rekening_type_id.
@@ -140,7 +141,7 @@ class WaardeDatumFrame {
         // and setup the string used in the SELECT query on the totaal table
         selectQueryTotaalString = "";
         final Insets insetsLabel = new Insets( 2, 50, 2, 5 );
-        final Insets insetsText = new Insets( 2, 5, 2, 450 );
+        final Insets insetsText = new Insets( 2, 5, 2, 700 );
         int rekeningTypeId;
         for ( rekeningTypeId = 1; rekeningTypeId <= maximumRekeningTypeId; rekeningTypeId++ ) {
             constraints.gridx = 0;
@@ -231,7 +232,7 @@ class WaardeDatumFrame {
         waardeDatumTable.getColumnModel( ).getColumn( 10 ).setPreferredWidth( 60 );  // RendementPerJaar
 
         // Set vertical size just enough for 20 entries
-        waardeDatumTable.setPreferredScrollableViewportSize( new Dimension( 1040, 320 ) );
+        waardeDatumTable.setPreferredScrollableViewportSize( new Dimension( 1200, 320 ) );
 
         // Set renderer for Double objects
         class DoubleRenderer extends JTextField implements TableCellRenderer {
@@ -317,7 +318,8 @@ class WaardeDatumFrame {
                 final String actionCommandString = actionEvent.getActionCommand( );
                 if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
                     frame.setVisible( false );
-                    System.exit( 0 );
+                    frame.dispose();
+                    return;
                 } else if ( actionCommandString.equals( insertActionCommandString ) ) {
                     final GregorianCalendar calendar = new GregorianCalendar( );
                     final Date todayDate = calendar.getTime( );
@@ -420,12 +422,24 @@ class WaardeDatumFrame {
 
         constraints.gridx = 0;
         constraints.gridy += 1;
-        constraints.weightx = 1.0;
-        constraints.weighty = 0.0;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
         constraints.fill = GridBagConstraints.NONE;
-        constraints.anchor = GridBagConstraints.CENTER;
-        constraints.insets = new Insets( 5, 10, 10, 10 );
+        constraints.insets = new Insets( 5, 20, 20, 20 );
         container.add( buttonPanel, constraints );
+
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
 
         frame.setSize( 1260, 850 );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );

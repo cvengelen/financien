@@ -1,5 +1,3 @@
-// Class to setup a TableModel for all records in waarde for a specific rekening
-
 package financien.waarderekening;
 
 import java.sql.Connection;
@@ -11,7 +9,9 @@ import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
 
-
+/**
+ * TableModel for records in waarde for a specific rekening
+ */
 class WaardeRekeningTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( WaardeRekeningTableModel.class.getCanonicalName() );
 
@@ -45,7 +45,7 @@ class WaardeRekeningTableModel extends AbstractTableModel {
 	}
     }
 
-    private final ArrayList<WaardeRekeningRecord> waardeRekeningRecordList = new ArrayList<>( 200 );
+    private final ArrayList<WaardeRekeningRecord> waardeRekeningRecordList = new ArrayList<>( 50 );
 
     // Constructor
     WaardeRekeningTableModel( Connection connection ) {
@@ -80,6 +80,7 @@ class WaardeRekeningTableModel extends AbstractTableModel {
 	    }
 
 	    waardeRekeningRecordList.trimToSize( );
+            logger.info("Table shows " + waardeRekeningRecordList.size() + " waarde-rekening records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
@@ -136,6 +137,4 @@ class WaardeRekeningTableModel extends AbstractTableModel {
     public String getColumnName( int column ) {
 	return headings[ column ];
     }
-
-    int getNumberOfRecords( ) { return waardeRekeningRecordList.size( ); }
 }

@@ -1,5 +1,3 @@
-// Class to setup a TableModel for all records in waarde for a specific date
-
 package financien.waardedatum;
 
 import java.sql.Connection;
@@ -11,14 +9,17 @@ import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
 
-
+/**
+ * TableModel for records in waarde for a specific date
+ */
 class WaardeDatumTableModel extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
     private final Logger logger = Logger.getLogger( "financien.waardedatum.WaardeDatumTableModel" );
 
     private final Connection connection;
     private final String[] headings = { "Rekening", "Type", "Saldo", "Koers", "Waarde",
-            "Inleg", "Waarde-Inleg", "R. direct", "R. som", "Jaren som", "R. som/jaar", "R. 20150101/jaar" };
+                                        "Inleg", "Waarde-Inleg", "R. direct", "R. som",
+                                        "Jaren som", "R. som/jaar", "R. 20150101/jaar" };
 
     // Class to store record in table model
     private class WaardeDatumRecord {
@@ -68,7 +69,7 @@ class WaardeDatumTableModel extends AbstractTableModel {
         }
     }
 
-    private final ArrayList< WaardeDatumRecord > waardeDatumRecordList = new ArrayList< >( 100 );
+    private final ArrayList< WaardeDatumRecord > waardeDatumRecordList = new ArrayList< >( 20 );
 
     // Constructor
     WaardeDatumTableModel( Connection connection ) {
@@ -113,6 +114,7 @@ class WaardeDatumTableModel extends AbstractTableModel {
             }
 
             waardeDatumRecordList.trimToSize( );
+            logger.info("Table shows " + waardeDatumRecordList.size() + " waarde-datum records");
 
             // Trigger update of table data
             fireTableDataChanged( );
@@ -177,10 +179,6 @@ class WaardeDatumTableModel extends AbstractTableModel {
 
     public String getColumnName( int column ) {
         return headings[ column ];
-    }
-
-    int getNumberOfRecords( ) {
-        return waardeDatumRecordList.size( );
     }
 
     int getCurrencyId( int row ) {

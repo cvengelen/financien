@@ -1,5 +1,3 @@
-// frame to inspect waarde for all dates for a specific rekening
-
 package financien.waarderekening;
 
 import java.sql.Connection;
@@ -20,11 +18,14 @@ import financien.gui.RekeningComboBox;
 import financien.gui.RekeningHouderComboBox;
 import table.*;
 
-
-class WaardeRekeningFrame {
+/**
+ * Frame to show waarde for a specific rekening.
+ * An instance of WaardeRekeningrame is created by class financien.Main.
+ *
+ * @author Chris van Engelen
+ */
+public class WaardeRekeningFrame {
     private final Logger logger = Logger.getLogger( WaardeRekeningFrame.class.getCanonicalName( ) );
-
-    private Connection connection;
 
     private final JFrame frame = new JFrame( "Waarde geselecteerde rekening" );
 
@@ -38,23 +39,21 @@ class WaardeRekeningFrame {
     private RekeningComboBox rekeningComboBox;
     private int selectedRekeningId = 0;
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
-    private final String euroDatumString = "2002-01-01";
-    private final String euroKoersenDatumString = "1999-01-01";
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private static final String euroDatumString = "2002-01-01";
+    private static final String euroKoersenDatumString = "1999-01-01";
     private Date euroDatumDate;
     private Date euroKoersenDatumDate;
 
     private int rekeningCurrencyId = 0;
     private DecimalFormat rekeningDecimalFormat;
 
-    private final DecimalFormat euroDecimalFormat    = new DecimalFormat( "EUR #0.00;EUR -#" );
-    private final DecimalFormat nlgDecimalFormat     = new DecimalFormat( "NLG #0.00;NLG -#" );
-    private final DecimalFormat usdDecimalFormat     = new DecimalFormat( "USD #0.00;USD -#" );
-    private final DecimalFormat percentDecimalFormat = new DecimalFormat( "% #0.00;% -#" );
+    private static final DecimalFormat euroDecimalFormat    = new DecimalFormat( "EUR #0.00;EUR -#" );
+    private static final DecimalFormat nlgDecimalFormat     = new DecimalFormat( "NLG #0.00;NLG -#" );
+    private static final DecimalFormat usdDecimalFormat     = new DecimalFormat( "USD #0.00;USD -#" );
+    private static final DecimalFormat percentDecimalFormat = new DecimalFormat( "% #0.00;% -#" );
 
-
-    WaardeRekeningFrame( final Connection connection ) {
-	this.connection = connection;
+    public WaardeRekeningFrame( final Connection connection ) {
 
 	// Get date from datum string objects
 	try {
@@ -70,12 +69,9 @@ class WaardeRekeningFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.EAST;
-	constraints.insets = new Insets( 5, 10, 5, 10 );
-        constraints.weightx = 1.0;
-        constraints.weighty = 0.0;
 
-	constraints.gridx = 0;
+	constraints.insets = new Insets( 20, 20, 5, 5 );
+        constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Rekening:" ), constraints );
@@ -89,7 +85,7 @@ class WaardeRekeningFrame {
         ActionListener rekeningSelectieActionListener =
                 ( ActionEvent actionEvent ) -> rekeningComboBox.setupRekeningComboBox( selectedRekeningId,
                                                                                        1,
-                                                                                        actionEvent.getActionCommand( ).equals( "onlyActiveAccounts" ) );
+                                                                                       actionEvent.getActionCommand( ).equals( "onlyActiveAccounts" ) );
 
         final JRadioButton onlyActiveAccountsButton = new JRadioButton( "Alleen aktieve rekeningen", true );
         onlyActiveAccountsButton.setActionCommand( "onlyActiveAccounts" );
@@ -135,6 +131,7 @@ class WaardeRekeningFrame {
 	rekeningComboBox = new RekeningComboBox( connection, selectedRekeningId, 1, true );
         rekeningPanel.add( rekeningComboBox );
 
+        constraints.insets = new Insets( 20, 5, 5, 20 );
 	constraints.anchor = GridBagConstraints.WEST;
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	container.add( rekeningPanel, constraints );
@@ -200,7 +197,7 @@ class WaardeRekeningFrame {
 	waardeRekeningTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 
 	// Set vertical size just enough for 20 entries, horizotal: 820 plus 16 for the scrollbar
-	waardeRekeningTable.setPreferredScrollableViewportSize( new Dimension( 836, 320 ) );
+	waardeRekeningTable.setPreferredScrollableViewportSize( new Dimension( 820, 320 ) );
 
 	// Set renderer for Double objects
 	class DoubleRenderer extends JTextField implements TableCellRenderer {
@@ -270,45 +267,56 @@ class WaardeRekeningFrame {
 	waardeRekeningTable.setDefaultRenderer( Double.class, doubleRenderer );
 
 	// Add table to the container
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 1;
 	constraints.gridwidth = 2;
+        constraints.anchor = GridBagConstraints.CENTER;
 
-        // Setting weighty and fill is necessary for proper filling the frame when resized.
-        constraints.weighty = 1.0;
+        // Setting weightx, weighty and fill is necessary for proper filling the frame when resized.
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
         constraints.fill = GridBagConstraints.BOTH;
 
 	container.add( new JScrollPane( waardeRekeningTable ), constraints );
 
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
-	// Class to handle button actions
-	class ButtonActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-		    System.exit( 0 );
-		}
-	    }
-	}
-	final ButtonActionListener buttonActionListener = new ButtonActionListener( );
 
 	JPanel buttonPanel = new JPanel( );
 
 	final JButton closeButton = new JButton( "Close" );
-	closeButton.addActionListener( buttonActionListener );
+	closeButton.addActionListener( ( ActionEvent actionEvent ) -> {
+            if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
+                frame.setVisible( false );
+                frame.dispose();
+            }
+        } );
 	closeButton.setActionCommand( "close" );
 	buttonPanel.add( closeButton );
 
 
 	constraints.gridx = 0;
 	constraints.gridy = 2;
-	constraints.anchor = GridBagConstraints.CENTER;
-	constraints.insets = new Insets( 5, 10, 5, 10 );
-        constraints.weighty = 0.0;
-        constraints.fill = GridBagConstraints.NONE;
+	constraints.insets = new Insets( 5, 20, 20, 20 );
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 920, 550 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 880, 550 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible( true );
     }
