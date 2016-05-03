@@ -22,7 +22,7 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the rekening_mutatie table in schema financien.
- * An instance of RekeningFrame is created by class financien.Main.
+ * An instance of RekeningMutatieFrame is created by class financien.Main.
  *
  * @author Chris van Engelen
  */

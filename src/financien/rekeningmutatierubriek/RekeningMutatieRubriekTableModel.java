@@ -11,7 +11,9 @@ import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
 
-
+/**
+ * Setup a TableModel for all records in rekening_mutatie for a specific rubriek
+ */
 class RekeningMutatieRubriekTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( RekeningMutatieRubriekTableModel.class.getCanonicalName() );
 
@@ -116,6 +118,7 @@ class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 	    }
 
 	    rekeningMutatieRubriekRecordList.trimToSize( );
+            logger.info("Table shows " + rekeningMutatieRubriekRecordList.size() + " rekening_mutatie records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
@@ -255,17 +258,11 @@ class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 	fireTableCellUpdated( row, column );
     }
 
-
     public String getColumnName( int column ) {
 	return headings[ column ];
     }
 
-
-    int getNumberOfRecords( ) { return rekeningMutatieRubriekRecordList.size( ); }
-
-
     int getRubriekId( ) { return rubriekId; }
-
 
     String getDatumString( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
@@ -276,7 +273,6 @@ class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 	return ( rekeningMutatieRubriekRecordList.get( row ) ).datumString;
     }
 
-
     int getDebCredId( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
@@ -285,7 +281,6 @@ class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 
 	return ( rekeningMutatieRubriekRecordList.get( row ) ).debCredId;
     }
-
 
     int getRekeningId( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
@@ -296,7 +291,6 @@ class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 	return ( rekeningMutatieRubriekRecordList.get( row ) ).rekeningId;
     }
 
-
     String getRekeningString( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
@@ -305,7 +299,6 @@ class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 
 	return ( rekeningMutatieRubriekRecordList.get( row ) ).rekeningString;
     }
-
 
     int getRekeningHouderId( int row ) {
         if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
@@ -316,7 +309,6 @@ class RekeningMutatieRubriekTableModel extends AbstractTableModel {
         return ( rekeningMutatieRubriekRecordList.get( row ) ).rekeningHouderId;
     }
 
-
     int getRekeningTypeId( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {
 	    logger.severe( "Invalid row: " + row );
@@ -325,7 +317,6 @@ class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 
 	return ( rekeningMutatieRubriekRecordList.get( row ) ).rekeningTypeId;
     }
-
 
     int getVolgNummer( int row ) {
 	if ( ( row < 0 ) || ( row >= rekeningMutatieRubriekRecordList.size( ) ) ) {

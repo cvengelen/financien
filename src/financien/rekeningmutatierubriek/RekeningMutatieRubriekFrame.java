@@ -1,5 +1,3 @@
-// frame to show and update records in rekening_mutatie selected on rubriek
-
 package financien.rekeningmutatierubriek;
 
 import java.sql.Connection;
@@ -20,8 +18,13 @@ import financien.gui.RekeningMutatieDialog;
 import financien.gui.RubriekComboBox;
 import table.*;
 
-
-class RekeningMutatieRubriekFrame {
+/**
+ * Frame to show, insert and update records in the rekening_mutatie table in schema financien.
+ * An instance of RekeningMutatieRubriekFrame is created by class financien.Main.
+ *
+ * @author Chris van Engelen
+ */
+public class RekeningMutatieRubriekFrame {
     private final Logger logger = Logger.getLogger( RekeningMutatieRubriekFrame.class.getCanonicalName() );
 
     private final JFrame frame = new JFrame( "RekeningMutatieRubriek" );
@@ -38,7 +41,7 @@ class RekeningMutatieRubriekFrame {
     private final int maximumRekeningTypeId = 9;	// Maximum value field rekening_type_id in table rekening_type
     private final DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
 
-    RekeningMutatieRubriekFrame( final Connection connection ) {
+    public RekeningMutatieRubriekFrame( final Connection connection ) {
 
 	// Get the values for rekening_pattern, used for rendering mutatieIn and mutatieUit,
 	// for all records in table rekening_type and store in array indexed by rekening_type_id.
@@ -60,59 +63,59 @@ class RekeningMutatieRubriekFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.EAST;
-	constraints.insets = new Insets( 5, 10, 5, 10 );
-        constraints.weightx = 1.0;
-        constraints.weighty = 0.0;
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
+        constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Rubriek:" ), constraints );
 
 	// Setup a JComboBox with the results of the query on rubriek
 	rubriekComboBox = new RubriekComboBox( connection, 0, true );
+        rubriekComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected Rubriek ID
+            selectedRubriekId = rubriekComboBox.getSelectedRubriekId( );
+
+            // Check if rubriek has been selected
+            if ( selectedRubriekId == 0 ) {
+                return;
+            }
+
+            try {
+                Statement statement = connection.createStatement( );
+                ResultSet resultSet = statement.executeQuery( "SELECT omschrijving " +
+                        "FROM rubriek WHERE rubriek_id = " +
+                        selectedRubriekId );
+                if ( ! resultSet.next( ) ) {
+                    logger.severe( "Could not get record for rubriek_id " +
+                            selectedRubriekId + " in rubriek" );
+                    return;
+                }
+
+                omschrijvingLabel.setText( resultSet.getString( 1 ) );
+
+                // Setup the rekening_mutatie table for the selected rubriek
+                setupRekeningMutatieRubriekTable( selectedRubriekId );
+            } catch ( SQLException sqlException ) {
+                logger.severe( "SQLException: " + sqlException.getMessage( ) );
+            }
+        } );
+
+        constraints.insets = new Insets( 20, 5, 5, 20 );
         constraints.anchor = GridBagConstraints.WEST;
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	container.add( rubriekComboBox, constraints );
 
-	class RubriekActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected Rubriek ID
-		selectedRubriekId = rubriekComboBox.getSelectedRubriekId( );
 
-		// Check if rubriek has been selected
-		if ( selectedRubriekId == 0 ) {
-		    return;
-		}
-
-		try {
-		    Statement statement = connection.createStatement( );
-		    ResultSet resultSet = statement.executeQuery( "SELECT omschrijving " +
-								  "FROM rubriek WHERE rubriek_id = " +
-								  selectedRubriekId );
-		    if ( ! resultSet.next( ) ) {
-			logger.severe( "Could not get record for rubriek_id " +
-				       selectedRubriekId + " in rubriek" );
-			return;
-		    }
-
-		    omschrijvingLabel.setText( resultSet.getString( 1 ) );
-
-		    // Setup the rekening_mutatie table for the selected rubriek
-		    setupRekeningMutatieRubriekTable( selectedRubriekId );
-		} catch ( SQLException sqlException ) {
-		    logger.severe( "SQLException: " + sqlException.getMessage( ) );
-		}
-	    }
-	}
-	rubriekComboBox.addActionListener( new RubriekActionListener( ) );
-
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.anchor = GridBagConstraints.EAST;
 	constraints.gridx = 0;
-	constraints.gridy = 2;
-	container.add( new JLabel( "Omschrijving: " ), constraints );
+	constraints.gridy = 1;
+	container.add( new JLabel( "Omschrijving:" ), constraints );
 
 	omschrijvingLabel = new JLabel( );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
         constraints.anchor = GridBagConstraints.WEST;
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	container.add( omschrijvingLabel, constraints );
@@ -127,7 +130,7 @@ class RekeningMutatieRubriekFrame {
 	rekeningMutatieRubriekTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 
 	// Set vertical size just enough for 20 entries, horizontal 870+16 for scrollbar
-	rekeningMutatieRubriekTable.setPreferredScrollableViewportSize( new Dimension( 886, 320 ) );
+	rekeningMutatieRubriekTable.setPreferredScrollableViewportSize( new Dimension( 1220, 320 ) );
 
 	// Set renderer for Double objects
 	class DoubleRenderer extends JTextField implements TableCellRenderer {
@@ -168,17 +171,22 @@ class RekeningMutatieRubriekFrame {
 	doubleRenderer.setBorder( emptyBorder );
 	rekeningMutatieRubriekTable.setDefaultRenderer( Double.class, doubleRenderer );
 
-
+        constraints.insets = new Insets( 5, 20, 5, 20 );
         constraints.anchor = GridBagConstraints.CENTER;
 	constraints.gridx = 0;
-	constraints.gridy = 3;
+	constraints.gridy = 2;
 	constraints.gridwidth = 2;
 
-        // Setting weighty and fill is necessary for proper filling the frame when resized.
-        constraints.weighty = 1.0;
+        // Setting weightx, weighty and fill is necessary for proper filling the frame when resized.
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
         constraints.fill = GridBagConstraints.BOTH;
 
 	container.add( new JScrollPane( rekeningMutatieRubriekTable ), constraints );
+
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
 
 	////////////////////////////////////////////////
@@ -226,7 +234,8 @@ class RekeningMutatieRubriekFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    new RekeningMutatieDialog( connection,
                                                frame,
@@ -334,13 +343,25 @@ class RekeningMutatieRubriekFrame {
 	closeButton.setActionCommand( "close" );
 	buttonPanel.add( closeButton );
 
-
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 10;
-	constraints.gridwidth = 2;
+	constraints.gridy = 3;
 	container.add( buttonPanel, constraints );
 
-	frame.setSize( 1000, 500 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 1280, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible( true );
     }
@@ -362,6 +383,6 @@ class RekeningMutatieRubriekFrame {
 	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 5 ).setPreferredWidth( 40 );   // VolgNummer
 	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth( 40 );   // Jaar
 	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 7 ).setPreferredWidth( 40 );   // Maand
-	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 8 ).setPreferredWidth( 250 );  // Omschrijving
+	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 8 ).setPreferredWidth( 500 );  // Omschrijving
     }
 }

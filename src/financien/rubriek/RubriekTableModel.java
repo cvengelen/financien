@@ -1,5 +1,3 @@
-// Class to setup a TableModel for all records in rubriek
-
 package financien.rubriek;
 
 import financien.gui.DebCredComboBox;
@@ -16,12 +14,14 @@ import java.util.ArrayList;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
+/**
+ * TableModel for records in rubriek
+ */
 class RubriekTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( RubriekTableModel.class.getCanonicalName( ) );
 
     private Connection connection;
-    private String[ ] headings = { "Id", "Rubriek", "Omschrijving", "Groep", "Deb/Cred" };
+    private final String[ ] headings = { "Id", "Rubriek", "Omschrijving", "Groep", "Deb/Cred" };
 
     private class RubriekRecord {
 	int	rubriekId;
@@ -60,7 +60,7 @@ class RubriekTableModel extends AbstractTableModel {
 	}
     }
 
-    private final ArrayList< RubriekRecord > rubriekRecordList = new ArrayList< >( 200 );
+    private final ArrayList< RubriekRecord > rubriekRecordList = new ArrayList< >( 300 );
 
     private JFrame frame;
 
@@ -139,6 +139,7 @@ class RubriekTableModel extends AbstractTableModel {
 	    }
 
 	    rubriekRecordList.trimToSize( );
+            logger.info("Table shows " + rubriekRecordList.size() + " rubriek records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
@@ -266,8 +267,6 @@ class RubriekTableModel extends AbstractTableModel {
     public String getColumnName( int column ) {
 	return headings[ column ];
     }
-
-    int getNumberOfRecords( ) { return rubriekRecordList.size( ); }
 
     int getRubriekId( int row ) {
 	if ( ( row < 0 ) || ( row >= rubriekRecordList.size( ) ) ) {

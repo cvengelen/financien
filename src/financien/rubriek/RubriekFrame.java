@@ -1,5 +1,3 @@
-// frame to show and update records in rubriek
-
 package financien.rubriek;
 
 import java.sql.Connection;
@@ -17,8 +15,13 @@ import financien.gui.DebCredComboBox;
 import financien.gui.GroepComboBox;
 import table.*;
 
-
-class RubriekFrame {
+/**
+ * Frame to show, insert and update records in the rubriek table in schema financien.
+ * An instance of RubriekFrame is created by class financien.Main.
+ *
+ * @author Chris van Engelen
+ */
+public class RubriekFrame {
     private final Logger logger = Logger.getLogger( RubriekFrame.class.getCanonicalName() );
 
     private final JFrame frame = new JFrame( "Rubriek" );
@@ -28,7 +31,6 @@ class RubriekFrame {
 
     private JTextField rubriekFilterTextField;
 
-
     public RubriekFrame( final Connection connection ) {
 
 	final Container container = frame.getContentPane( );
@@ -36,34 +38,29 @@ class RubriekFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 0, 0, 10, 10 );
-
-
-	/////////////////////////////////
-	// Rubriek filter action listener
-	/////////////////////////////////
-
-	class RubriekFilterActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Setup the Rubriek table
-		rubriekTableModel.setupRubriekTableModel( rubriekFilterTextField.getText( ) );
-	    }
-	}
+        constraints.gridwidth = 1;
 
 	/////////////////////////////////
 	// Rubriek filter string
 	/////////////////////////////////
 
+        constraints.insets = new Insets( 20, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.anchor = GridBagConstraints.EAST;
-	constraints.gridwidth = 1;
 	container.add( new JLabel( "Rubriek Filter:" ), constraints );
 
 	rubriekFilterTextField = new JTextField( 20 );
-	rubriekFilterTextField.addActionListener( new RubriekFilterActionListener( ) );
+	rubriekFilterTextField.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Setup the Rubriek table
+            rubriekTableSorter.clearSortingState();
+            rubriekTableModel.setupRubriekTableModel( rubriekFilterTextField.getText( ) );
+        } );
+
+        constraints.insets = new Insets( 20, 20, 5, 400 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 	constraints.anchor = GridBagConstraints.WEST;
 	container.add( rubriekFilterTextField, constraints );
 
@@ -103,13 +100,25 @@ class RubriekFrame {
 	// Set vertical size just enough for 20 entries
 	rubriekTable.setPreferredScrollableViewportSize( new Dimension( 900, 320 ) );
 
+        constraints.insets = new Insets( 5, 20, 5, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 3;
+	constraints.gridy = 1;
 	constraints.gridwidth = 2;
+        constraints.anchor = GridBagConstraints.CENTER;
+
+        // Setting weightx, weighty and fill is necessary for proper filling the frame when resized.
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
+        constraints.fill = GridBagConstraints.BOTH;
+
 	container.add( new JScrollPane( rubriekTable ), constraints );
 
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
-	////////////////////////////////////////////////
+
+        ////////////////////////////////////////////////
 	// List selection listener
 	////////////////////////////////////////////////
 
@@ -200,7 +209,8 @@ class RubriekFrame {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
 		    frame.setVisible( false );
-		    System.exit( 0 );
+                    frame.dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "add" ) ) {
 		    String resultString = JOptionPane.showInputDialog( frame,
                                                                        "Enter rubriek ID:",
@@ -392,14 +402,25 @@ class RubriekFrame {
 	closeButton.setActionCommand( "close" );
 	buttonPanel.add( closeButton );
 
-
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
-	constraints.gridy = 10;
-	constraints.gridwidth = 4;
-	constraints.anchor = GridBagConstraints.CENTER;
-	container.add( buttonPanel, constraints );
+	constraints.gridy = 2;
+        container.add( buttonPanel, constraints );
 
-	frame.setSize( 970, 500 );
+        // Add a window listener to close the connection when the frame is disposed
+        frame.addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                try {
+                    // Close the connection to the MySQL database
+                    connection.close( );
+                } catch (SQLException sqlException) {
+                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
+                }
+            }
+        } );
+
+	frame.setSize( 960, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible( true );
     }
