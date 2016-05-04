@@ -1,5 +1,3 @@
-// Class to setup a ComboBox for debCred
-
 package financien.gui;
 
 import java.sql.Connection;
@@ -9,19 +7,17 @@ import java.sql.Statement;
 
 import java.util.*;
 import java.util.logging.*;
-import java.awt.*;
-import java.awt.event.*;
+
 import javax.swing.*;
 
-public class DebCredComboBox extends JComboBox {
+/**
+ * ComboBox for selection of debiteur/crediteur
+ */
+public class DebCredComboBox extends JComboBox<String> {
+    private final Logger logger = Logger.getLogger( DebCredComboBox.class.getCanonicalName() );
 
-    final private Logger logger = Logger.getLogger( "financien.gui.DebCredComboBox" );
-
-    private Map debCredMap = new HashMap( );
+    private final Map<String, Integer> debCredMap = new HashMap<>( 1200 );
     private Connection connection;
-    private String debCredRekeningString;
-    private String debCredString;
-
 
     public DebCredComboBox( final Connection connection,
 			    final int        selectedDebCredId,
@@ -31,7 +27,6 @@ public class DebCredComboBox extends JComboBox {
 
 	setupDebCredComboBox( selectedDebCredId, debCredRekeningString, "", addRekening );
     }
-
 
     public void setupDebCredComboBox( final int     selectedDebCredId,
 				      final String  debCredRekeningString,
@@ -81,7 +76,7 @@ public class DebCredComboBox extends JComboBox {
 		}
 
 		// Store the Deb/Cred id in the map indexed by the itemString
-		debCredMap.put( itemString, resultSet.getObject( 1 ) );
+		debCredMap.put( itemString, resultSet.getInt( 1 ) );
 
 		// Add the itemString to the combo box
 		addItem( itemString );
@@ -99,16 +94,13 @@ public class DebCredComboBox extends JComboBox {
 	setMaximumRowCount( 20 );
     }
 
-
     public String getSelectedDebCredString( ) {
 	return ( String )getSelectedItem( );
     }
 
-
     public int getSelectedDebCredId( ) {
 	return getDebCredId( ( String )getSelectedItem( ) );
     }
-
 
     public int getDebCredId( String debCredString ) {
 	if ( debCredString == null ) return 0;
@@ -118,7 +110,7 @@ public class DebCredComboBox extends JComboBox {
 
 	// Get the Deb/Cred id from the map
 	if ( debCredMap.containsKey( debCredString ) ) {
-	    return ( ( Integer )debCredMap.get( debCredString ) ).intValue( );
+	    return debCredMap.get( debCredString );
 	}
 
 	return 0;

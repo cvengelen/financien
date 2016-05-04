@@ -1,5 +1,3 @@
-// frame to add or update a record in deb_cred
-
 package financien.gui;
 
 import java.sql.Connection;
@@ -10,10 +8,13 @@ import java.sql.Statement;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.border.EtchedBorder;
 import java.util.logging.*;
 import java.util.regex.*;
 
-
+/**
+ * Dialog to insert or update a record in deb_cred
+ */
 public class DebCredDialog {
     final private Logger logger = Logger.getLogger( "financien.gui.DebCredDialog" );
 
@@ -36,20 +37,19 @@ public class DebCredDialog {
 
     final Font dialogFont = new Font( "Dialog", Font.BOLD, 12 );
 
-    JTextField mutatieMededelingenTextField;
-    JTextField selectSearchMededelingenTextField;
-    JRadioButton selectNaamOmschrijvingRadioButton;
-    JRadioButton selectSearchMededelingenRadioButton;
-    JRadioButton selectMededelingen1RadioButton;
-    JRadioButton selectMededelingen2RadioButton;
-    JRadioButton selectMededelingen3RadioButton;
-    JRadioButton selectMededelingen4RadioButton;
-    DebCredComboBox debCredComboBox;
-    JTextField debCredOmschrijvingTextField;
-    RubriekComboBox rubriekComboBox;
+    private JTextField selectSearchMededelingenTextField;
+    private JRadioButton selectNaamOmschrijvingRadioButton;
+    private JRadioButton selectSearchMededelingenRadioButton;
+    private JRadioButton selectMededelingen1RadioButton;
+    private JRadioButton selectMededelingen2RadioButton;
+    private JRadioButton selectMededelingen3RadioButton;
+    private JRadioButton selectMededelingen4RadioButton;
+    private DebCredComboBox debCredComboBox;
+    private JTextField debCredOmschrijvingTextField;
+    private RubriekComboBox rubriekComboBox;
 
-    JButton insertDebCredButton;
-    JButton updateDebCredButton;
+    private JButton insertDebCredButton;
+    private JButton updateDebCredButton;
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
@@ -96,99 +96,117 @@ public class DebCredDialog {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 0, 0, 10, 10 );
 
-	constraints.gridx = 0;
+	constraints.insets = new Insets( 20, 20, 5, 5 );
+        constraints.gridx = 0;
 	constraints.gridy = 0;
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 0, 0, 10, 10 );
-	container.add( new JLabel( "Mutatie tegenrekening: " ), constraints );
+	constraints.anchor = GridBagConstraints.EAST;
+	container.add( new JLabel( "Mutatie tegenrekening:" ), constraints );
 
+        constraints.insets = new Insets( 20, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.anchor = GridBagConstraints.WEST;
 	container.add( new JLabel( mutatieTegenRekeningString ), constraints );
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 1;
-	container.add( new JLabel( "Mutatie naam/omschrijving: " ), constraints );
+        constraints.anchor = GridBagConstraints.EAST;
+	container.add( new JLabel( "Mutatie naam/omschrijving:" ), constraints );
 
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.anchor = GridBagConstraints.WEST;
 	container.add( new JLabel( mutatieNaamOmschrijvingString ), constraints );
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 2;
-        container.add( new JLabel( "Mutatie mededelingen: " ), constraints );
+        constraints.anchor = GridBagConstraints.EAST;
+        container.add( new JLabel( "Mutatie mededelingen:" ), constraints );
 
-        mutatieMededelingenTextField = new JTextField( mutatieMededelingenString, 80 );
+        final JTextField mutatieMededelingenTextField = new JTextField( mutatieMededelingenString, 80 );
+        mutatieMededelingenTextField.setFont( dialogFont );
+        mutatieMededelingenTextField.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
         mutatieMededelingenTextField.setEditable( false );
+
+        constraints.insets = new Insets( 5, 5, 5, 40 );
         constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.anchor = GridBagConstraints.WEST;
         constraints.gridwidth = 2;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
         container.add( mutatieMededelingenTextField, constraints );
         constraints.gridwidth = 1;
+        constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
         ingMededelingenParser = new IngMededelingenParser( mutatieMededelingenString );
         mutatieMededelingenTextField.setText( ingMededelingenParser.getMutatieMededelingenStrippedString() );
 
 	for ( int omschrijvingIndex = 0, gridy = 3; omschrijvingIndex < ingMededelingenParser.getNMatches(); omschrijvingIndex++, gridy++ ) {
 	    // Put label on frame for this omschrijving substring
+            constraints.insets = new Insets( 5, 20, 5, 5 );
 	    constraints.gridx = 0;
 	    constraints.gridy = gridy;
 	    constraints.gridwidth = 1;
-	    constraints.anchor = GridBagConstraints.WEST;
-	    constraints.insets = new Insets( 0, 0, 10, 10 );
-	    container.add( new JLabel( "Mutatie mededelingen " + String.valueOf( omschrijvingIndex + 1 ) + ": " ), constraints );
+	    constraints.anchor = GridBagConstraints.EAST;
+            container.add( new JLabel( "Mutatie mededelingen " + String.valueOf( omschrijvingIndex + 1 ) + ":" ), constraints );
+
+            constraints.insets = new Insets( 5, 5, 5, 20 );
 	    constraints.gridx = GridBagConstraints.RELATIVE;
 	    constraints.gridwidth = 2;
+            constraints.anchor = GridBagConstraints.WEST;
 	    logger.fine( "mutatieMededelingenSubString" + omschrijvingIndex + ":" + ingMededelingenParser.getMutatieMededelingenSubString(omschrijvingIndex) );
 	    container.add( new JLabel( ingMededelingenParser.getMutatieMededelingenSubString(omschrijvingIndex) ), constraints );
 	}
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 8;
         constraints.gridwidth = 1;
 	constraints.gridheight = 2;
+        constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "DebCred:" ), constraints );
 
 	// Setup a JComboBox with the results of the query on debCred
 	debCredComboBox = new DebCredComboBox( connection, debCredId, mutatieTegenRekeningString, true );
+        debCredComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
+            // Get the selected DebCred ID
+            debCredId = debCredComboBox.getSelectedDebCredId( );
+
+            // Set the dialog fields to the values related to this Deb/Cred
+            setDebCredFields( debCredId );
+        } );
+
+        constraints.insets = new Insets( 5, 5, 5, 5 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.anchor = GridBagConstraints.WEST;
 	container.add( debCredComboBox, constraints );
 
-	class DebCredActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		// Get the selected DebCred ID
-		debCredId = debCredComboBox.getSelectedDebCredId( );
+	final ActionListener selectDebCredActionListener = ( ActionEvent actionEvent ) -> {
+            if ( actionEvent.getActionCommand( ).equals( "selectRekening" ) ) {
+                debCredComboBox.setupDebCredComboBox( debCredId, mutatieTegenRekeningString, "", true );
+            }
 
-		// Set the dialog fields to the values related to this Deb/Cred
-		setDebCredFields( debCredId );
-	    }
-	}
-	debCredComboBox.addActionListener( new DebCredActionListener( ) );
-
-	class SelectDebCredActionListener implements ActionListener {
-	    public void actionPerformed( ActionEvent actionEvent ) {
-		if ( actionEvent.getActionCommand( ).equals( "selectRekening" ) ) {
-		    debCredComboBox.setupDebCredComboBox( debCredId, mutatieTegenRekeningString, "", true );
-		}
-
-		if ( actionEvent.getActionCommand( ).equals( "selectDebCred" ) ) {
-		    String selectDebCredString =
-			( String )JOptionPane.showInputDialog( dialog,
-							       "Deb/Cred:",
-							       "Deb/Cred filter dialog",
-							       JOptionPane.QUESTION_MESSAGE,
-							       null,
-							       null,
-							       mutatieNaamOmschrijvingString );
-		    debCredComboBox.setupDebCredComboBox( debCredId, "", selectDebCredString, true );
-		}
-	    }
-	}
-	final SelectDebCredActionListener selectDebCredActionListener = new SelectDebCredActionListener( );
+            if ( actionEvent.getActionCommand( ).equals( "selectDebCred" ) ) {
+                String selectDebCredString =
+                        ( String )JOptionPane.showInputDialog( dialog,
+                                "Deb/Cred:",
+                                "Deb/Cred filter dialog",
+                                JOptionPane.QUESTION_MESSAGE,
+                                null,
+                                null,
+                                mutatieNaamOmschrijvingString );
+                debCredComboBox.setupDebCredComboBox( debCredId, "", selectDebCredString, true );
+            }
+        };
 
 	JButton selectRekeningButton = new JButton( "Select rekening" );
 	selectRekeningButton.setActionCommand( "selectRekening" );
 	selectRekeningButton.addActionListener( selectDebCredActionListener );
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridheight = 1;
 	container.add( selectRekeningButton, constraints );
@@ -196,13 +214,16 @@ public class DebCredDialog {
 	JButton selectDebCredTracksButton = new JButton( "Select Deb/Cred" );
 	selectDebCredTracksButton.setActionCommand( "selectDebCred" );
 	selectDebCredTracksButton.addActionListener( selectDebCredActionListener );
+
 	constraints.gridy = 9;
 	container.add( selectDebCredTracksButton, constraints );
 
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 10;
 	constraints.gridwidth = 1;
+        constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Mutatie veld selectie:" ), constraints );
 
 	JPanel selectButtonPanel = new JPanel( new GridBagLayout( ) );
@@ -213,31 +234,28 @@ public class DebCredDialog {
 	selectNaamOmschrijvingRadioButton.setSelected(true);
 
 	GridBagConstraints selectButtonConstraints = new GridBagConstraints( );
-	selectButtonConstraints.insets = new Insets( 0, 0, 10, 10 );
+	selectButtonConstraints.insets = new Insets( 5, 5, 5, 5 );
 	selectButtonConstraints.gridx = 0;
 	selectButtonConstraints.gridy = 0;
 	selectButtonConstraints.anchor = GridBagConstraints.WEST;
 	selectButtonPanel.add( selectNaamOmschrijvingRadioButton, selectButtonConstraints );
 
-        selectSearchMededelingenRadioButton = new JRadioButton( "Zoeken in mutatie mededelingen naar: " );
+        selectSearchMededelingenRadioButton = new JRadioButton( "Zoeken in mutatie mededelingen naar:" );
         selectSearchMededelingenRadioButton.setMnemonic(KeyEvent.VK_M);
         selectSearchMededelingenRadioButton.setActionCommand( "selectSearchMededelingen" );
         selectSearchMededelingenRadioButton.setEnabled( false );
+
         selectButtonConstraints.gridy = 1;
         selectButtonPanel.add( selectSearchMededelingenRadioButton, selectButtonConstraints );
 
         selectSearchMededelingenTextField = new JTextField( 20 );
-        selectButtonConstraints.gridx = GridBagConstraints.RELATIVE;
-        selectButtonPanel.add( selectSearchMededelingenTextField, selectButtonConstraints );
-        selectButtonConstraints.gridx = 0;
 
         class SelectSearchMededelingenActionListener implements ActionListener {
             public void actionPerformed( ActionEvent actionEvent ) {
                 selectSearchMededelingenRadioButton.setEnabled( selectSearchMededelingenTextField.getText( ).length( ) > 0 );
             }
         }
-        final SelectSearchMededelingenActionListener selectSearchMededelingenActionListener = new SelectSearchMededelingenActionListener( );
-        selectSearchMededelingenTextField.addActionListener(selectSearchMededelingenActionListener );
+        selectSearchMededelingenTextField.addActionListener( new SelectSearchMededelingenActionListener( ) );
 
         class SelectSearchMededelingenFocusListener implements FocusListener {
             public void focusGained( FocusEvent focusEvent ) {
@@ -247,13 +265,17 @@ public class DebCredDialog {
                 selectSearchMededelingenRadioButton.setEnabled( selectSearchMededelingenTextField.getText( ).length( ) > 0 );
             }
         }
-        final SelectSearchMededelingenFocusListener selectSearchMededelingenFocusListener = new SelectSearchMededelingenFocusListener( );
-        selectSearchMededelingenTextField.addFocusListener(selectSearchMededelingenFocusListener );
+        selectSearchMededelingenTextField.addFocusListener( new SelectSearchMededelingenFocusListener( ) );
+
+        selectButtonConstraints.gridx = GridBagConstraints.RELATIVE;
+        selectButtonPanel.add( selectSearchMededelingenTextField, selectButtonConstraints );
+        selectButtonConstraints.gridx = 0;
 
 	selectMededelingen1RadioButton = new JRadioButton( "Mutatie mededelingen 1" );
 	selectMededelingen1RadioButton.setMnemonic(KeyEvent.VK_1);
 	selectMededelingen1RadioButton.setActionCommand( "selectMededelingen1" );
 	selectMededelingen1RadioButton.setEnabled( ingMededelingenParser.getMutatieMededelingenSubString(0) != null );
+
 	selectButtonConstraints.gridy = 2;
 	selectButtonPanel.add( selectMededelingen1RadioButton, selectButtonConstraints );
 
@@ -261,13 +283,15 @@ public class DebCredDialog {
 	selectMededelingen2RadioButton.setMnemonic(KeyEvent.VK_2);
 	selectMededelingen2RadioButton.setActionCommand( "selectMededelingen2" );
 	selectMededelingen2RadioButton.setEnabled( ingMededelingenParser.getMutatieMededelingenSubString(1) != null );
-	selectButtonConstraints.gridy = 3;
-	selectButtonPanel.add( selectMededelingen2RadioButton, selectButtonConstraints );
+
+        selectButtonConstraints.gridy = 3;
+        selectButtonPanel.add( selectMededelingen2RadioButton, selectButtonConstraints );
 
 	selectMededelingen3RadioButton = new JRadioButton( "Mutatie mededelingen 3" );
 	selectMededelingen3RadioButton.setMnemonic(KeyEvent.VK_3);
 	selectMededelingen3RadioButton.setActionCommand( "selectMededelingen3" );
 	selectMededelingen3RadioButton.setEnabled( ingMededelingenParser.getMutatieMededelingenSubString(2) != null );
+
 	selectButtonConstraints.gridy = 4;
 	selectButtonPanel.add( selectMededelingen3RadioButton, selectButtonConstraints );
 
@@ -275,6 +299,7 @@ public class DebCredDialog {
 	selectMededelingen4RadioButton.setMnemonic(KeyEvent.VK_4);
 	selectMededelingen4RadioButton.setActionCommand( "selectMededelingen4" );
 	selectMededelingen4RadioButton.setEnabled( ingMededelingenParser.getMutatieMededelingenSubString(3) != null );
+
 	selectButtonConstraints.gridy = 5;
 	selectButtonPanel.add( selectMededelingen4RadioButton, selectButtonConstraints );
 
@@ -286,31 +311,46 @@ public class DebCredDialog {
 	selectButtonGroup.add( selectMededelingen3RadioButton );
 	selectButtonGroup.add( selectMededelingen4RadioButton );
 
+        constraints.insets = new Insets( 5, 5, 5, 20 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.gridwidth = 2;
+        constraints.anchor = GridBagConstraints.WEST;
 	container.add( selectButtonPanel, constraints );
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 11;
         constraints.gridwidth = 1;
-	constraints.anchor = GridBagConstraints.WEST;
-	constraints.insets = new Insets( 0, 0, 10, 10 );
-	container.add( new JLabel( "Deb/Cred omschrijving: " ), constraints );
+	constraints.anchor = GridBagConstraints.EAST;
+	container.add( new JLabel( "Deb/Cred omschrijving:" ), constraints );
 
 	debCredOmschrijvingTextField = new JTextField( "", 30 );
+        debCredOmschrijvingTextField.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 	debCredOmschrijvingTextField.setFont( dialogFont );
+
+        constraints.insets = new Insets( 5, 5, 5, 40 );
 	constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.gridwidth = 2;
+        constraints.weightx = 1d;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.WEST;
 	container.add( debCredOmschrijvingTextField, constraints );
+        constraints.weightx = 0d;
+        constraints.fill = GridBagConstraints.NONE;
 
+        constraints.insets = new Insets( 5, 20, 5, 5 );
 	constraints.gridx = 0;
 	constraints.gridy = 12;
         constraints.gridwidth = 1;
+        constraints.anchor = GridBagConstraints.EAST;
 	container.add( new JLabel( "Default rubriek:" ), constraints );
 
 	rubriekComboBox = new RubriekComboBox( connection, 0, true );
-	constraints.gridx = GridBagConstraints.RELATIVE;
+
+        constraints.insets = new Insets( 5, 5, 5, 20 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.gridwidth = 2;
+        constraints.anchor = GridBagConstraints.WEST;
 	container.add( rubriekComboBox, constraints );
 
 	JPanel editButtonPanel = new JPanel( );
@@ -348,19 +388,17 @@ public class DebCredDialog {
 	closeButton.addActionListener( editDebCredActionListener );
 	editButtonPanel.add( closeButton );
 
+        constraints.insets = new Insets( 5, 20, 20, 20 );
 	constraints.gridx = 0;
 	constraints.gridy = 13;
         constraints.gridwidth = 6;
-        constraints.weightx = 0.0;
-        constraints.weighty = 0.0;
-        constraints.fill = GridBagConstraints.NONE;
         constraints.anchor = GridBagConstraints.CENTER;
 	container.add( editButtonPanel, constraints );
 
 	// Set the dialog fields to the values related to this Deb/Cred
 	setDebCredFields( debCredId );
 
-	dialog.setSize( 1250, 650 );
+	dialog.setSize( 1050, 650 );
 	dialog.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	dialog.setVisible( true );
     }
@@ -508,7 +546,7 @@ public class DebCredDialog {
         return true;
     }
 
-    String updateString = null;
+    private String updateString = null;
 
     private void addToUpdateString( String additionalUpdateString ) {
 	if ( updateString == null ) {

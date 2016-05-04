@@ -97,8 +97,9 @@ public class IngMutatieFrame {
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-	final Insets insetsLeft  = new Insets( 5, 20, 5, 5 );
-	final Insets insetsRight = new Insets( 5, 5, 5, 20 );
+        final Insets insetsLeft    = new Insets( 5, 20, 5, 5 );
+        final Insets insetsBetween = new Insets( 5, 5, 5, 5 );
+	final Insets insetsRight   = new Insets( 5, 5, 5, 20 );
 	constraints.anchor = GridBagConstraints.WEST;
 	constraints.insets = insetsLeft;
 
@@ -118,7 +119,7 @@ public class IngMutatieFrame {
 
 	mutatieTegenRekeningLabel = new JLabel( );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.insets = insetsRight;
+	constraints.insets = insetsBetween;
 	constraints.gridwidth = 2;
 	container.add( mutatieTegenRekeningLabel, constraints );
 
@@ -147,6 +148,7 @@ public class IngMutatieFrame {
             setupRekeningMutatieTable( );
         } );
 
+        constraints.insets = insetsRight;
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	container.add( editDebCredButton, constraints );
 

@@ -1,5 +1,3 @@
-// Class to setup a ComboBox for rekening_type
-
 package financien.gui;
 
 import java.sql.Connection;
@@ -9,22 +7,18 @@ import java.sql.Statement;
 
 import java.util.*;
 import java.util.logging.*;
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
-public class RekeningTypeComboBox extends JComboBox {
-    final private Logger logger = Logger.getLogger( "financien.gui.RekeningTypeComboBox" );
+/**
+ * ComboBox for selection of rekening type
+ */
+public class RekeningTypeComboBox extends JComboBox<String> {
+    private final Logger logger = Logger.getLogger( RekeningTypeComboBox.class.getCanonicalName() );
 
-    private Connection connection;
-
-    private Map rekeningTypeMap = new HashMap( );
-    private String newRekeningTypeString = null;
-
+    private final Map<String, Integer> rekeningTypeMap = new HashMap<>( 10 );
 
     public RekeningTypeComboBox( Connection	connection,
 				 int		selectedRekeningTypeId ) {
-	this.connection = connection;
 
 	// Add first empty item to force selection of non-empty item
 	addItem( "" );
@@ -44,7 +38,7 @@ public class RekeningTypeComboBox extends JComboBox {
 		String rekeningTypeString = resultSet.getString( 2 );
 
 		// Store the rekeningType_id in the map indexed by the rekeningTypeString
-		rekeningTypeMap.put( rekeningTypeString, resultSet.getObject( 1 ) );
+		rekeningTypeMap.put( rekeningTypeString, resultSet.getInt( 1 ) );
 
 		// Add the rekeningTypeString to the combo box
 		addItem( rekeningTypeString );
@@ -64,16 +58,13 @@ public class RekeningTypeComboBox extends JComboBox {
 	setMaximumRowCount( 10 );
     }
 
-
     public String getSelectedRekeningTypeString( ) {
 	return ( String )getSelectedItem( );
     }
 
-
     public int getSelectedRekeningTypeId( ) {
 	return getRekeningTypeId( ( String )getSelectedItem( ) );
     }
-
 
     public int getRekeningTypeId( String rekeningTypeString ) {
 	if ( rekeningTypeString == null ) return 0;
@@ -83,12 +74,11 @@ public class RekeningTypeComboBox extends JComboBox {
 
 	// Get the rekeningType_id from the map
 	if ( rekeningTypeMap.containsKey( rekeningTypeString ) ) {
-	    return ( ( Integer )rekeningTypeMap.get( rekeningTypeString ) ).intValue( );
+	    return rekeningTypeMap.get( rekeningTypeString );
 	}
 
 	return 0;
     }
-
 
     public void setSelectedRekeningTypeId( int rekeningTypeId ) {
 	if ( rekeningTypeId == 0 ) {
@@ -98,12 +88,10 @@ public class RekeningTypeComboBox extends JComboBox {
 	}
 
 	// Find the value in rekeningTypeMap equal to rekeningTypeId
-	final Iterator iterator = rekeningTypeMap.entrySet( ).iterator( );
-	while ( iterator.hasNext( ) ) {
-	    Map.Entry mapEntry = ( Map.Entry )iterator.next( );
-	    if ( ( ( Integer )( mapEntry.getValue( ) ) ).intValue( ) == rekeningTypeId ) {
+        for (Map.Entry<String, Integer> rekeningTypeMapEntry : rekeningTypeMap.entrySet( ) ) {
+	    if ( rekeningTypeMapEntry.getValue( ) == rekeningTypeId ) {
 		// Select this rekeningType
-		setSelectedItem( mapEntry.getKey( ) );
+		setSelectedItem( rekeningTypeMapEntry.getKey( ) );
 		return;
 	    }
 	}
@@ -111,6 +99,5 @@ public class RekeningTypeComboBox extends JComboBox {
 	// rekeningTypeId not found
 	logger.severe( "RekeningType id " + rekeningTypeId + " not found in rekeningTypeMap" );
 	setSelectedItem( "" );
-	return;
     }
 }

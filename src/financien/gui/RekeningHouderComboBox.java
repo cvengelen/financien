@@ -1,5 +1,3 @@
-// Combobox voor rekening houder
-
 package financien.gui;
 
 import javax.swing.*;
@@ -11,17 +9,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+/**
+ * ComboBox for selection of rekening houder
+ */
 public class RekeningHouderComboBox extends JComboBox< String > {
-    final private static long serialVersionUID = 1L;
-    // final private Logger logger = Logger.getLogger( "financien.gui.RekeningHouderComboBox" );
-    final private Logger logger = Logger.getLogger( RekeningHouderComboBox.class.getCanonicalName( ) );
+    private final Logger logger = Logger.getLogger( RekeningHouderComboBox.class.getCanonicalName( ) );
 
-    private Map< String, Integer > rekeningHouderMap = new HashMap< >( );
+    private final Map< String, Integer > rekeningHouderMap = new HashMap< >( 3 );
 
     public RekeningHouderComboBox( Connection connection,
                                    int selectedRekeningHouderId ) {
-        // Add first empty item to force selection of non-empty item
-        // addItem( "" );
 
         if ( !rekeningHouderMap.isEmpty( ) ) {
             // Remove all items in the rekeninghouder hash table
@@ -58,16 +55,13 @@ public class RekeningHouderComboBox extends JComboBox< String > {
         setMaximumRowCount( 10 );
     }
 
-
     public String getSelectedRekeningHouderString( ) {
         return ( String )getSelectedItem( );
     }
 
-
     public int getSelectedRekeningHouderId( ) {
         return getRekeningHouderId( ( String )getSelectedItem( ) );
     }
-
 
     public int getRekeningHouderId( String rekeningHouderString ) {
         if ( rekeningHouderString == null ) return 0;
@@ -82,7 +76,6 @@ public class RekeningHouderComboBox extends JComboBox< String > {
 
         return 0;
     }
-
 
     public void setSelectedRekeningHouderId( int rekeningHouderId ) {
         if ( rekeningHouderId == 0 ) {

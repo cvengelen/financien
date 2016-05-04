@@ -1,5 +1,3 @@
-// Class to setup a ComboBox for rubriek
-
 package financien.gui;
 
 import java.sql.Connection;
@@ -9,23 +7,19 @@ import java.sql.Statement;
 
 import java.util.*;
 import java.util.logging.*;
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
-public class RubriekComboBox extends JComboBox {
-    final private Logger logger = Logger.getLogger( "financien.gui.RubriekComboBox" );
+/**
+ * ComboBox for selection of rubriek
+ */
+public class RubriekComboBox extends JComboBox<String> {
+    private final Logger logger = Logger.getLogger( RubriekComboBox.class.getCanonicalName() );
 
-    private Connection connection;
-
-    private Map rubriekMap = new HashMap( );
-    private String newRubriekString = null;
-
+    private final Map<String, Integer> rubriekMap = new HashMap<>( 300 );
 
     public RubriekComboBox( Connection	connection,
 			    int		selectedRubriekId,
 			    boolean	addRubriekId ) {
-	this.connection = connection;
 
 	// Add first empty item to force selection of non-empty item
 	addItem( "" );
@@ -48,7 +42,7 @@ public class RubriekComboBox extends JComboBox {
 		}
 
 		// Store the rubriek_id in the map indexed by the rubriekString
-		rubriekMap.put( rubriekString, resultSet.getObject( 1 ) );
+		rubriekMap.put( rubriekString, resultSet.getInt( 1 ) );
 
 		// Add the rubriekString to the combo box
 		addItem( rubriekString );
@@ -66,16 +60,13 @@ public class RubriekComboBox extends JComboBox {
 	setMaximumRowCount( 20 );
     }
 
-
     public String getSelectedRubriekString( ) {
 	return ( String )getSelectedItem( );
     }
 
-
     public int getSelectedRubriekId( ) {
 	return getRubriekId( ( String )getSelectedItem( ) );
     }
-
 
     public int getRubriekId( String rubriekString ) {
 	if ( rubriekString == null ) return 0;
@@ -85,12 +76,11 @@ public class RubriekComboBox extends JComboBox {
 
 	// Get the rubriek_id from the map
 	if ( rubriekMap.containsKey( rubriekString ) ) {
-	    return ( ( Integer )rubriekMap.get( rubriekString ) ).intValue( );
+	    return rubriekMap.get( rubriekString );
 	}
 
 	return 0;
     }
-
 
     public void setSelectedRubriekId( int rubriekId ) {
 	if ( rubriekId == 0 ) {
@@ -100,19 +90,16 @@ public class RubriekComboBox extends JComboBox {
 	}
 
 	// Find the value in rubriekMap equal to rubriekId
-	final Iterator iterator = rubriekMap.entrySet( ).iterator( );
-	while ( iterator.hasNext( ) ) {
-	    Map.Entry mapEntry = ( Map.Entry )iterator.next( );
-	    if ( ( ( Integer )( mapEntry.getValue( ) ) ).intValue( ) == rubriekId ) {
-		// Select this rubriek
-		setSelectedItem( mapEntry.getKey( ) );
-		return;
-	    }
-	}
+        for (Map.Entry<String, Integer> rubriekMapEntry : rubriekMap.entrySet( ) ) {
+            if ( rubriekMapEntry.getValue( ) == rubriekId ) {
+                // Select this rekeningType
+                setSelectedItem( rubriekMapEntry.getKey( ) );
+                return;
+            }
+        }
 
 	// rubriekId not found
 	logger.severe( "Rubriek id " + rubriekId + " not found in rubriekMap" );
 	setSelectedItem( "" );
-	return;
     }
 }

@@ -1,5 +1,3 @@
-// Class to setup a ComboBox for all dates in table waarde
-
 package financien.gui;
 
 import javax.swing.*;
@@ -9,13 +7,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Logger;
 
+/**
+ * ComboBox for selection of date from table waarde
+ */
 public class WaardeDatumComboBox extends JComboBox< String > {
-    final private Logger logger = Logger.getLogger( "financien.gui.WaardeDatumComboBox" );
+    private final Logger logger = Logger.getLogger( "financien.gui.WaardeDatumComboBox" );
 
-    Connection connection;
+    private Connection connection;
 
     public WaardeDatumComboBox( final Connection connection,
-        final String     selectedWaardeDatumString ) {
+                                final String     selectedWaardeDatumString ) {
         this.connection = connection;
 
         setupWaardeDatumComboBox( selectedWaardeDatumString );
@@ -53,7 +54,6 @@ public class WaardeDatumComboBox extends JComboBox< String > {
 
 	setMaximumRowCount( 20 );
     }
-
 
     public String getSelectedWaardeDatumString( ) {
 	return ( String )getSelectedItem( );

@@ -1,5 +1,3 @@
-// Class to setup a ComboBox for rekening
-
 package financien.gui;
 
 import java.sql.Connection;
@@ -9,17 +7,16 @@ import java.sql.Statement;
 
 import java.util.*;
 import java.util.logging.*;
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
-public class RekeningComboBox extends JComboBox {
-    final private Logger logger = Logger.getLogger( "financien.gui.RekeningComboBox" );
+/**
+ * ComboBox for selection of rekening
+ */
+public class RekeningComboBox extends JComboBox<String> {
+    private final Logger logger = Logger.getLogger( RekeningComboBox.class.getCanonicalName() );
 
-    private Map rekeningMap = new HashMap( );
-
+    private final Map<String, Integer> rekeningMap = new HashMap<>( 20 );
     private Connection	connection = null;
-
 
     public RekeningComboBox( final Connection	connection,
                              final int		selectedRekeningId,
@@ -63,7 +60,7 @@ public class RekeningComboBox extends JComboBox {
                 String rekeningString = resultSet.getString( 2 );
 
                 // Store the rekening_id in the map indexed by the rekeningString
-                rekeningMap.put( rekeningString, resultSet.getObject( 1 ) );
+                rekeningMap.put( rekeningString, resultSet.getInt( 1 ) );
 
                 // Add the rekeningString to the combo box
                 addItem( rekeningString );
@@ -81,16 +78,13 @@ public class RekeningComboBox extends JComboBox {
         setMaximumRowCount( 20 );
     }
 
-
     public String getSelectedRekeningString( ) {
         return ( String )getSelectedItem( );
     }
 
-
     public int getSelectedRekeningId( ) {
         return getRekeningId( ( String )getSelectedItem( ) );
     }
-
 
     public int getRekeningId( String rekeningString ) {
         if ( rekeningString == null ) return 0;
@@ -100,7 +94,7 @@ public class RekeningComboBox extends JComboBox {
 
         // Get the rekening_id from the map
         if ( rekeningMap.containsKey( rekeningString ) ) {
-            return ( ( Integer )rekeningMap.get( rekeningString ) ).intValue( );
+            return rekeningMap.get( rekeningString );
         }
 
         return 0;

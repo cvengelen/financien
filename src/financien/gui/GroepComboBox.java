@@ -9,19 +9,16 @@ import java.sql.Statement;
 
 import java.util.*;
 import java.util.logging.*;
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
-public class GroepComboBox extends JComboBox {
-    final private Logger logger = Logger.getLogger( "financien.gui.GroepComboBox" );
+/**
+ * ComboBox for selection of groep (related to rubriek)
+ */
+public class GroepComboBox extends JComboBox<String> {
+    private final Logger logger = Logger.getLogger( "financien.gui.GroepComboBox" );
 
-    private Map groepMap = new HashMap( );
+    private final Map<String, Integer> groepMap = new HashMap<>( 20 );
     private Connection connection;
-    private int selectedGroepId;
-    private String groepRekeningString;
-    private String groepString;
-
 
     public GroepComboBox( final Connection connection,
 			  final int        selectedGroepId ) {
@@ -30,9 +27,7 @@ public class GroepComboBox extends JComboBox {
 	setupGroepComboBox( selectedGroepId );
     }
 
-
-    public void setupGroepComboBox( final int    selectedGroepId ) {
-	this.selectedGroepId = selectedGroepId;
+    public void setupGroepComboBox( final int selectedGroepId ) {
 
 	// Remove all existing combo box iterms
 	removeAllItems( );
@@ -57,7 +52,7 @@ public class GroepComboBox extends JComboBox {
 		String groepString = resultSet.getString( 2 );
 
 		// Store the groep_id in the map indexed by the groepString
-		groepMap.put( groepString, resultSet.getObject( 1 ) );
+		groepMap.put( groepString, resultSet.getInt( 1 ) );
 
 		// Add the groepString to the combo box
 		addItem( groepString );
@@ -75,16 +70,13 @@ public class GroepComboBox extends JComboBox {
 	setMaximumRowCount( 20 );
     }
 
-
     public String getSelectedGroepString( ) {
 	return ( String )getSelectedItem( );
     }
 
-
     public int getSelectedGroepId( ) {
 	return getGroepId( ( String )getSelectedItem( ) );
     }
-
 
     public int getGroepId( String groepString ) {
 	if ( groepString == null ) return 0;
@@ -94,7 +86,7 @@ public class GroepComboBox extends JComboBox {
 
 	// Get the groep_id from the map
 	if ( groepMap.containsKey( groepString ) ) {
-	    return ( ( Integer )groepMap.get( groepString ) ).intValue( );
+	    return groepMap.get( groepString );
 	}
 
 	return 0;
