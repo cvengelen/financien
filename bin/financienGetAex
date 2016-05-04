@@ -1,0 +1,2 @@
+# Start GetAex
+java -cp /Users/cvengelen/java/financien/build/financien.jar -Djava.util.logging.config.file=/Users/cvengelen/java/financien/resources/logging.properties financien.koersen.GetAex

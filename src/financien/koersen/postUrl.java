@@ -1,4 +1,4 @@
-package financien;
+package financien.koersen;
 
 import java.net.*;
 import javax.net.ssl.*;

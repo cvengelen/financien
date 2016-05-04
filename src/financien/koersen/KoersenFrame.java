@@ -110,7 +110,7 @@ public class KoersenFrame {
 	constraints.gridx = 0;
 	constraints.gridy = 0;
 	constraints.gridwidth = 1;
-	constraints.insets = new Insets( 10, 10, 5, 10 );
+	constraints.insets = new Insets( 20, 20, 5, 20 );
 	constraints.anchor = GridBagConstraints.CENTER;
 
         // Setting weightx, weighty and fill is necessary for proper filling the frame when resized.
@@ -207,17 +207,17 @@ public class KoersenFrame {
                     frame.dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
-		    // final KoersenAex koersenAex = new KoersenAex( );
-		    // final KoersenPostbank koersenPostbank = new KoersenPostbank( );
-		    // final KoersenRobeco koersenRobeco = new KoersenRobeco( );
+		    final Aex aex = new Aex( );
 
 		    final GregorianCalendar calendar = new GregorianCalendar( );
 		    final Date todayDate = calendar.getTime( );
 		    final String insertDatumString = dateFormat.format( todayDate );
-		    String insertString =
-			"INSERT INTO koersen SET datum = '" + insertDatumString + "'";
-			// "', aex_index = " + koersenAex.getIndex( ) +
-			// ", rabo_rendemix = " + koersenRobeco.getBalancedMix( );
+		    String insertString = "INSERT INTO koersen SET datum = '" + insertDatumString +
+                                          "', aex_index = " + aex.getIndex( ) +
+                                          ", ing_dynamic_mix_fund_iv = " + aex.getKoersNnDynamicMixFundIv() +
+                                          ", rabo_rendemix = " + aex.getKoersBlackRockMixFonds3() +
+                                          ", robeco_robeco = " + aex.getKoersRobecoEurG() +
+                                          ", robeco_growth_mix = " + aex.getKoersRobecoGrowthMixEurG();
 		    logger.info( "insertString: " + insertString );
 		    try {
 			Statement statement = connection.createStatement( );
@@ -380,7 +380,7 @@ public class KoersenFrame {
 
 	constraints.gridx = 0;
 	constraints.gridy = 1;
-        constraints.insets = new Insets( 5, 10, 10, 10 );
+        constraints.insets = new Insets( 5, 20, 20, 20 );
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.weightx = 0d;
         constraints.weighty = 0d;
@@ -400,7 +400,7 @@ public class KoersenFrame {
             }
         } );
 
-	frame.setSize( fullTableWidth + 40, 500 );
+	frame.setSize( fullTableWidth + 60, 500 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 	frame.setVisible( true );
     }
