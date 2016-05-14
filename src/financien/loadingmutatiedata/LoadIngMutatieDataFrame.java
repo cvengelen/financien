@@ -8,6 +8,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.*;
 import javax.swing.*;
+import javax.swing.border.EtchedBorder;
 import javax.swing.filechooser.FileFilter;
 
 import java.util.regex.*;
@@ -29,6 +30,7 @@ class LoadIngMutatieDataFrame {
     private File ingMutatieDataFile;
     private final JLabel ingMutatieDataFileLabel = new JLabel( );
     private final JButton okButton = new JButton( "OK" );
+    private final JButton selectFileButton = new JButton( "Select other file" );
 
     LoadIngMutatieDataFrame( ) {
 
@@ -74,9 +76,7 @@ class LoadIngMutatieDataFrame {
 
         // Set grid bag layout manager
         container.setLayout( new GridBagLayout( ) );
-        GridBagConstraints constraints = new GridBagConstraints( );
-        constraints.anchor = GridBagConstraints.EAST;
-        constraints.insets = new Insets( 5, 5, 5, 5 );
+        final GridBagConstraints constraints = new GridBagConstraints( );
 
         final JFileChooser loadIngMutatieDataFileChooser = new JFileChooser( ingMutatieDataDirectoryString );
 
@@ -85,6 +85,7 @@ class LoadIngMutatieDataFrame {
 	loadIngMutatieDataFileChooser.setSelectedFile( ingMutatieDataFile );
         loadIngMutatieDataFileChooser.ensureFileIsVisible( ingMutatieDataFile );
         loadIngMutatieDataFileChooser.setDialogType( JFileChooser.OPEN_DIALOG );
+        loadIngMutatieDataFileChooser.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
         loadIngMutatieDataFileChooser.setVisible( false );
         loadIngMutatieDataFileChooser.addActionListener(
                 ( ActionEvent actionEvent ) -> {
@@ -95,19 +96,19 @@ class LoadIngMutatieDataFrame {
                     }
                     loadIngMutatieDataFileChooser.setVisible( false );
                     okButton.setEnabled( true );
+                    selectFileButton.setEnabled( true );
                     frame.getRootPane( ).setDefaultButton( okButton );
-
+                    frame.setSize( 600, 150 );
                 } );
 
+        constraints.insets = new Insets( 10, 10, 5, 10 );
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.weightx = 1.0;
         constraints.weighty = 1.0;
         constraints.fill = GridBagConstraints.BOTH;
-        JPanel panel = new JPanel( );
-        panel.add( loadIngMutatieDataFileChooser );
-        container.add( panel, constraints );
+        container.add( loadIngMutatieDataFileChooser, constraints );
 
         final JPanel filePanel = new JPanel( );
         final JLabel filePrefix = new JLabel( "ING export file:" );
@@ -117,6 +118,7 @@ class LoadIngMutatieDataFrame {
         ingMutatieDataFileLabel.setFont( dialogFont );
         filePanel.add( ingMutatieDataFileLabel, constraints );
 
+        constraints.insets = new Insets( 5, 10, 5, 10 );
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.weightx = 0.0;
@@ -133,13 +135,14 @@ class LoadIngMutatieDataFrame {
                     }
                 } );
 
-        final JButton selectFileButton = new JButton( "Zoek file" );
         selectFileButton.addActionListener(
                 ( ActionEvent actionEvent ) -> {
                     logger.info( "event: " + actionEvent.getActionCommand( ) );
-                    if ( actionEvent.getActionCommand().equals( "Zoek file" ) ) {
+                    if ( actionEvent.getActionCommand().equals( "Select other file" ) ) {
+                        frame.setSize( 600, 550 );
                         loadIngMutatieDataFileChooser.setVisible( true );
                         okButton.setEnabled( false );
+                        selectFileButton.setEnabled( false );
                     }
                 } );
 
@@ -159,7 +162,7 @@ class LoadIngMutatieDataFrame {
                         String loadIngMutatieDataCmd = "/Users/cvengelen/bin/load-ing-mutatie-data -f " +
                                 ingMutatieDataFile.getAbsolutePath( ) + " -p " + password;
                         try {
-                            logger.info( "Executing command: " + loadIngMutatieDataCmd );
+                            logger.fine( "Executing command: " + loadIngMutatieDataCmd );
                             Process process = Runtime.getRuntime( ).exec( loadIngMutatieDataCmd );
 
                             // The thread must wait for the process to finish
@@ -181,11 +184,12 @@ class LoadIngMutatieDataFrame {
         buttonPanel.add( selectFileButton );
         buttonPanel.add( cancelButton );
 
+        constraints.insets = new Insets( 5, 10, 10, 10 );
         constraints.gridx = 0;
         constraints.gridy = 2;
         container.add( buttonPanel, constraints );
 
-        frame.setSize( 600, 530 );
+        frame.setSize( 600, 150 );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         frame.getRootPane( ).setDefaultButton( okButton );
         logger.info( "set frame visible" );
