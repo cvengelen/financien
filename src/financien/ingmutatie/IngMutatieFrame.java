@@ -80,6 +80,8 @@ public class IngMutatieFrame {
 
     private ResultSet mutatieResultSet;
 
+    private final JButton closeButton = new JButton( "Close" );
+
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
     private final Pattern quotePattern = Pattern.compile( "\\'" );
@@ -261,6 +263,7 @@ public class IngMutatieFrame {
 	// Define the edit, cancel, save and buttons because
 	// the cancel/save buttons are enabled by the table model.
 	final JButton copyButton = new JButton( "Copy" );
+        final JButton nextButton = new JButton( "Next" );
 	final JButton editMutatieButton = new JButton( "Edit" );
 	final JButton cancelMutatieButton = new JButton( "Cancel" );
 	final JButton saveMutatieButton = new JButton( "Save" );
@@ -439,6 +442,7 @@ public class IngMutatieFrame {
 		    if ( copyDownloadIngRecord( ) ) {
 			// Successful copy: disable the copy button
 			copyButton.setEnabled( false );
+                        frame.getRootPane().setDefaultButton( nextButton );
 		    }
 		} else {
 		    int selectedRow = mutatieListSelectionListener.getSelectedRow( );
@@ -479,8 +483,13 @@ public class IngMutatieFrame {
 			cancelMutatieButton.setEnabled( false );
 			saveMutatieButton.setEnabled( false );
 
-			getNextMutatieRecord( );
-			copyButton.setEnabled( true );
+                        if (getNextMutatieRecord( )) {
+                            copyButton.setEnabled( true );
+                            frame.getRootPane().setDefaultButton( copyButton );
+                            mutatieMededelingenTextField.requestFocusInWindow( );
+                        } else {
+                            frame.getRootPane().setDefaultButton( closeButton );
+                        }
 
 			return;
 		    }
@@ -592,7 +601,6 @@ public class IngMutatieFrame {
 	copyButton.addActionListener( buttonActionListener );
 	buttonPanel.add( copyButton );
 
-	JButton nextButton = new JButton( "Next" );
 	nextButton.setActionCommand( "next" );
 	nextButton.addActionListener( buttonActionListener );
 	buttonPanel.add( nextButton );
@@ -617,7 +625,6 @@ public class IngMutatieFrame {
 	deleteMutatieButton.addActionListener( buttonActionListener );
 	buttonPanel.add( deleteMutatieButton );
 
-	JButton closeButton = new JButton( "Close" );
 	closeButton.setActionCommand( "close" );
 	closeButton.addActionListener( buttonActionListener );
 	buttonPanel.add( closeButton );
@@ -645,7 +652,9 @@ public class IngMutatieFrame {
 
 	frame.setSize( 1280, 550 );
 	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        frame.getRootPane().setDefaultButton( copyButton );
 	frame.setVisible( true );
+        boolean focusSet = mutatieMededelingenTextField.requestFocusInWindow( );
     }
 
 
@@ -734,7 +743,7 @@ public class IngMutatieFrame {
     }
 
 
-    private void getNextMutatieRecord( )
+    private boolean getNextMutatieRecord( )
     {
 	try {
 	    if ( ! mutatieResultSet.next( ) ) {
@@ -743,7 +752,7 @@ public class IngMutatieFrame {
 					       "No more records",
 					       "Download ING",
 					       JOptionPane.INFORMATION_MESSAGE);
-		return;
+		return false;
 	    }
 
 	    mutatieDatumString = mutatieResultSet.getString( 1 );
@@ -839,6 +848,8 @@ public class IngMutatieFrame {
 	} catch ( Exception exception ) {
 	    logger.severe( "Exception: " + exception.getMessage( ) );
 	}
+
+        return true;
     }
 
     private boolean getDebCredId( final IngMededelingenParser ingMededelingenParser ) {
