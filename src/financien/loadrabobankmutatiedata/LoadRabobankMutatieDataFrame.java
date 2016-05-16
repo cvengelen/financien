@@ -6,6 +6,8 @@ import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -26,6 +28,9 @@ class LoadRabobankMutatieDataFrame {
     private File rabobankMutatieDataFile;
     private final JLabel rabobankMutatieDataFileLabel = new JLabel( );
     private final JButton okButton = new JButton( "OK" );
+    private final JButton selectFileButton = new JButton( "Select other file" );
+    private Dimension frameDimension;
+    private boolean windowGainedFocus = false;
 
     LoadRabobankMutatieDataFrame() {
 
@@ -71,9 +76,7 @@ class LoadRabobankMutatieDataFrame {
 
         // Set grid bag layout manager
         container.setLayout( new GridBagLayout( ) );
-        GridBagConstraints constraints = new GridBagConstraints( );
-        constraints.anchor = GridBagConstraints.EAST;
-        constraints.insets = new Insets( 5, 5, 5, 5 );
+        final GridBagConstraints constraints = new GridBagConstraints( );
 
         final JFileChooser loadRabobankMutatieDataFileChooser = new JFileChooser( rabobankMutatieDataDirectory );
 
@@ -90,20 +93,22 @@ class LoadRabobankMutatieDataFrame {
                         rabobankMutatieDataFile = loadRabobankMutatieDataFileChooser.getSelectedFile( );
                         rabobankMutatieDataFileLabel.setText( rabobankMutatieDataFile.getName( ) );
                     }
+                    frameDimension = frame.getSize();
                     loadRabobankMutatieDataFileChooser.setVisible( false );
                     okButton.setEnabled( true );
+                    selectFileButton.setEnabled( true );
                     frame.getRootPane( ).setDefaultButton( okButton );
+                    frame.setSize( 600, 150 );
                 } );
 
+        constraints.insets = new Insets( 15, 15, 5, 15 );
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.weightx = 1.0;
         constraints.weighty = 1.0;
         constraints.fill = GridBagConstraints.BOTH;
-        JPanel panel = new JPanel( );
-        panel.add( loadRabobankMutatieDataFileChooser );
-        container.add( panel, constraints );
+        container.add( loadRabobankMutatieDataFileChooser, constraints );
 
         final JPanel filePanel = new JPanel( );
         final JLabel filePrefix = new JLabel( "Rabobank transactions file:" );
@@ -113,6 +118,7 @@ class LoadRabobankMutatieDataFrame {
         rabobankMutatieDataFileLabel.setFont( dialogFont );
         filePanel.add( rabobankMutatieDataFileLabel, constraints );
 
+        constraints.insets = new Insets( 5, 15, 5, 15 );
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.weightx = 0.0;
@@ -129,13 +135,18 @@ class LoadRabobankMutatieDataFrame {
                     }
                 } );
 
-        final JButton selectFileButton = new JButton( "Zoek file" );
         selectFileButton.addActionListener(
                 ( ActionEvent actionEvent ) -> {
                     logger.info( "event: " + actionEvent.getActionCommand( ) );
-                    if ( actionEvent.getActionCommand().equals( "Zoek file" ) ) {
+                    if ( actionEvent.getActionCommand().equals( "Select other file" ) ) {
+                        if (frameDimension == null) {
+                            frame.setSize( 600, 550 );
+                        } else {
+                            frame.setSize( frameDimension );
+                        }
                         loadRabobankMutatieDataFileChooser.setVisible( true );
                         okButton.setEnabled( false );
+                        selectFileButton.setEnabled( false );
                     }
                 } );
 
@@ -155,7 +166,7 @@ class LoadRabobankMutatieDataFrame {
                         String loadRabobankMutatieDataCmd = "/Users/cvengelen/bin/load-rabobank-mutatie-data -f " +
                                 rabobankMutatieDataFile.getAbsolutePath( ) + " -p " + password;
                         try {
-                            logger.info( "Executing command: " + loadRabobankMutatieDataCmd );
+                            logger.fine( "Executing command: " + loadRabobankMutatieDataCmd );
                             Process process = Runtime.getRuntime( ).exec( loadRabobankMutatieDataCmd );
 
                             // The thread must wait for the process to finish
@@ -177,14 +188,37 @@ class LoadRabobankMutatieDataFrame {
         buttonPanel.add( selectFileButton );
         buttonPanel.add( cancelButton );
 
+        constraints.insets = new Insets( 5, 15, 15, 15 );
         constraints.gridx = 0;
         constraints.gridy = 2;
         container.add( buttonPanel, constraints );
 
-        frame.setSize( 600, 530 );
+        // Add a window focus listener: this seems to be necessary to ensure that the frame actually becomes visible
+        frame.addWindowFocusListener( new WindowAdapter() {
+            @Override
+            public void windowGainedFocus(WindowEvent windowEvent ) {
+                logger.info( "window has gained focus" );
+                windowGainedFocus = true;
+            }
+        } );
+
+        frame.setSize( 600, 150 );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         frame.getRootPane( ).setDefaultButton( okButton );
         logger.info( "set frame visible" );
         frame.setVisible(true);
+
+        // Infinite loop to set frame visible if the initial call was not effective
+        int frameActivations = 1;
+        try {
+            Thread.sleep( 1000 );
+            while( !windowGainedFocus ) {
+                logger.info( "set frame visible " + ++frameActivations );
+                frame.setVisible( true );
+                Thread.sleep( 1000 );
+            }
+        } catch (InterruptedException interruptedException) {
+            logger.info("sleep interrupted: " + interruptedException.getLocalizedMessage());
+        }
     }
 }

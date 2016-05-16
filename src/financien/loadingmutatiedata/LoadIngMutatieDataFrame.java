@@ -4,11 +4,12 @@ import financien.gui.PasswordPanel;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.*;
 import javax.swing.*;
-import javax.swing.border.EtchedBorder;
 import javax.swing.filechooser.FileFilter;
 
 import java.util.regex.*;
@@ -31,6 +32,8 @@ class LoadIngMutatieDataFrame {
     private final JLabel ingMutatieDataFileLabel = new JLabel( );
     private final JButton okButton = new JButton( "OK" );
     private final JButton selectFileButton = new JButton( "Select other file" );
+    private Dimension frameDimension;
+    private boolean windowGainedFocus = false;
 
     LoadIngMutatieDataFrame( ) {
 
@@ -85,7 +88,6 @@ class LoadIngMutatieDataFrame {
 	loadIngMutatieDataFileChooser.setSelectedFile( ingMutatieDataFile );
         loadIngMutatieDataFileChooser.ensureFileIsVisible( ingMutatieDataFile );
         loadIngMutatieDataFileChooser.setDialogType( JFileChooser.OPEN_DIALOG );
-        loadIngMutatieDataFileChooser.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
         loadIngMutatieDataFileChooser.setVisible( false );
         loadIngMutatieDataFileChooser.addActionListener(
                 ( ActionEvent actionEvent ) -> {
@@ -94,6 +96,7 @@ class LoadIngMutatieDataFrame {
                         ingMutatieDataFile = loadIngMutatieDataFileChooser.getSelectedFile( );
                         ingMutatieDataFileLabel.setText( ingMutatieDataFile.getName( ) );
                     }
+                    frameDimension = frame.getSize();
                     loadIngMutatieDataFileChooser.setVisible( false );
                     okButton.setEnabled( true );
                     selectFileButton.setEnabled( true );
@@ -101,7 +104,7 @@ class LoadIngMutatieDataFrame {
                     frame.setSize( 600, 150 );
                 } );
 
-        constraints.insets = new Insets( 10, 10, 5, 10 );
+        constraints.insets = new Insets( 15, 15, 5, 15 );
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.anchor = GridBagConstraints.CENTER;
@@ -118,7 +121,7 @@ class LoadIngMutatieDataFrame {
         ingMutatieDataFileLabel.setFont( dialogFont );
         filePanel.add( ingMutatieDataFileLabel, constraints );
 
-        constraints.insets = new Insets( 5, 10, 5, 10 );
+        constraints.insets = new Insets( 5, 15, 5, 15 );
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.weightx = 0.0;
@@ -139,7 +142,11 @@ class LoadIngMutatieDataFrame {
                 ( ActionEvent actionEvent ) -> {
                     logger.info( "event: " + actionEvent.getActionCommand( ) );
                     if ( actionEvent.getActionCommand().equals( "Select other file" ) ) {
-                        frame.setSize( 600, 550 );
+                        if (frameDimension == null) {
+                            frame.setSize( 600, 550 );
+                        } else {
+                            frame.setSize( frameDimension );
+                        }
                         loadIngMutatieDataFileChooser.setVisible( true );
                         okButton.setEnabled( false );
                         selectFileButton.setEnabled( false );
@@ -184,15 +191,37 @@ class LoadIngMutatieDataFrame {
         buttonPanel.add( selectFileButton );
         buttonPanel.add( cancelButton );
 
-        constraints.insets = new Insets( 5, 10, 10, 10 );
+        constraints.insets = new Insets( 5, 15, 15, 15 );
         constraints.gridx = 0;
         constraints.gridy = 2;
         container.add( buttonPanel, constraints );
+
+        // Add a window focus listener: this seems to be necessary to ensure that the frame actually becomes visible
+        frame.addWindowFocusListener( new WindowAdapter() {
+            @Override
+            public void windowGainedFocus(WindowEvent windowEvent ) {
+                logger.info( "window has gained focus" );
+                windowGainedFocus = true;
+            }
+        } );
 
         frame.setSize( 600, 150 );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         frame.getRootPane( ).setDefaultButton( okButton );
         logger.info( "set frame visible" );
         frame.setVisible(true);
+
+        // Infinite loop to set frame visible if the initial call was not effective
+        int frameActivations = 1;
+        try {
+            Thread.sleep( 1000 );
+            while( !windowGainedFocus ) {
+                logger.info( "set frame visible " + ++frameActivations );
+                frame.setVisible( true );
+                Thread.sleep( 1000 );
+            }
+        } catch (InterruptedException interruptedException) {
+            logger.info("sleep interrupted: " + interruptedException.getLocalizedMessage());
+        }
     }
 }
