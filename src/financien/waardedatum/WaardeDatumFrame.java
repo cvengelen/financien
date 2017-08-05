@@ -830,7 +830,7 @@ public class WaardeDatumFrame {
                         // Het rendement per dag kan uit de som gehaald worden:
                         //   waarde = som(inleg(i)) + rendementPerDag * som( inleg(i) * dagenTotWaardeDatumDate(i) )
                         // En dus kan het rendement per dag bepaald worden met:
-                        //   rendementPerDag = ( waarde = som(inleg(i) ) / som( inleg(i) * dagenTotWaardeDatumDate(i) )
+                        //   rendementPerDag = ( waarde - som(inleg(i) ) / som( inleg(i) * dagenTotWaardeDatumDate(i) )
 
                         final GregorianCalendar gregorianCalendar = new GregorianCalendar( );
                         gregorianCalendar.setTime( waardeDatumDate );
@@ -838,7 +838,7 @@ public class WaardeDatumFrame {
                         double somInlegDagenTotWaardeDatum = 0;
                         long dagTotaal = 0;
 
-                        // 20160101: test rendement vanaf compare datum 2015-0101
+                        // 20160101: test rendement vanaf compare datum 2015-01-01
                         final Statement waardeCompareStatement = connection.createStatement( );
                         final ResultSet waardeCompareResultSet =
                                 waardeCompareStatement.executeQuery( "SELECT waarde FROM waarde " +

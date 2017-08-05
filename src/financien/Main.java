@@ -3,6 +3,7 @@ package financien;
 import financien.gui.PasswordPanel;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -56,6 +57,19 @@ public class Main {
         } catch ( ClassNotFoundException classNotFoundException ) {
             logger.severe( "ClassNotFoundException: " + classNotFoundException.getMessage( ) );
             System.err.println("Class " + financienClassName + " bestaat niet.\nControleer de naam van de class, bijvoorbeeld: financien.rekeningmutatie.RekeningMutatieFrame");
+            System.exit( 1 );
+        } catch ( NoSuchMethodException noSuchMethodException ) {
+            logger.severe( "NoSuchMethodException: " + noSuchMethodException.getMessage( ) );
+            System.err.println("Class " + financienClassName + " bestaat niet.\nControleer de naam van de class, bijvoorbeeld: financien.rekeningmutatie.RekeningMutatieFrame");
+            System.exit( 1 );
+        } catch ( InstantiationException instantiationException ) {
+            logger.severe( "InstantiationException: " + instantiationException.getMessage( ) );
+            System.exit( 1 );
+        } catch ( IllegalAccessException illegalAccessException ) {
+            logger.severe( "IllegalAccessException: " + illegalAccessException.getMessage( ) );
+            System.exit( 1 );
+        } catch ( InvocationTargetException invocationTargetException) {
+            logger.severe( "InvocationTargetException: " + invocationTargetException.getMessage( ) );
             System.exit( 1 );
         } catch ( SQLException sqlException ) {
             logger.severe( "SQLException: " + sqlException.getMessage( ) );

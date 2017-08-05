@@ -322,7 +322,7 @@ class KoersenTableModel extends AbstractTableModel {
 	}
 
 	String opmerkingen = koersenRecord.opmerkingen;
-	if ( !( opmerkingen.equals( originalKoersenRecord.opmerkingen ) ) ) {
+	if ( ( opmerkingen != null ) && !( opmerkingen.equals( originalKoersenRecord.opmerkingen ) ) ) {
             final Matcher quoteMatcher = quotePattern.matcher( opmerkingen );
 	    updateString = addToUpdateString( updateString,
 					      "opmerkingen = '" + quoteMatcher.replaceAll( "\\\\'" ) + "'" );
