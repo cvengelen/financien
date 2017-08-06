@@ -1,12 +1,14 @@
 package financien.rubriektotalsyear;
 
 import financien.gui.RekeningHouderComboBox;
-import financien.gui.RubriekComboBox;
+import financien.gui.RubriekListModel;
 import table.TableSorter;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -14,15 +16,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Vector;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 /**
  * Frame to show totals per year for a rubriek
@@ -36,8 +35,9 @@ public class RubriekTotalsYearFrame {
     private final JFrame frame = new JFrame( "Rubriek Totals" );
     private final Font dialogFont = new Font( "Dialog", Font.BOLD, 12 );
 
-    private RubriekComboBox rubriekComboBox;
-    private int selectedRubriekId = 0;
+    private RubriekListModel rubriekListModel;
+    private JList rubriekList;
+    private Vector<Integer> selectedRubriekIds = new Vector<>(3);
     private JLabel rubriekOmschrijvingLabel;
 
     private RekeningHouderComboBox rekeningHouderComboBox;
@@ -58,16 +58,7 @@ public class RubriekTotalsYearFrame {
     private JTable rubriekTotalsTable;
     private final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
-    private final GregorianCalendar calendar = new GregorianCalendar( );
-
-    // Pattern to find a single quote in the titel, to be replaced
-    // with escaped quote (the double slashes are really necessary)
-    private final Pattern quotePattern = Pattern.compile( "\\'" );
-
-
     public RubriekTotalsYearFrame( final Connection connection ) {
-
 	// frame.setBackground( Color.white );
 
 	// Get the container for the frame
@@ -109,45 +100,44 @@ public class RubriekTotalsYearFrame {
         constraints.anchor = GridBagConstraints.EAST;
         container.add( new JLabel( "Rubriek:" ), constraints );
 
-        // Setup a JComboBox with the results of the query on rubriek
-        rubriekComboBox = new RubriekComboBox( connection, 0, true );
+        // Setup a JList for the rubriek using the ListModel for the rubriek
+        rubriekListModel = new RubriekListModel( connection );
+        rubriekList = new JList<>(rubriekListModel);
+        rubriekList.setVisibleRowCount( 3 );
+        rubriekList.setLayoutOrientation( JList.VERTICAL );
+        JScrollPane rubriekScrollPane = new JScrollPane(rubriekList);
 
-        class RubriekActionListener implements ActionListener {
-            public void actionPerformed( ActionEvent actionEvent ) {
-                // Get the selected Rubriek ID
-                selectedRubriekId = rubriekComboBox.getSelectedRubriekId( );
+        class RubriekListSelectionListener implements ListSelectionListener {
+            public void valueChanged( ListSelectionEvent listSelectionEvent ) {
+                selectedRubriekIds.clear();
+                String selectedRubriekDescriptions = "";
 
-                // Check if rubriek has been selected
-                if ( selectedRubriekId == 0 ) {
-                    rubriekOmschrijvingLabel.setText( "" );
-                } else {
-                    try {
-                        Statement statement = connection.createStatement( );
-                        ResultSet resultSet = statement.executeQuery( "SELECT omschrijving " +
-                                "FROM rubriek WHERE rubriek_id = " +
-                                selectedRubriekId );
-                        if ( ! resultSet.next( ) ) {
-                            logger.severe( "Could not get record for rubriek_id " +
-                                    selectedRubriekId + " in rubriek" );
-                            return;
-                        }
-                        rubriekOmschrijvingLabel.setText( resultSet.getString( 1 ) );
-                    } catch ( SQLException sqlException ) {
-                        logger.severe( "SQLException: " + sqlException.getMessage( ) );
-                    }
+                // Loop over the selected rubrieked
+                for (int rubriekListModelIndex: rubriekList.getSelectedIndices()) {
+                    selectedRubriekIds.add(rubriekListModel.getRubriekId( rubriekListModelIndex ));
+                    if (!selectedRubriekDescriptions.isEmpty()) selectedRubriekDescriptions += "; ";
+                    selectedRubriekDescriptions += rubriekListModel.getRubriekDescription( rubriekListModelIndex );
                 }
+
+                rubriekOmschrijvingLabel.setText( selectedRubriekDescriptions );
 
                 // Setup the rubriek totals table for the selected rubriek
                 setupRubriekTotalsTable( );
             }
         }
-        rubriekComboBox.addActionListener( new RubriekActionListener( ) );
+        rubriekList.addListSelectionListener(new RubriekListSelectionListener());
 
         constraints.insets = new Insets( 5, 5, 5, 20 );
         constraints.gridx = GridBagConstraints.RELATIVE;
         constraints.gridwidth = 2;
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.weightx = 1d;
+        constraints.weighty = 1d;
         constraints.anchor = GridBagConstraints.WEST;
-        container.add( rubriekComboBox, constraints );
+        container.add( rubriekScrollPane, constraints );
+        constraints.fill = GridBagConstraints.NONE;
+        constraints.weightx = 0d;
+        constraints.weighty = 0d;
 
         rubriekOmschrijvingLabel = new JLabel( );
         constraints.gridy = 2;
@@ -160,7 +150,7 @@ public class RubriekTotalsYearFrame {
 	constraints.insets = new Insets( 5, 20, 5, 5 );
 	container.add( new JLabel( "Start jaar:" ), constraints );
 
-	firstYear = calendar.get( Calendar.YEAR );
+	firstYear = (new GregorianCalendar( )).get( Calendar.YEAR );
 	SpinnerNumberModel firstYearSpinnerNumberModel = new SpinnerNumberModel( firstYear, 1990, firstYear + 1, 1 );
 	firstYearSpinner = new JSpinner( firstYearSpinnerNumberModel );
 	JFormattedTextField firstYearSpinnerTextField = ( ( JSpinner.DefaultEditor )firstYearSpinner.getEditor( ) ).getTextField( );
@@ -354,7 +344,7 @@ public class RubriekTotalsYearFrame {
 
     private void setupRubriekTotalsTable( ) {
 	// Setup the rubriek totals table for the selected rubriek
-	rubriekTotalsTableModel.setupRubriekTotalsTableModel(selectedRubriekId, selectedRekeningHouderId, 0, firstYear, lastYear);
+	rubriekTotalsTableModel.setupRubriekTotalsTableModel(selectedRubriekIds, selectedRekeningHouderId, 0, firstYear, lastYear);
 
 	// Setup the tableSorter again so that the TableSorter gets the new table size (# rows)
 	rubriekTotalsTableSorter.setTableModel( rubriekTotalsTableModel );

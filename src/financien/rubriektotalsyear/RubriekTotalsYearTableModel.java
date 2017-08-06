@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 /**
@@ -52,7 +53,7 @@ class RubriekTotalsYearTableModel extends AbstractTableModel {
 	m_connection = connection;
     }
 
-    void setupRubriekTotalsTableModel( int rubriekId,
+    void setupRubriekTotalsTableModel( Vector<Integer> selectedRubriekIds,
                                        int rekeningHouderId,
                                        int rekeningId,
                                        int firstYear,
@@ -65,7 +66,16 @@ class RubriekTotalsYearTableModel extends AbstractTableModel {
 
         String rubriekTotalsBaseQuery = "SELECT sum(rekening_mutatie.mutatie_in), sum(rekening_mutatie.mutatie_uit) FROM financien.rekening_mutatie " +
                 "INNER JOIN rekening on rekening.rekening_id = rekening_mutatie.rekening_id " +
-                "WHERE rekening_mutatie.rubriek_id = " + rubriekId + " AND rekening.rekening_houder_id = " + rekeningHouderId;
+                "WHERE rekening.rekening_houder_id = " + rekeningHouderId;
+
+        if (!selectedRubriekIds.isEmpty()) {
+            String rubriekIdSelection = "";
+            for ( int selectedRubriekId : selectedRubriekIds ) {
+                if ( !rubriekIdSelection.isEmpty() ) rubriekIdSelection += " OR ";
+                rubriekIdSelection += "rekening_mutatie.rubriek_id = " + selectedRubriekId;
+            }
+            rubriekTotalsBaseQuery += " AND (" + rubriekIdSelection + ")";
+        }
 
         // Check for an additional selection on rekening ID
         if (rekeningId != 0) rubriekTotalsBaseQuery += " AND rekening_id = " + rekeningId;
