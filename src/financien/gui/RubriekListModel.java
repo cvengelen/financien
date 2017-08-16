@@ -68,6 +68,10 @@ public class RubriekListModel extends AbstractListModel<String> {
         return rubriekVector.get( index ).m_rubriekId;
     }
 
+    public String getRubriek(int index) {
+        return rubriekVector.get( index ).m_rubriek;
+    }
+
     public String getRubriekDescription( int index ) {
         return rubriekVector.get( index ).m_rubriekDescription;
     }
