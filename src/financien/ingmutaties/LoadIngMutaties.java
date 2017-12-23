@@ -1,6 +1,4 @@
-package financien.loadingmutatiedata;
-
-import financien.gui.PasswordPanel;
+package financien.ingmutaties;
 
 import javax.swing.*;
 import javax.swing.event.AncestorEvent;
@@ -18,19 +16,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Frame to load downloaded ING mutatie data into the financien database.
- *
+ * Frame to load downloaded ING mutaties into the financien database.
  * @author Chris van Engelen
  */
-class LoadIngMutatieDataFrame implements Runnable {
-    private final Logger logger = Logger.getLogger( LoadIngMutatieDataFrame.class.getCanonicalName( ) );
-    private final JFrame frame = new JFrame( "Load ING export file" );
+public class LoadIngMutaties extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( LoadIngMutaties.class.getCanonicalName( ) );
     private File ingMutatieDataFile;
     private final JLabel ingMutatieDataFileLabel = new JLabel( );
     private final JButton okButton = new JButton( "OK" );
     private final JButton selectFileButton = new JButton( "Select other file" );
 
-    public void run( ) {
+    public LoadIngMutaties(String password, int x, int y) {
+        super("LoadIngMutaties", true, true, true, true);
 
         class CsvFilenameFilter implements FilenameFilter {
 	    public boolean accept( File directory, String filenameString ) {
@@ -93,7 +90,7 @@ class LoadIngMutatieDataFrame implements Runnable {
         } );
 
         // Use the grid bag layout manager
-        final Container container = frame.getContentPane( );
+        final Container container = getContentPane( );
         container.setLayout( new GridBagLayout( ) );
         final GridBagConstraints constraints = new GridBagConstraints( );
 
@@ -117,8 +114,7 @@ class LoadIngMutatieDataFrame implements Runnable {
         cancelButton.addActionListener( ( ActionEvent actionEvent ) -> {
             logger.fine( "event: " + actionEvent.getActionCommand( ) );
             if ( actionEvent.getActionCommand().equals( "Cancel" ) ) {
-                frame.dispose( );
-                System.exit( 1 );
+                dispose( );
             }
         } );
 
@@ -132,14 +128,14 @@ class LoadIngMutatieDataFrame implements Runnable {
                 // when the selected file is set in the AncestorListener.
                 loadIngMutatieDataFileChooser.setSelectedFile( null );
 
-                if ( loadIngMutatieDataFileChooser.showOpenDialog( frame ) == JFileChooser.APPROVE_OPTION ) {
+                if ( loadIngMutatieDataFileChooser.showOpenDialog( this ) == JFileChooser.APPROVE_OPTION ) {
                     ingMutatieDataFile = loadIngMutatieDataFileChooser.getSelectedFile( );
                     ingMutatieDataFileLabel.setText( ingMutatieDataFile.getName( ) );
                     logger.info( "Selected file: " + ingMutatieDataFile.getName( ) );
                 }
                 okButton.setEnabled( true );
                 selectFileButton.setEnabled( true );
-                frame.getRootPane( ).setDefaultButton( okButton );
+                getRootPane( ).setDefaultButton( okButton );
                 okButton.requestFocusInWindow();
             }
         } );
@@ -147,15 +143,6 @@ class LoadIngMutatieDataFrame implements Runnable {
         okButton.addActionListener( ( ActionEvent actionEvent ) -> {
           logger.fine( "event: " + actionEvent.getActionCommand( ) );
             if ( actionEvent.getActionCommand().equals( "OK" ) ) {
-                // Get the password for the financien account, which gives access to schema financien.
-                final PasswordPanel passwordPanel = new PasswordPanel();
-                final String password = passwordPanel.getPassword();
-                if (password == null) {
-                    logger.info("No password");
-                    frame.dispose( );
-                    System.err.println("Geen password gegeven");
-                    System.exit( 1 );
-                }
                 int exitStatus = 0;
                 String loadIngMutatieDataCmd = "/Users/cvengelen/bin/load-ing-mutatie-data -f " +
                         ingMutatieDataFile.getAbsolutePath( ) + " -p " + password;
@@ -168,13 +155,19 @@ class LoadIngMutatieDataFrame implements Runnable {
                     logger.info( "Process exit status: " + exitStatus );
                     if ( exitStatus != 0 ) {
                         System.err.println( "Error in executing " + loadIngMutatieDataCmd );
+                        JOptionPane.showMessageDialog( this,
+                                "Error in executing " + loadIngMutatieDataCmd,
+                                "Load ING mutaties error",
+                                JOptionPane.ERROR_MESSAGE );
                     }
                 } catch ( InterruptedException | IOException exception ) {
                     logger.severe( exception.getMessage( ) );
-                    exitStatus = 1;
+                    JOptionPane.showMessageDialog( this,
+                            "Exception when executing " + loadIngMutatieDataCmd + ": " + exception.getMessage(),
+                            "Load ING mutaties exception",
+                            JOptionPane.ERROR_MESSAGE );
                 }
-                frame.dispose( );
-                System.exit( exitStatus );
+                dispose( );
             }
         } );
 
@@ -188,9 +181,12 @@ class LoadIngMutatieDataFrame implements Runnable {
         constraints.gridy = 1;
         container.add( buttonPanel, constraints );
 
-        frame.setSize( 600, 150 );
-        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        frame.getRootPane( ).setDefaultButton( okButton );
-        frame.setVisible(true);
+        setSize( 600, 150 );
+        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        getRootPane( ).setDefaultButton( okButton );
+        setVisible(true);
+
+        //Set the window's location.
+        setLocation(x, y);
     }
 }

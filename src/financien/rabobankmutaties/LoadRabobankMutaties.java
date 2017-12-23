@@ -1,4 +1,4 @@
-package financien.loadrabobankmutatiedata;
+package financien.rabobankmutaties;
 
 import financien.gui.PasswordPanel;
 
@@ -18,19 +18,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Frame to load downloaded Rabobank mutatie data into the financien database.
+ * Frame to load downloaded Rabobank mutaties into the financien database.
  *
  * @author Chris van Engelen
  */
-class LoadRabobankMutatieDataFrame implements Runnable {
-    private final Logger logger = Logger.getLogger( LoadRabobankMutatieDataFrame.class.getCanonicalName( ) );
-    private final JFrame frame = new JFrame( "Load Rabobank transactions file" );
+public class LoadRabobankMutaties extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( LoadRabobankMutaties.class.getCanonicalName( ) );
     private File rabobankMutatieDataFile;
     private final JLabel rabobankMutatieDataFileLabel = new JLabel( );
     private final JButton okButton = new JButton( "OK" );
     private final JButton selectFileButton = new JButton( "Select other file" );
 
-    public void run( ) {
+    public LoadRabobankMutaties(String password, int x, int y) {
+        super("LoadRabobankMutaties", true, true, true, true);
 
 	class TransactionsFilenameFilter implements FilenameFilter {
 	    public boolean accept( File directory, String filenameString ) {
@@ -95,7 +95,7 @@ class LoadRabobankMutatieDataFrame implements Runnable {
         } );
 
         // Use the grid bag layout manager
-        final Container container = frame.getContentPane( );
+        final Container container = getContentPane( );
         container.setLayout( new GridBagLayout( ) );
         final GridBagConstraints constraints = new GridBagConstraints( );
 
@@ -119,8 +119,7 @@ class LoadRabobankMutatieDataFrame implements Runnable {
         cancelButton.addActionListener( ( ActionEvent actionEvent ) -> {
             logger.fine( "event: " + actionEvent.getActionCommand( ) );
             if ( actionEvent.getActionCommand().equals( "Cancel" ) ) {
-                frame.dispose( );
-                System.exit( 1 );
+                dispose( );
             }
         } );
 
@@ -134,14 +133,14 @@ class LoadRabobankMutatieDataFrame implements Runnable {
                 // when the selected file is set in the AncestorListener.
                 loadRabobankMutatieDataFileChooser.setSelectedFile( null );
 
-                if ( loadRabobankMutatieDataFileChooser.showOpenDialog( frame ) == JFileChooser.APPROVE_OPTION ) {
+                if ( loadRabobankMutatieDataFileChooser.showOpenDialog( this ) == JFileChooser.APPROVE_OPTION ) {
                     rabobankMutatieDataFile = loadRabobankMutatieDataFileChooser.getSelectedFile( );
                     rabobankMutatieDataFileLabel.setText( rabobankMutatieDataFile.getName( ) );
                     logger.info( "Selected file: " + rabobankMutatieDataFile.getName( ) );
                 }
                 okButton.setEnabled( true );
                 selectFileButton.setEnabled( true );
-                frame.getRootPane( ).setDefaultButton( okButton );
+                getRootPane( ).setDefaultButton( okButton );
                 okButton.requestFocusInWindow();
             }
         } );
@@ -149,15 +148,6 @@ class LoadRabobankMutatieDataFrame implements Runnable {
         okButton.addActionListener( ( ActionEvent actionEvent ) -> {
             logger.fine( "event: " + actionEvent.getActionCommand( ) );
             if ( actionEvent.getActionCommand().equals( "OK" ) ) {
-                // Get the password for the financien account, which gives access to schema financien.
-                final PasswordPanel passwordPanel = new PasswordPanel();
-                final String password = passwordPanel.getPassword();
-                if (password == null) {
-                    logger.info("No password");
-                    frame.dispose( );
-                    System.err.println("Geen password gegeven");
-                    System.exit( 1 );
-                }
                 int exitStatus = 0;
                 String loadRabobankMutatieDataCmd = "/Users/cvengelen/bin/load-rabobank-mutatie-data -f " +
                         rabobankMutatieDataFile.getAbsolutePath( ) + " -p " + password;
@@ -175,8 +165,7 @@ class LoadRabobankMutatieDataFrame implements Runnable {
                     logger.severe( exception.getMessage( ) );
                     exitStatus = 1;
                 }
-                frame.dispose( );
-                System.exit( exitStatus );
+                dispose( );
             }
         } );
 
@@ -190,9 +179,12 @@ class LoadRabobankMutatieDataFrame implements Runnable {
         constraints.gridy = 1;
         container.add( buttonPanel, constraints );
 
-        frame.setSize( 600, 150 );
-        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        frame.getRootPane( ).setDefaultButton( okButton );
-        frame.setVisible(true);
+        setSize( 600, 150 );
+        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        getRootPane( ).setDefaultButton( okButton );
+        setVisible(true);
+
+        //Set the window's location.
+        setLocation(x, y);
     }
 }

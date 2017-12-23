@@ -1,39 +1,42 @@
-package financien.ingmutatie;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.ResultSet;
-import java.sql.Statement;
-
-import java.util.*;
-import java.util.logging.*;
-import java.util.regex.*;
-import java.text.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
+package financien.rabobankmutaties;
 
 import financien.gui.DebCredDialog;
-import financien.gui.IngMededelingenParser;
 import financien.gui.RekeningMutatieTableModel;
 import financien.gui.RubriekComboBox;
-import table.*;
+import table.TableSorter;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableCellRenderer;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Frame to copy downloaded ING mutatie records to rekening_mutatie, and deb_cred tables in schema financien.
- * An instance of IngMutatieFrame is created by class financien.Main.
- *
+ * Frame to copy downloaded Rabobank mutatie records to rekening_mutatie, and deb_cred tables in schema financien.
  * @author Chris van Engelen
  */
-public class IngMutatieFrame {
-    final private Logger logger = Logger.getLogger( IngMutatieFrame.class.getCanonicalName() );
+public class ProcessRabobankMutaties extends JInternalFrame {
+    final private Logger logger = Logger.getLogger( ProcessRabobankMutaties.class.getCanonicalName( ) );
 
     private Connection connection;
+    private JFrame parentFrame;
 
-    private final JFrame frame = new JFrame( "Download ING" );
     private final Font dialogFont = new Font( "Dialog", Font.BOLD, 12 );
 
     private String mutatieDatumString;
@@ -54,8 +57,8 @@ public class IngMutatieFrame {
     private double mutatieBedrag;
     private JLabel mutatieBedragLabel;
 
-    private String mutatieAfBijString;
-    private JLabel mutatieAfBijLabel;
+    private String mutatieDebetCreditString;
+    private JLabel mutatieDebetCreditLabel;
 
     private JSpinner jaarSpinner;
     private JSpinner maandSpinner;
@@ -73,9 +76,9 @@ public class IngMutatieFrame {
     private RekeningMutatieTableModel rekeningMutatieTableModel;
     private TableSorter rekeningMutatieTableSorter;
     private JTable rekeningMutatieTable;
-    private final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
+    private static final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
     private final GregorianCalendar calendar = new GregorianCalendar( );
 
     private ResultSet mutatieResultSet;
@@ -84,24 +87,24 @@ public class IngMutatieFrame {
 
     // Pattern to find a single quote in the titel, to be replaced
     // with escaped quote (the double slashes are really necessary)
-    private final Pattern quotePattern = Pattern.compile( "\\'" );
+    private static final Pattern quotePattern = Pattern.compile( "\\'" );
 
 
-    public IngMutatieFrame( final Connection connection ) {
-        this.connection = connection;
+    public ProcessRabobankMutaties( final Connection connection, final JFrame parentFrame, int x, int y ) {
+	this.connection = connection;
+        this.parentFrame = parentFrame;
 
 	// frame.setBackground( Color.white );
 
 	// Get the container for the frame
-	final Container container = frame.getContentPane( );
+	final Container container = getContentPane( );
 	// container.setBackground( Color.white );
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
 	GridBagConstraints constraints = new GridBagConstraints( );
-        final Insets insetsLeft    = new Insets( 5, 20, 5, 5 );
-        final Insets insetsBetween = new Insets( 5, 5, 5, 5 );
-	final Insets insetsRight   = new Insets( 5, 5, 5, 20 );
+	final Insets insetsLeft  = new Insets( 5, 20, 5, 5 );
+	final Insets insetsRight = new Insets( 5, 5, 5, 20 );
 	constraints.anchor = GridBagConstraints.WEST;
 	constraints.insets = insetsLeft;
 
@@ -121,7 +124,7 @@ public class IngMutatieFrame {
 
 	mutatieTegenRekeningLabel = new JLabel( );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	constraints.insets = insetsBetween;
+	constraints.insets = insetsRight;
 	constraints.gridwidth = 2;
 	container.add( mutatieTegenRekeningLabel, constraints );
 
@@ -136,12 +139,11 @@ public class IngMutatieFrame {
 
 	JButton editDebCredButton = new JButton( "Edit Deb/Cred" );
 	editDebCredButton.addActionListener( ( ActionEvent actionEvent ) -> {
-            DebCredDialog debCredDialog = new DebCredDialog( connection, frame,
+            DebCredDialog debCredDialog = new DebCredDialog( connection, parentFrame,
                     debCredId,
                     mutatieTegenRekeningString,
                     mutatieNaamOmschrijvingString,
-                    mutatieMededelingenString,
-                    mutatieCodeString );
+                    mutatieMededelingenString );
 
             debCredId = debCredDialog.getDebCredId( );
             rubriekId = debCredDialog.getRubriekId( );
@@ -150,7 +152,6 @@ public class IngMutatieFrame {
             setupRekeningMutatieTable( );
         } );
 
-        constraints.insets = insetsRight;
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	container.add( editDebCredButton, constraints );
 
@@ -165,9 +166,9 @@ public class IngMutatieFrame {
 	constraints.insets = insetsRight;
 	container.add( mutatieBedragLabel, constraints );
 
-	mutatieAfBijLabel = new JLabel( );
+	mutatieDebetCreditLabel = new JLabel( );
 	constraints.gridx = GridBagConstraints.RELATIVE;
-	container.add( mutatieAfBijLabel, constraints );
+	container.add( mutatieDebetCreditLabel, constraints );
 
 	constraints.gridx = 0;
 	constraints.gridy = 3;
@@ -231,7 +232,6 @@ public class IngMutatieFrame {
 	constraints.insets = insetsRight;
 	constraints.fill = GridBagConstraints.HORIZONTAL;
 	container.add( mutatieMededelingenTextField, constraints );
-
 
 	constraints.gridx = 0;
 	constraints.gridy = 6;
@@ -339,12 +339,18 @@ public class IngMutatieFrame {
 	try {
 	    final Statement statement = connection.createStatement( );
 	    mutatieResultSet = statement.executeQuery( "SELECT datum, tegen_rekening, naam_omschrijving, " +
-						       "mutatie, af_bij, mededelingen, code, eigen_rekening " +
-						       "FROM ing_mutatie ORDER BY datum, naam_omschrijving" );
+						       "mutatie, debet_credit, code, eigen_rekening, " +
+                                                       "mededelingen_1, mededelingen_2, mededelingen_3, " +
+                                                       "mededelingen_4, mededelingen_5, mededelingen_6, transactie_referentie " +
+						       "FROM rabobank_mutatie ORDER BY datum, naam_omschrijving" );
 	} catch ( SQLException sqlException ) {
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
-	    frame.setVisible( false );
-	    System.exit( 0 );
+            JOptionPane.showMessageDialog( parentFrame,
+                    "SQLException: " + sqlException.getMessage( ) ,
+                    "Process Rabobank mutaties exception",
+                    JOptionPane.ERROR_MESSAGE );
+	    setVisible( false );
+            dispose();
 	}
 
 	getNextMutatieRecord( );
@@ -370,7 +376,7 @@ public class IngMutatieFrame {
 			logger.severe( "Invalid selected row" );
 		    } else {
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Data zijn gewijzigd: modificaties opslaan?",
 							   "Record is gewijzigd",
 							   JOptionPane.YES_NO_OPTION,
@@ -434,15 +440,15 @@ public class IngMutatieFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
-                    return;
+		    setVisible( false );
+                    dispose();
+		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "copy" ) ) {
 		    // Copy the record to the rekening mutatie table
 		    if ( copyDownloadIngRecord( ) ) {
 			// Successful copy: disable the copy button
 			copyButton.setEnabled( false );
-                        frame.getRootPane().setDefaultButton( nextButton );
+                        getRootPane().setDefaultButton( nextButton );
 		    }
 		} else {
 		    int selectedRow = mutatieListSelectionListener.getSelectedRow( );
@@ -451,15 +457,15 @@ public class IngMutatieFrame {
 			// Check if current row has modified values
 			if ( rekeningMutatieTableModel.getRowModified( ) ) {
 			    if ( selectedRow < 0 ) {
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       "Geen mutatie geselecteerd",
-							       "Download ING frame error",
+							       "Process Rabobank mutaties error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
 
 			    int result =
-				JOptionPane.showConfirmDialog( frame,
+				JOptionPane.showConfirmDialog( parentFrame,
 							       "Data zijn gewijzigd: modificaties opslaan?",
 							       "Record is gewijzigd",
 							       JOptionPane.YES_NO_OPTION,
@@ -483,21 +489,21 @@ public class IngMutatieFrame {
 			cancelMutatieButton.setEnabled( false );
 			saveMutatieButton.setEnabled( false );
 
-                        if (getNextMutatieRecord( )) {
+			if (getNextMutatieRecord( )) {
                             copyButton.setEnabled( true );
-                            frame.getRootPane().setDefaultButton( copyButton );
+                            getRootPane().setDefaultButton( copyButton );
                             mutatieMededelingenTextField.requestFocusInWindow( );
                         } else {
-                            frame.getRootPane().setDefaultButton( closeButton );
+                            getRootPane().setDefaultButton( closeButton );
                         }
 
 			return;
 		    }
 
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen mutatie geselecteerd",
-						       "DownloadING frame error",
+						       "Process Rabobank mutaties error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -505,7 +511,7 @@ public class IngMutatieFrame {
 		    if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
 			final String datumString = rekeningMutatieTableModel.getDatumString( selectedRow );
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete record for rekening " +
 							   rekeningMutatieTableModel.getRekeningString( selectedRow ) +
 							   " at date " + datumString +
@@ -542,7 +548,7 @@ public class IngMutatieFrame {
 						       "rekening_id = " + rekeningId + "\n" +
 						       "volgnummer = "  + volgNummer + "\n" +
 						       "in rekening_mutatie" );
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
 							       "Delete rekening_mutatie record",
 							       JOptionPane.ERROR_MESSAGE);
@@ -551,6 +557,10 @@ public class IngMutatieFrame {
 			    }
 			} catch ( SQLException sqlException ) {
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    "SQLException: " + sqlException.getMessage( ) ,
+                                    "Process Rabobank mutaties exception",
+                                    JOptionPane.ERROR_MESSAGE );
 			    return;
 			}
 
@@ -637,24 +647,11 @@ public class IngMutatieFrame {
         constraints.insets = new Insets( 5, 20, 20, 20 );
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 1280, 550 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        frame.getRootPane().setDefaultButton( copyButton );
-	frame.setVisible( true );
-        boolean focusSet = mutatieMededelingenTextField.requestFocusInWindow( );
+	setSize( 1280, 550 );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        getRootPane().setDefaultButton( copyButton );
+	setVisible( true );
+        mutatieMededelingenTextField.requestFocusInWindow( );
     }
 
 
@@ -662,9 +659,9 @@ public class IngMutatieFrame {
     {
 	if ( rubriekId == 0 ) {
 	    String errorString = "Geen rubriek geselecteerd";
-	    JOptionPane.showMessageDialog( frame,
+	    JOptionPane.showMessageDialog( parentFrame,
 					   errorString,
-					   "Download ING",
+					   "Process Rabobank mutaties",
 					   JOptionPane.ERROR_MESSAGE);
 	    logger.severe( errorString );
 	    return false;
@@ -672,9 +669,9 @@ public class IngMutatieFrame {
 
 	if ( debCredId == 0 ) {
 	    String errorString = "Geen Deb/Cred gevonden";
-	    JOptionPane.showMessageDialog( frame,
+	    JOptionPane.showMessageDialog( parentFrame,
 					   errorString,
-					   "Download ING",
+					   "Process Rabobank mutaties",
 					   JOptionPane.ERROR_MESSAGE);
 	    logger.severe( errorString );
 	    return false;
@@ -687,15 +684,15 @@ public class IngMutatieFrame {
 	insertString += ", datum = '" + mutatieDatumString + "'";
 	insertString += ", deb_cred_id = " + debCredId;
 
-        switch ( mutatieAfBijString ) {
-        case "Af":
+        switch ( mutatieDebetCreditString ) {
+        case "D":
             insertString += ", mutatie_uit = " + mutatieBedrag;
             break;
-        case "Bij":
+        case "C":
             insertString += ", mutatie_in = " + mutatieBedrag;
             break;
         default:
-            logger.severe( "invalid Af/Bij string" );
+            logger.severe( "invalid Debet/Credit string" );
             return false;
         }
 
@@ -730,9 +727,9 @@ public class IngMutatieFrame {
 		setupRekeningMutatieTable( );
 	    }
 	} catch ( SQLException sqlException ) {
-	    JOptionPane.showMessageDialog( frame,
-					   sqlException.getMessage( ),
-					   "Download ING",
+	    JOptionPane.showMessageDialog( parentFrame,
+					   "SQL exception: " + sqlException.getMessage( ),
+					   "Process Rabobank mutaties exception",
 					   JOptionPane.ERROR_MESSAGE);
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return false;
@@ -742,17 +739,16 @@ public class IngMutatieFrame {
 	return true;
     }
 
-
     private boolean getNextMutatieRecord( )
     {
 	try {
 	    if ( ! mutatieResultSet.next( ) ) {
 		logger.info( "no more records " );
-		JOptionPane.showMessageDialog( frame,
+		JOptionPane.showMessageDialog( parentFrame,
 					       "No more records",
-					       "Download ING",
+					       "Process Rabobank mutaties",
 					       JOptionPane.INFORMATION_MESSAGE);
-		return false;
+                return false;
 	    }
 
 	    mutatieDatumString = mutatieResultSet.getString( 1 );
@@ -782,14 +778,13 @@ public class IngMutatieFrame {
             }
 	    mutatieBedragLabel.setText( euroDecimalFormat.format( mutatieBedrag ) );
 
-	    mutatieAfBijString = mutatieResultSet.getString( 5 );
-	    mutatieAfBijLabel.setText( mutatieAfBijString );
+	    mutatieDebetCreditString = mutatieResultSet.getString( 5 );
+	    mutatieDebetCreditLabel.setText( mutatieDebetCreditString );
 
-	    mutatieMededelingenString = mutatieResultSet.getString( 6 );
-            mutatieCodeString = mutatieResultSet.getString( 7 );
+            mutatieCodeString = mutatieResultSet.getString( 6 );
 
             // Haal de rekening ID op van de eigen rekening
-            mutatieEigenRekeningString = mutatieResultSet.getString( 8 );
+            mutatieEigenRekeningString = mutatieResultSet.getString( 7 );
             try {
                 final String queryEigenRekening = String.format( "SELECT rekening_id FROM rekening WHERE nummer = '%s'", mutatieEigenRekeningString );
 
@@ -806,28 +801,34 @@ public class IngMutatieFrame {
                 logger.severe( "Exceptie bij ophalen eigen rekening ID: " + sqlException.getMessage() );
             }
 
-            IngMededelingenParser ingMededelingenParser = new IngMededelingenParser( mutatieMededelingenString );
-            mutatieMededelingenTextField.setText( ingMededelingenParser.getMutatieMededelingenStrippedString() );
-
-	    // Clear jaar and maand text field
-	    // jaarTextField.setText( "" );
-	    // maandTextField.setText( "" );
+            // Bouw de mededelingen string op
+            StringBuilder mutatieMededelingenStringBuilder = new StringBuilder( );
+            for ( int resultSetIndex = 8; resultSetIndex <= 13; resultSetIndex++ ) {
+                if ( !( mutatieResultSet.getString( resultSetIndex ).isEmpty() ) )
+                    mutatieMededelingenStringBuilder.append( mutatieResultSet.getString( resultSetIndex ) );
+            }
+            if ( !( mutatieResultSet.getString( 14 ).isEmpty( ) ) ) {
+                if ( mutatieMededelingenStringBuilder.length( ) > 0 ) mutatieMededelingenStringBuilder.append( "; " );
+                mutatieMededelingenStringBuilder.append( "transactie referentie: " );
+                mutatieMededelingenStringBuilder.append( mutatieResultSet.getString( 14 ) );
+            }
+            mutatieMededelingenString = mutatieMededelingenStringBuilder.toString( );
+            mutatieMededelingenTextField.setText( mutatieMededelingenString );
 
             // Clear volgnummer
             volgNummerSpinner.setValue( 0 );
 
-            if ( !( getDebCredId( ingMededelingenParser ) ) ) {
-                JOptionPane.showMessageDialog( frame,
+            if ( !( getDebCredId( ) ) ) {
+                JOptionPane.showMessageDialog( parentFrame,
                         "No Deb/Cred match found for " + mutatieNaamOmschrijvingString,
-                        "Download ING",
+                        "Process Rabobank mutaties",
                         JOptionPane.INFORMATION_MESSAGE);
 
-                DebCredDialog debCredDialog = new DebCredDialog( connection, frame,
+                DebCredDialog debCredDialog = new DebCredDialog( connection, parentFrame,
                         debCredId,
                         mutatieTegenRekeningString,
                         mutatieNaamOmschrijvingString,
-                        mutatieMededelingenString,
-                        mutatieCodeString );
+                        mutatieMededelingenString );
 
                 debCredId = debCredDialog.getDebCredId( );
                 rubriekId = debCredDialog.getRubriekId( );
@@ -852,7 +853,7 @@ public class IngMutatieFrame {
         return true;
     }
 
-    private boolean getDebCredId( final IngMededelingenParser ingMededelingenParser ) {
+    private boolean getDebCredId( ) {
         // Reset located Deb/Cred id
         debCredId = 0;
 
@@ -912,33 +913,6 @@ public class IngMutatieFrame {
             } catch ( Exception exception ) {
                 logger.severe( "Exceptie voor deb/cred in mededelingen zonder rekening: " + exception.getMessage() );
             }
-
-            try {
-                // Speciaal geval voor intern van/naar profijtrekening
-                if ( ( mutatieNaamOmschrijvingString.startsWith( "VAN " ) || mutatieNaamOmschrijvingString.startsWith( "NAAR " ) ) &&
-                        ( mutatieCodeString.equals( "GT" ) ) ) {
-                    // Zoek naar debiteur/crediteur met eigen rekening
-                    final String queryDebCred = "SELECT deb_cred_id, rubriek_id, deb_cred " +
-                                                 " FROM deb_cred WHERE rekening = '" + mutatieEigenRekeningString + "'";
-                    final Statement statement = connection.createStatement();
-                    final ResultSet resultSet = statement.executeQuery( queryDebCred );
-
-                    // Controleer of de eigen rekeing gevonden is
-                    if ( resultSet.next( ) ) {
-                        logger.fine( "Match gevonden met eigen rekening " + mutatieEigenRekeningString + " voor mutatie omschrijving: " + mutatieNaamOmschrijvingString );
-                        debCredId = resultSet.getInt( 1 );
-                        rubriekId = resultSet.getInt( 2 );
-                        // Store the Deb/Cred found in the omschrijving in the Deb/Cred label
-                        mutatieNaamOmschrijvingString = resultSet.getString( 3 );
-                        mutatieNaamOmschrijvingLabel.setText( resultSet.getString( 3 ) );
-                        debCredIdLabel.setText( "(id = " + debCredId + ")" );
-                        return true;
-
-                    }
-                }
-            } catch ( Exception exception ) {
-                logger.severe( "Exceptie voor deb/cred eigen rekening: " + exception.getMessage() );
-            }
         }
 
         // Find rekening number from mutatie record in deb_cred
@@ -961,9 +935,9 @@ public class IngMutatieFrame {
                 // Check if Deb/Cred should be in field deb_cred of table deb_cred,
                 // or in field omschrijving of table deb_cred.
                 if ( omschrijvingNr == 0 ) {
-                    // Check deb_cred field from deb_cred with naam_omschrijving in the ing_matatie records
+                    // Check deb_cred field from deb_cred with naam_omschrijving in the rabobank_mutatie records
                     logger.fine( "comparing " + debCredString +
-                                 " from deb_cred with naam_omschrijving from ing_mutatie: " + mutatieNaamOmschrijvingString );
+                                 " from deb_cred with naam_omschrijving from rabobank_mutatie: " + mutatieNaamOmschrijvingString );
                     if ( debCredString.equals( mutatieNaamOmschrijvingString ) ) {
                         logger.fine( "Match gevonden voor mutatie rekening " + mutatieTegenRekeningString +
                                      " voor mutatie naam_omschrijving: " + mutatieNaamOmschrijvingString );
@@ -979,7 +953,7 @@ public class IngMutatieFrame {
 
                     //Try to find the deb_cred field in the mededelingen field
                     logger.fine( "comparing " + debCredString +
-                                 " from deb_cred with mededelingen from ing_mutatie: " + mutatieMededelingenString );
+                                 " from deb_cred with mededelingen from rabobank_mutatie: " + mutatieMededelingenString );
                     if ( mutatieMededelingenString.contains( debCredString ) ) {
                         logger.fine( "Match gevonden voor mutatie rekening " + mutatieTegenRekeningString +
                                         " in mutatie mededelingen: " + mutatieMededelingenString );
@@ -989,48 +963,6 @@ public class IngMutatieFrame {
                         mutatieNaamOmschrijvingString = debCredString;
                         mutatieNaamOmschrijvingLabel.setText( debCredString );
                         debCredIdLabel.setText( "(id = " + debCredId + ")" );
-
-                        return true;
-                    }
-                } else {
-                    // Check deb_cred field from deb_cred with part of omschrijving field from ING mutatie record
-
-                    // Controleer of het aantal omschrijving velden klopt
-                    if ( omschrijvingNr > ingMededelingenParser.getNMatches() ) {
-                        // not found
-                        continue;
-                    }
-
-                    // Haal het omschrijving veld op
-                    final String testString = ingMededelingenParser.getMutatieMededelingenSubString(omschrijvingNr - 1);
-                    logger.fine( "comparing " + debCredString +
-                            " from deb_cred with " + testString +
-                            " from ING record omschrijving nr " + omschrijvingNr );
-                    if ( debCredString.equals( testString ) ) {
-                        logger.fine( "omschrijving match found for nr " + omschrijvingNr );
-                        debCredId = resultSet.getInt( 1 );
-                        rubriekId = resultSet.getInt( 2 );
-                        // Store the Deb/Cred found in the omschrijving in the Deb/Cred label
-                        mutatieNaamOmschrijvingString = debCredString;
-                        mutatieNaamOmschrijvingLabel.setText( debCredString );
-                        debCredIdLabel.setText( "(id = " + debCredId + ")" );
-
-                        // Check if the deb cred is found at the start of
-                        if ( omschrijvingNr == 1 ) {
-                            logger.fine( "skip omschrijving veld 1" );
-                            if ( ingMededelingenParser.getNMatches() > 1 ) {
-                                StringBuilder mutatieMededelingen = new StringBuilder( ingMededelingenParser.getMutatieMededelingenSubString(1) );
-                                if ( ingMededelingenParser.getNMatches() > 2 ) {
-                                    mutatieMededelingen.append( "; " );
-                                    mutatieMededelingen.append( ingMededelingenParser.getMutatieMededelingenSubString(2) );
-                                    if ( ingMededelingenParser.getNMatches() > 3 ) {
-                                        mutatieMededelingen.append( "; " );
-                                        mutatieMededelingen.append( ingMededelingenParser.getMutatieMededelingenSubString(3) );
-                                    }
-                                }
-                                mutatieMededelingenTextField.setText( mutatieMededelingen.toString( ) );
-                            }
-                        }
 
                         return true;
                     }

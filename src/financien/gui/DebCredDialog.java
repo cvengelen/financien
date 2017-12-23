@@ -72,23 +72,6 @@ public class DebCredDialog {
 	initialise( );
     }
 
-    public DebCredDialog( final Connection connection,
-                          final JFrame     parentFrame,
-                          final int        selectedDebCredId,
-                          final String     mutatieTegenRekeningString,
-                          final String     mutatieNaamOmschrijvingString,
-                          final String     mutatieMededelingenString,
-                          final String     mutatieCodeString ) {
-        this.connection = connection;
-        this.parentFrame = parentFrame;
-        this.debCredId = selectedDebCredId;
-        this.mutatieTegenRekeningString = mutatieTegenRekeningString;
-        this.mutatieNaamOmschrijvingString = mutatieNaamOmschrijvingString;
-        this.mutatieMededelingenString = mutatieMededelingenString;
-
-        initialise( );
-    }
-
     private void initialise( ) {
 	dialog = new JDialog( parentFrame, "Deb/Cred", true );
 	final Container container = dialog.getContentPane( );
