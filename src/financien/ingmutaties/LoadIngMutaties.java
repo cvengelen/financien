@@ -27,7 +27,7 @@ public class LoadIngMutaties extends JInternalFrame {
     private final JButton selectFileButton = new JButton( "Select other file" );
 
     public LoadIngMutaties(String password, int x, int y) {
-        super("LoadIngMutaties", true, true, true, true);
+        super("Load ING mutaties", false, true, true, true);
 
         class CsvFilenameFilter implements FilenameFilter {
 	    public boolean accept( File directory, String filenameString ) {
@@ -182,11 +182,9 @@ public class LoadIngMutaties extends JInternalFrame {
         container.add( buttonPanel, constraints );
 
         setSize( 600, 150 );
+        setLocation(x, y);
         setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         getRootPane( ).setDefaultButton( okButton );
         setVisible(true);
-
-        //Set the window's location.
-        setLocation(x, y);
     }
 }

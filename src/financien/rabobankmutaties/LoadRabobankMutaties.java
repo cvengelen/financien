@@ -30,7 +30,7 @@ public class LoadRabobankMutaties extends JInternalFrame {
     private final JButton selectFileButton = new JButton( "Select other file" );
 
     public LoadRabobankMutaties(String password, int x, int y) {
-        super("LoadRabobankMutaties", true, true, true, true);
+        super("Load Rabobank mutaties", false, true, true, true);
 
 	class TransactionsFilenameFilter implements FilenameFilter {
 	    public boolean accept( File directory, String filenameString ) {
@@ -180,11 +180,9 @@ public class LoadRabobankMutaties extends JInternalFrame {
         container.add( buttonPanel, constraints );
 
         setSize( 600, 150 );
+        setLocation(x, y);
         setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         getRootPane( ).setDefaultButton( okButton );
         setVisible(true);
-
-        //Set the window's location.
-        setLocation(x, y);
     }
 }

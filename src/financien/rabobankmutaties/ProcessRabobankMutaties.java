@@ -91,6 +91,8 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 
 
     public ProcessRabobankMutaties( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Process Rabobank mutaties", true, true, true, true);
+
 	this.connection = connection;
         this.parentFrame = parentFrame;
 
@@ -648,7 +650,8 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 	container.add( buttonPanel, constraints );
 
 	setSize( 1280, 550 );
-	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        setLocation(x, y);
+        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         getRootPane().setDefaultButton( copyButton );
 	setVisible( true );
         mutatieMededelingenTextField.requestFocusInWindow( );

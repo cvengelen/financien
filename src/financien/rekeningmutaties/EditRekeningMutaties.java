@@ -1,4 +1,4 @@
-package financien.rekeningmutatie;
+package financien.rekeningmutaties;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -22,16 +22,13 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the rekening_mutatie table in schema financien.
- * An instance of RekeningMutatieFrame is created by class financien.Main.
- *
  * @author Chris van Engelen
  */
-public class RekeningMutatieFrame {
-    private final Logger logger = Logger.getLogger( RekeningMutatieFrame.class.getCanonicalName( ) );
+public class EditRekeningMutaties extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditRekeningMutaties.class.getCanonicalName( ) );
 
     private Connection connection;
-
-    private final JFrame frame = new JFrame( "RekeningMutatie" );
+    private JFrame parentFrame;
 
     private RekeningMutatieTableModel rekeningMutatieTableModel;
     private TableSorter rekeningMutatieTableSorter;
@@ -74,9 +71,12 @@ public class RekeningMutatieFrame {
     private final int maximumRekeningTypeId = 9;
     private DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
 
-    public RekeningMutatieFrame( final Connection connection ) {
-        logger.fine( "Starting RekeningMutatieFrame" );
+    public EditRekeningMutaties( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit rekening mutaties", true, true, true, true);
+
+        logger.fine( "Starting EditRekeningMutaties" );
         this.connection = connection;
+        this.parentFrame = parentFrame;
 
         // Get the values for rekening_pattern, used for rendering mutatieIn and mutatieUit,
         // for all records in table rekening_type and store in array indexed by rekening_type_id.
@@ -93,7 +93,7 @@ public class RekeningMutatieFrame {
             logger.severe( "SQLException in rekeningTypeStatement: " + sqlException.getMessage( ) );
         }
 
-        final Container container = frame.getContentPane( );
+        final Container container = getContentPane( );
 
         // Set grid bag layout manager
         container.setLayout( new GridBagLayout( ) );
@@ -355,7 +355,7 @@ public class RekeningMutatieFrame {
            public void actionPerformed( ActionEvent actionEvent ) {
                 if ( actionEvent.getActionCommand( ).equals( "filter" ) ) {
                     String newDebCredFilterString =
-                        ( String )JOptionPane.showInputDialog( frame,
+                        ( String )JOptionPane.showInputDialog( parentFrame,
                                                                "Deb/Cred filter:",
                                                                "Deb/Cred filter dialog",
                                                                JOptionPane.QUESTION_MESSAGE,
@@ -539,7 +539,7 @@ public class RekeningMutatieFrame {
                         logger.severe( "Invalid selected row" );
                     } else {
                         int result =
-                            JOptionPane.showConfirmDialog( frame,
+                            JOptionPane.showConfirmDialog( parentFrame,
                                                            "Data zijn gewijzigd: modificaties opslaan?",
                                                            "Record is gewijzigd",
                                                            JOptionPane.YES_NO_OPTION,
@@ -549,7 +549,7 @@ public class RekeningMutatieFrame {
                         if ( result == JOptionPane.YES_OPTION ) {
                             // Save the changes in the table model, and in the database
                             if ( !( rekeningMutatieTableModel.saveEditRow( selectedRow ) ) ) {
-                                JOptionPane.showMessageDialog( frame,
+                                JOptionPane.showMessageDialog( parentFrame,
                                                                "Error: row not saved",
                                                                "Save rekening-mutatie record error",
                                                                JOptionPane.ERROR_MESSAGE );
@@ -628,12 +628,12 @@ public class RekeningMutatieFrame {
         class ButtonActionListener implements ActionListener {
             public void actionPerformed( ActionEvent actionEvent ) {
                 if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-                    frame.setVisible( false );
-                    frame.dispose();
+                    setVisible( false );
+                    dispose();
                     return;
                 } else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
                     new RekeningMutatieDialog( connection,
-                                               frame,
+                                               parentFrame,
                                                selectedRubriekId,
                                                0,
                                                selectedRekeningHouderId );
@@ -643,7 +643,7 @@ public class RekeningMutatieFrame {
                 } else {
                     int selectedRow = mutatieListSelectionListener.getSelectedRow( );
                     if ( selectedRow < 0 ) {
-                        JOptionPane.showMessageDialog( frame,
+                        JOptionPane.showMessageDialog( parentFrame,
                                                        "Geen mutatie geselecteerd",
                                                        "Rekening-mutatie frame error",
                                                        JOptionPane.ERROR_MESSAGE );
@@ -653,7 +653,7 @@ public class RekeningMutatieFrame {
                     if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
                         final String datumString = rekeningMutatieTableModel.getDatumString( selectedRow );
                         int result =
-                            JOptionPane.showConfirmDialog( frame,
+                            JOptionPane.showConfirmDialog( parentFrame,
                                                            "Delete record for rekening " +
                                                            rekeningMutatieTableModel.getRekeningString( selectedRow ) +
                                                            " at date " + datumString +
@@ -690,7 +690,7 @@ public class RekeningMutatieFrame {
                                                        "rekening_id = " + rekeningId + "\n" +
                                                        "volgnummer = "  + volgNummer + "\n" +
                                                        "in rekening_mutatie" );
-                                JOptionPane.showMessageDialog( frame,
+                                JOptionPane.showMessageDialog( parentFrame,
                                                                errorString,
                                                                "Delete rekening_mutatie record",
                                                                JOptionPane.ERROR_MESSAGE);
@@ -726,7 +726,7 @@ public class RekeningMutatieFrame {
                     } else if ( actionEvent.getActionCommand( ).equals( "save" ) ) {
                         // Save the changes in the table model, and in the database
                         if ( !( rekeningMutatieTableModel.saveEditRow( selectedRow ) ) ) {
-                            JOptionPane.showMessageDialog( frame,
+                            JOptionPane.showMessageDialog( parentFrame,
                                                            "Error: row not saved",
                                                            "Save rekening-mutatie record error",
                                                            JOptionPane.ERROR_MESSAGE );
@@ -788,22 +788,10 @@ public class RekeningMutatieFrame {
         constraints.fill = GridBagConstraints.NONE;
         container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-        frame.setSize( 1280, 750 );
-        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        frame.setVisible( true );
+        setSize( 1280, 750 );
+        setLocation(x, y);
+        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        setVisible( true );
     }
 
 
@@ -903,7 +891,7 @@ public class RekeningMutatieFrame {
         }
 
         String saldoString = rekeningDecimalFormat.format( saldo );
-        int result = JOptionPane.showConfirmDialog( frame,
+        int result = JOptionPane.showConfirmDialog( parentFrame,
                                                     "Insert Saldo " + saldoString + " in " +
                                                     rekeningComboBox.getSelectedRekeningString( ) + " ?",
                                                     "Saldo",

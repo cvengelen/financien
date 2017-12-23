@@ -36,6 +36,7 @@ import financien.ingmutaties.LoadIngMutaties;
 import financien.ingmutaties.ProcessIngMutaties;
 import financien.rabobankmutaties.LoadRabobankMutaties;
 import financien.rabobankmutaties.ProcessRabobankMutaties;
+import financien.rekeningmutaties.EditRekeningMutaties;
 
 import javax.swing.*;
 
@@ -124,45 +125,54 @@ public class Financien extends JFrame implements ActionListener {
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
-        //Set up the ING Mutaties menu
-        JMenu menu = new JMenu("ING Mutaties");
-        menu.setMnemonic(KeyEvent.VK_I);
+        // Set up the Load menu
+        JMenu menu = new JMenu("Load");
+        menu.setMnemonic(KeyEvent.VK_L);
         menuBar.add(menu);
 
-        // Load ING mutaties.
-        JMenuItem menuItem = new JMenuItem("Load");
-        menuItem.setMnemonic(KeyEvent.VK_L);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.ALT_MASK));
+        // Load mutaties.
+        JMenuItem menuItem = new JMenuItem("ING Mutaties");
         menuItem.setActionCommand("loadIngMutaties");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
-        // Process ING mutaties
-        menuItem = new JMenuItem("Process");
-        menuItem.setMnemonic(KeyEvent.VK_P);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK));
-        menuItem.setActionCommand("processIngMutaties");
-        menuItem.addActionListener(this);
-        menu.add(menuItem);
-
-        //Set up the Rabobank mutaties menu
-        menu = new JMenu("Rabobank Mutaties");
-        menu.setMnemonic(KeyEvent.VK_R);
-        menuBar.add(menu);
-
         // Load Rabobank mutaties
-        menuItem = new JMenuItem("Load");
-        menuItem.setMnemonic(KeyEvent.VK_L);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.ALT_MASK));
+        menuItem = new JMenuItem("Rabobank Mutaties");
         menuItem.setActionCommand("LoadRabobankMutatie");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
+        // Set up the Process menu
+        menu = new JMenu("Process");
+        menu.setMnemonic(KeyEvent.VK_P);
+        menuBar.add(menu);
+
+        // Process mutaties
+        menuItem = new JMenuItem("ING Mutaties");
+        menuItem.setMnemonic(KeyEvent.VK_I);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.ALT_MASK));
+        menuItem.setActionCommand("processIngMutaties");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
         // Process Rabobank mutaties
-        menuItem = new JMenuItem("Process");
-        menuItem.setMnemonic(KeyEvent.VK_P);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK));
+        menuItem = new JMenuItem("Rabobank Mutaties");
+        menuItem.setMnemonic(KeyEvent.VK_R);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.ALT_MASK));
         menuItem.setActionCommand("processRabobankMutaties");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Set up the Edit menu
+        menu = new JMenu("Edit");
+        menu.setMnemonic(KeyEvent.VK_E);
+        menuBar.add(menu);
+
+        // Edit rekening mutaties
+        menuItem = new JMenuItem("Rekening Mutaties");
+        menuItem.setMnemonic(KeyEvent.VK_M);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.ALT_MASK));
+        menuItem.setActionCommand("editRekeningMutaties");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
@@ -181,15 +191,6 @@ public class Financien extends JFrame implements ActionListener {
             } catch ( java.beans.PropertyVetoException propertyVetoException ) {
                 logger.severe( propertyVetoException.getMessage() );
             }
-        } else if ("processIngMutaties".equals(actionEvent.getActionCommand())) {
-            JInternalFrame processIngMutaties = new ProcessIngMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-            processIngMutaties.setVisible( true );
-            desktopPane.add( processIngMutaties );
-            try {
-                processIngMutaties.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
         } else if ("loadRabobankMutaties".equals(actionEvent.getActionCommand())) {
             JInternalFrame loadRabobankMutaties = new LoadRabobankMutaties(password, xOffset*openFrameCount, yOffset*openFrameCount);
             loadRabobankMutaties.setVisible( true );
@@ -199,12 +200,30 @@ public class Financien extends JFrame implements ActionListener {
             } catch (java.beans.PropertyVetoException propertyVetoException) {
                 logger.severe( propertyVetoException.getMessage() );
             }
+        } else if ("processIngMutaties".equals(actionEvent.getActionCommand())) {
+            JInternalFrame processIngMutaties = new ProcessIngMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            processIngMutaties.setVisible( true );
+            desktopPane.add( processIngMutaties );
+            try {
+                processIngMutaties.setSelected( true );
+            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
+                logger.severe( propertyVetoException.getMessage() );
+            }
         } else if ("processRabobankMutaties".equals(actionEvent.getActionCommand())) {
             JInternalFrame processRabobankMutaties = new ProcessRabobankMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
             processRabobankMutaties.setVisible( true );
             desktopPane.add( processRabobankMutaties );
             try {
                 processRabobankMutaties.setSelected( true );
+            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
+                logger.severe( propertyVetoException.getMessage() );
+            }
+        } else if ("editRekeningMutaties".equals(actionEvent.getActionCommand())) {
+            JInternalFrame editRekeningMutaties = new EditRekeningMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            editRekeningMutaties.setVisible( true );
+            desktopPane.add( editRekeningMutaties );
+            try {
+                editRekeningMutaties.setSelected( true );
             } catch ( java.beans.PropertyVetoException propertyVetoException ) {
                 logger.severe( propertyVetoException.getMessage() );
             }

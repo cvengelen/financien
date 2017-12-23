@@ -86,6 +86,8 @@ public class ProcessIngMutaties extends JInternalFrame {
 
 
     public ProcessIngMutaties( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Process ING mutaties", true, true, true, true);
+
         this.connection = connection;
         this.parentFrame = parentFrame;
 
@@ -643,7 +645,8 @@ public class ProcessIngMutaties extends JInternalFrame {
 	container.add( buttonPanel, constraints );
 
 	setSize( 1280, 550 );
-	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        setLocation(x, y);
+        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         getRootPane().setDefaultButton( copyButton );
 	setVisible( true );
         mutatieMededelingenTextField.requestFocusInWindow( );
