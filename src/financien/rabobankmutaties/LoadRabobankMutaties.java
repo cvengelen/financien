@@ -19,7 +19,6 @@ import java.util.regex.Pattern;
 
 /**
  * Frame to load downloaded Rabobank mutaties into the financien database.
- *
  * @author Chris van Engelen
  */
 public class LoadRabobankMutaties extends JInternalFrame {

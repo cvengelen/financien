@@ -19,6 +19,8 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( "financien.gui.RekeningMutatieTableModel" );
 
     private Connection connection;
+    private JFrame parentFrame;
+
     private final String[ ] headings = { "Datum", "Rekening", "Rubriek", "Deb/Cred",
 				         "In", "Uit", "Nr", "Jaar", "Maand",
 				         "Omschrijving", "Inleg Aandelen" };
@@ -116,9 +118,11 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
 
     // Constructor
     public RekeningMutatieTableModel( Connection connection,
+                                      JFrame     parentFrame,
                                       JButton    cancelMutatieButton,
                                       JButton    saveMutatieButton ) {
 	this.connection = connection;
+        this.parentFrame = parentFrame;
 	this.cancelMutatieButton = cancelMutatieButton;
 	this.saveMutatieButton = saveMutatieButton;
 
@@ -244,6 +248,10 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
                 sumMutatieOut = sumResultSet.getDouble( 2 );
             }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                    sqlException.getMessage( ),
+                    "Rekening mutatie exception",
+                    JOptionPane.ERROR_MESSAGE);
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -650,6 +658,10 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
 	    	return false;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                    sqlException.getMessage( ),
+                    "Rekening mutatie exception",
+                    JOptionPane.ERROR_MESSAGE);
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return false;
 	}

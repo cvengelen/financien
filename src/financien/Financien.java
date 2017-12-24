@@ -1,45 +1,6 @@
-/*
- * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   - Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *
- *   - Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *
- *   - Neither the name of Oracle or the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
- * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 package financien;
 
-import financien.gui.PasswordPanel;
-import financien.ingmutaties.LoadIngMutaties;
-import financien.ingmutaties.ProcessIngMutaties;
-import financien.rabobankmutaties.LoadRabobankMutaties;
-import financien.rabobankmutaties.ProcessRabobankMutaties;
-import financien.rekeningmutaties.EditRekeningMutaties;
-
 import javax.swing.*;
-
 import java.awt.event.*;
 import java.awt.*;
 import java.sql.Connection;
@@ -47,9 +8,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
-/*
+/**
  * Financien main program
- *   MyInternalFrame.java
+ * @author Chris van Engelen
  */
 public class Financien extends JFrame implements ActionListener {
     private final static Logger logger = Logger.getLogger( financien.Main.class.getCanonicalName() );
@@ -64,22 +25,17 @@ public class Financien extends JFrame implements ActionListener {
     private Financien() {
         super("Financien");
 
-        //Make the big window be indented 50 pixels from each edge
-        //of the screen.
-        int inset = 50;
+        final int inset = 100;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds(inset, inset,
-                  screenSize.width  - inset*2,
-                  screenSize.height - inset*2);
+        setBounds(inset, inset, screenSize.width  - (3 * inset), screenSize.height - (2 * inset));
 
-        //Set up the GUI.
+        // Set up the GUI.
         desktopPane = new JDesktopPane();
         setContentPane(desktopPane);
         setJMenuBar(createMenuBar());
 
-        //Make dragging a little faster but perhaps uglier.
+        // Make dragging a little faster but perhaps uglier.
         desktopPane.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-
 
         try {
             // Load the MySQL JDBC driver
@@ -91,7 +47,7 @@ public class Financien extends JFrame implements ActionListener {
 
         try {
             // Get the password for the financien account, which gives access to schema financien.
-            final PasswordPanel passwordPanel = new PasswordPanel();
+            final financien.gui.PasswordPanel passwordPanel = new financien.gui.PasswordPanel();
             password = passwordPanel.getPassword();
             if (password == null) {
                 logger.info("No password");
@@ -99,6 +55,7 @@ public class Financien extends JFrame implements ActionListener {
                 System.exit( 1 );
             }
 
+            // Get the connection to the financien schema in the MySQL database
             connection = DriverManager.getConnection( "jdbc:mysql://localhost/financien?user=financien&password=" + password );
         } catch ( SQLException sqlException ) {
             logger.severe( "SQLException: " + sqlException.getMessage( ) );
@@ -130,7 +87,7 @@ public class Financien extends JFrame implements ActionListener {
         menu.setMnemonic(KeyEvent.VK_L);
         menuBar.add(menu);
 
-        // Load mutaties.
+        // Load ING mutaties
         JMenuItem menuItem = new JMenuItem("ING Mutaties");
         menuItem.setActionCommand("loadIngMutaties");
         menuItem.addActionListener(this);
@@ -138,7 +95,7 @@ public class Financien extends JFrame implements ActionListener {
 
         // Load Rabobank mutaties
         menuItem = new JMenuItem("Rabobank Mutaties");
-        menuItem.setActionCommand("LoadRabobankMutatie");
+        menuItem.setActionCommand("loadRabobankMutatie");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
@@ -147,17 +104,15 @@ public class Financien extends JFrame implements ActionListener {
         menu.setMnemonic(KeyEvent.VK_P);
         menuBar.add(menu);
 
-        // Process mutaties
-        menuItem = new JMenuItem("ING Mutaties");
-        menuItem.setMnemonic(KeyEvent.VK_I);
+        // Process ING mutaties
+        menuItem = new JMenuItem("ING Mutaties", KeyEvent.VK_I);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.ALT_MASK));
         menuItem.setActionCommand("processIngMutaties");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
         // Process Rabobank mutaties
-        menuItem = new JMenuItem("Rabobank Mutaties");
-        menuItem.setMnemonic(KeyEvent.VK_R);
+        menuItem = new JMenuItem("Rabobank Mutaties", KeyEvent.VK_R);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.ALT_MASK));
         menuItem.setActionCommand("processRabobankMutaties");
         menuItem.addActionListener(this);
@@ -169,21 +124,39 @@ public class Financien extends JFrame implements ActionListener {
         menuBar.add(menu);
 
         // Edit rekening mutaties
-        menuItem = new JMenuItem("Rekening Mutaties");
-        menuItem.setMnemonic(KeyEvent.VK_M);
+        menuItem = new JMenuItem("Rekening Mutaties", KeyEvent.VK_M);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.ALT_MASK));
         menuItem.setActionCommand("editRekeningMutaties");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Edit rekening
+        menuItem = new JMenuItem("Rekening");
+        menuItem.setActionCommand("editRekening");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Edit deb/cred
+        menuItem = new JMenuItem("Deb/Cred", KeyEvent.VK_D);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.ALT_MASK));
+        menuItem.setActionCommand("editDebCred");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Edit rubriek
+        menuItem = new JMenuItem("Rubriek");
+        menuItem.setActionCommand("editRubriek");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
         return menuBar;
     }
 
-    //React to menu selections.
+    // React to menu selections.
     public void actionPerformed(ActionEvent actionEvent) {
         openFrameCount++;
         if ("loadIngMutaties".equals(actionEvent.getActionCommand())) {
-            JInternalFrame loadIngMutaties = new LoadIngMutaties( password, xOffset * openFrameCount, yOffset * openFrameCount );
+            JInternalFrame loadIngMutaties = new financien.ingmutaties.LoadIngMutaties( password, xOffset * openFrameCount, yOffset * openFrameCount );
             loadIngMutaties.setVisible( true );
             desktopPane.add( loadIngMutaties );
             try {
@@ -192,7 +165,7 @@ public class Financien extends JFrame implements ActionListener {
                 logger.severe( propertyVetoException.getMessage() );
             }
         } else if ("loadRabobankMutaties".equals(actionEvent.getActionCommand())) {
-            JInternalFrame loadRabobankMutaties = new LoadRabobankMutaties(password, xOffset*openFrameCount, yOffset*openFrameCount);
+            JInternalFrame loadRabobankMutaties = new financien.rabobankmutaties.LoadRabobankMutaties(password, xOffset*openFrameCount, yOffset*openFrameCount);
             loadRabobankMutaties.setVisible( true );
             desktopPane.add(loadRabobankMutaties);
             try {
@@ -201,7 +174,7 @@ public class Financien extends JFrame implements ActionListener {
                 logger.severe( propertyVetoException.getMessage() );
             }
         } else if ("processIngMutaties".equals(actionEvent.getActionCommand())) {
-            JInternalFrame processIngMutaties = new ProcessIngMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            JInternalFrame processIngMutaties = new financien.ingmutaties.ProcessIngMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
             processIngMutaties.setVisible( true );
             desktopPane.add( processIngMutaties );
             try {
@@ -210,7 +183,7 @@ public class Financien extends JFrame implements ActionListener {
                 logger.severe( propertyVetoException.getMessage() );
             }
         } else if ("processRabobankMutaties".equals(actionEvent.getActionCommand())) {
-            JInternalFrame processRabobankMutaties = new ProcessRabobankMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            JInternalFrame processRabobankMutaties = new financien.rabobankmutaties.ProcessRabobankMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
             processRabobankMutaties.setVisible( true );
             desktopPane.add( processRabobankMutaties );
             try {
@@ -219,7 +192,7 @@ public class Financien extends JFrame implements ActionListener {
                 logger.severe( propertyVetoException.getMessage() );
             }
         } else if ("editRekeningMutaties".equals(actionEvent.getActionCommand())) {
-            JInternalFrame editRekeningMutaties = new EditRekeningMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            JInternalFrame editRekeningMutaties = new financien.rekeningmutaties.EditRekeningMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
             editRekeningMutaties.setVisible( true );
             desktopPane.add( editRekeningMutaties );
             try {
@@ -227,29 +200,53 @@ public class Financien extends JFrame implements ActionListener {
             } catch ( java.beans.PropertyVetoException propertyVetoException ) {
                 logger.severe( propertyVetoException.getMessage() );
             }
+        } else if ("editRekening".equals(actionEvent.getActionCommand())) {
+            JInternalFrame editRekening = new financien.rekening.EditRekening( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            editRekening.setVisible( true );
+            desktopPane.add( editRekening );
+            try {
+                editRekening.setSelected( true );
+            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
+                logger.severe( propertyVetoException.getMessage() );
+            }
+        } else if ("editDebCred".equals(actionEvent.getActionCommand())) {
+            JInternalFrame editDebCred = new financien.debcred.EditDebCred( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            editDebCred.setVisible( true );
+            desktopPane.add( editDebCred );
+            try {
+                editDebCred.setSelected( true );
+            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
+                logger.severe( propertyVetoException.getMessage() );
+            }
+        } else if ("editRubriek".equals(actionEvent.getActionCommand())) {
+            JInternalFrame editRubriek = new financien.rubriek.EditRubriek( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            editRubriek.setVisible( true );
+            desktopPane.add( editRubriek );
+            try {
+                editRubriek.setSelected( true );
+            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
+                logger.severe( propertyVetoException.getMessage() );
+            }
         }
     }
 
     /**
-     * Create the GUI and show it.  For thread safety,
-     * this method should be invoked from the
-     * event-dispatching thread.
+     * Create the GUI and show it.
      */
     private static void createAndShowGUI() {
-        //Make sure we have nice window decorations.
+        // Use the default window decorations.
         JFrame.setDefaultLookAndFeelDecorated(true);
 
-        //Create and set up the window.
+        // Create and set up the window.
         Financien financien = new Financien();
         financien.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE);
 
-        //Display the window.
+        // Display the window.
         financien.setVisible(true);
     }
 
     public static void main(String[] args) {
-        //Schedule a job for the event-dispatching thread:
-        //creating and showing this application's GUI.
+        // Schedule a job for the event-dispatching thread, creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 createAndShowGUI();

@@ -17,23 +17,20 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the rubriek table in schema financien.
- * An instance of RubriekFrame is created by class financien.Main.
- *
  * @author Chris van Engelen
  */
-public class RubriekFrame {
-    private final Logger logger = Logger.getLogger( RubriekFrame.class.getCanonicalName() );
-
-    private final JFrame frame = new JFrame( "Rubriek" );
+public class EditRubriek extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditRubriek.class.getCanonicalName() );
 
     private RubriekTableModel rubriekTableModel;
     private TableSorter rubriekTableSorter;
 
     private JTextField rubriekFilterTextField;
 
-    public RubriekFrame( final Connection connection ) {
+    public EditRubriek( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit rubriek", true, true, true, true);
 
-	final Container container = frame.getContentPane( );
+	final Container container = getContentPane( );
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -73,10 +70,8 @@ public class RubriekFrame {
 	final JButton deleteRubriekButton = new JButton( "Delete" );
 
 	// Create table from rubriek table model
-	rubriekTableModel = new RubriekTableModel( connection,
-						   frame,
-						   cancelRubriekButton,
-						   saveRubriekButton );
+	rubriekTableModel = new RubriekTableModel( connection, parentFrame,
+						   cancelRubriekButton, saveRubriekButton );
 	rubriekTableSorter = new TableSorter( rubriekTableModel );
 	final JTable rubriekTable = new JTable( rubriekTableSorter );
 	rubriekTableSorter.setTableHeader( rubriekTable.getTableHeader( ) );
@@ -138,7 +133,7 @@ public class RubriekFrame {
 			logger.severe( "Invalid selected row" );
 		    } else {
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Data zijn gewijzigd: modificaties opslaan?",
 							   "Record is gewijzigd",
 							   JOptionPane.YES_NO_OPTION,
@@ -148,7 +143,7 @@ public class RubriekFrame {
 			if ( result == JOptionPane.YES_OPTION ) {
 			    // Save the changes in the table model, and in the database
 			    if ( !( rubriekTableModel.saveEditRow( selectedRow ) ) ) {
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       "Error: row not saved",
 							       "Save rubriek record error",
 							       JOptionPane.ERROR_MESSAGE );
@@ -208,11 +203,11 @@ public class RubriekFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "add" ) ) {
-		    String resultString = JOptionPane.showInputDialog( frame,
+		    String resultString = JOptionPane.showInputDialog( parentFrame,
                                                                        "Enter rubriek ID:",
                                                                        "Input Rubriek Id",
                                                                        JOptionPane.PLAIN_MESSAGE );
@@ -227,10 +222,10 @@ public class RubriekFrame {
 			    ResultSet resultSet = statement.executeQuery( "SELECT rubriek_id FROM rubriek " +
 									  "WHERE rubriek_id = " + rubriekId );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       "Rubriek ID " + rubriekId +
 							       " bestaat al in tabel rubriek",
-							       "Rubriek frame error",
+							       "Edit rubriek error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
@@ -242,14 +237,18 @@ public class RubriekFrame {
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    sqlException.getMessage( ),
+                                    "Edit rubriek exception",
+                                    JOptionPane.ERROR_MESSAGE);
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
 		    } catch ( NumberFormatException numberFormatException ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Incorrect rubriek ID format " +
 						       numberFormatException.getMessage( ),
-						       "Rubriek frame error",
+						       "Edit rubriek error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -259,9 +258,9 @@ public class RubriekFrame {
 		} else {
 		    int selectedRow = rubriekListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen Rubriek geselecteerd",
-						       "Rubriek frame error",
+						       "Edit rubriek error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -277,7 +276,7 @@ public class RubriekFrame {
 				"SELECT rubriek_id FROM rekening_mutatie WHERE rubriek_id = " + rubriekId;
 			    ResultSet resultSet = statement.executeQuery( rekeningMutatieQueryString );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       "Tabel rekening_mutatie gebruikt rubriek " +
 							       rubriekString,
 							       "Rubriek delete record error",
@@ -290,7 +289,7 @@ public class RubriekFrame {
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete rubriek " +
 							   rubriekTableModel.getRubriekString( selectedRow ) +
 							   " met ID " + rubriekId + " ?",
@@ -312,7 +311,7 @@ public class RubriekFrame {
 			    if ( nUpdate != 1 ) {
 				String errorString = ( "Could not delete record with rubriek_id  = " +
 						       rubriekId + " in rubriek" );
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
 							       "Delete Rubriek record",
 							       JOptionPane.ERROR_MESSAGE);
@@ -320,6 +319,10 @@ public class RubriekFrame {
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    sqlException.getMessage( ),
+                                    "Delete rubriek record exception",
+                                    JOptionPane.ERROR_MESSAGE);
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -348,7 +351,7 @@ public class RubriekFrame {
 		    } else if ( actionEvent.getActionCommand( ).equals( "save" ) ) {
 			// Save the changes in the table model, and in the database
 			if ( !( rubriekTableModel.saveEditRow( selectedRow ) ) ) {
-			    JOptionPane.showMessageDialog( frame,
+			    JOptionPane.showMessageDialog( parentFrame,
 							   "Error: row not saved",
 							   "Save rubriek record error",
 							   JOptionPane.ERROR_MESSAGE );
@@ -407,21 +410,9 @@ public class RubriekFrame {
 	constraints.gridy = 2;
         container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 960, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible( true );
+	setSize( 960, 500 );
+        setLocation(x, y);
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible( true );
     }
 }

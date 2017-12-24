@@ -442,9 +442,8 @@ public class EditRekeningMutaties extends JInternalFrame {
         final JButton deleteMutatieButton = new JButton( "Delete" );
 
         // Create rekening_mutatie table from rekening_mutatie table model
-        rekeningMutatieTableModel = new RekeningMutatieTableModel( connection,
-                                                                   cancelMutatieButton,
-                                                                   saveMutatieButton );
+        rekeningMutatieTableModel = new RekeningMutatieTableModel( connection, parentFrame,
+                                                                   cancelMutatieButton, saveMutatieButton );
         rekeningMutatieTableSorter = new TableSorter( rekeningMutatieTableModel );
         rekeningMutatieTable = new JTable( rekeningMutatieTableSorter );
         rekeningMutatieTableSorter.setTableHeader( rekeningMutatieTable.getTableHeader( ) );
@@ -551,7 +550,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                             if ( !( rekeningMutatieTableModel.saveEditRow( selectedRow ) ) ) {
                                 JOptionPane.showMessageDialog( parentFrame,
                                                                "Error: row not saved",
-                                                               "Save rekening-mutatie record error",
+                                                               "Save rekening mutatie record error",
                                                                JOptionPane.ERROR_MESSAGE );
                             }
                         } else {
@@ -645,7 +644,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                     if ( selectedRow < 0 ) {
                         JOptionPane.showMessageDialog( parentFrame,
                                                        "Geen mutatie geselecteerd",
-                                                       "Rekening-mutatie frame error",
+                                                       "Edit rekening mutatie error",
                                                        JOptionPane.ERROR_MESSAGE );
                         return;
                     }
@@ -658,7 +657,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                                                            rekeningMutatieTableModel.getRekeningString( selectedRow ) +
                                                            " at date " + datumString +
                                                            " in rekening_mutatie ?",
-                                                           "Delete rekening_mutatie record",
+                                                           "Delete rekening mutatie record",
                                                            JOptionPane.YES_NO_OPTION,
                                                            JOptionPane.QUESTION_MESSAGE,
                                                            null );
@@ -692,12 +691,16 @@ public class EditRekeningMutaties extends JInternalFrame {
                                                        "in rekening_mutatie" );
                                 JOptionPane.showMessageDialog( parentFrame,
                                                                errorString,
-                                                               "Delete rekening_mutatie record",
+                                                               "Delete rekening mutatie record",
                                                                JOptionPane.ERROR_MESSAGE);
                                 logger.severe( errorString );
                                 return;
                             }
                         } catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    sqlException.getMessage( ),
+                                    "Delete rekening mutatie record exception",
+                                    JOptionPane.ERROR_MESSAGE);
                             logger.severe( "SQLException: " + sqlException.getMessage( ) );
                             return;
                         }
@@ -728,7 +731,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                         if ( !( rekeningMutatieTableModel.saveEditRow( selectedRow ) ) ) {
                             JOptionPane.showMessageDialog( parentFrame,
                                                            "Error: row not saved",
-                                                           "Save rekening-mutatie record error",
+                                                           "Save rekening mutatie record error",
                                                            JOptionPane.ERROR_MESSAGE );
                             return;
                         }
@@ -924,6 +927,10 @@ public class EditRekeningMutaties extends JInternalFrame {
             Statement statement = connection.createStatement( );
             nUpdate = statement.executeUpdate( updateString );
         } catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                    sqlException.getMessage( ),
+                    "Update rekening saldo exception",
+                    JOptionPane.ERROR_MESSAGE);
             logger.severe( "SQLException: " + sqlException.getMessage( ) );
         }
         if ( nUpdate != 1 ) {

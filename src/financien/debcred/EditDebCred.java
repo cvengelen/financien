@@ -16,22 +16,19 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the deb_cred table in schema financien.
- * An instance of DebCredFrame is created by class financien.Main.
- *
  * @author Chris van Engelen
  */
-public class DebCredFrame {
-    private final Logger logger = Logger.getLogger( DebCredFrame.class.getCanonicalName() );
-
-    private final JFrame frame = new JFrame( "DebCred" );
+public class EditDebCred extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditDebCred.class.getCanonicalName() );
 
     private DebCredTableModel debCredTableModel;
     private TableSorter debCredTableSorter;
     private JTextField debCredFilterTextField;
 
-    public DebCredFrame( final Connection connection ) {
+    public EditDebCred( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit deb/cred", true, true, true, true);
 
-	final Container container = frame.getContentPane( );
+	final Container container = getContentPane( );
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -124,7 +121,7 @@ public class DebCredFrame {
 			logger.severe( "Invalid selected row" );
 		    } else {
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Data zijn gewijzigd: modificaties opslaan?",
 							   "Record is gewijzigd",
 							   JOptionPane.YES_NO_OPTION,
@@ -186,8 +183,8 @@ public class DebCredFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "add" ) ) {
 		    try {
@@ -205,8 +202,12 @@ public class DebCredFrame {
 			    logger.severe( "Could not insert in deb_cred" );
 			    return;
 			}
-		    } catch ( SQLException ex ) {
-			logger.severe( "SQLException: " + ex.getMessage( ) );
+		    } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                sqlException.getMessage( ),
+                                "Insert deb/cred record exception",
+                                JOptionPane.ERROR_MESSAGE);
+			logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			return;
 		    }
 
@@ -216,9 +217,9 @@ public class DebCredFrame {
 		} else {
 		    int selectedRow = debCredListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
-						       "Geen Deb/Cred geselecteerd",
-						       "DebCred frame error",
+			JOptionPane.showMessageDialog( parentFrame,
+						       "Geen deb/cred geselecteerd",
+						       "Edit deb/cred error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -234,24 +235,28 @@ public class DebCredFrame {
 				"SELECT deb_cred_id FROM rekening_mutatie WHERE deb_cred_id = " + debCredId;
 			    ResultSet resultSet = statement.executeQuery( rekeningMutatieQueryString );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       "Tabel rekening_mutatie gebruikt Deb/Cred " +
 							       debCredString,
-							       "Deb/Cred delete record error",
+							       "Delete deb/cred record error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    sqlException.getMessage( ),
+                                    "Edit deb/cred exception",
+                                    JOptionPane.ERROR_MESSAGE);
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete record for rekening " +
 							   debCredTableModel.getDebCredString( selectedRow ) +
 							   " in deb_cred ?",
-							   "Delete Deb/Cred record",
+							   "Delete deb/cred record",
 							   JOptionPane.YES_NO_OPTION,
 							   JOptionPane.QUESTION_MESSAGE,
 							   null );
@@ -269,14 +274,18 @@ public class DebCredFrame {
 			    if ( nUpdate != 1 ) {
 				String errorString = ( "Could not delete record with deb_cred_id  = " +
 						       debCredId + " in deb_cred" );
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete Deb/Cred record",
+							       "Delete deb/cred record",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    sqlException.getMessage( ),
+                                    "Delete deb/cred record exception",
+                                    JOptionPane.ERROR_MESSAGE);
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -362,21 +371,9 @@ public class DebCredFrame {
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-        frame.setSize( 960, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible( true );
+        setSize( 960, 500 );
+        setLocation(x, y);
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible( true );
     }
 }

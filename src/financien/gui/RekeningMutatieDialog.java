@@ -276,7 +276,7 @@ public class RekeningMutatieDialog {
 
 	// Disable the rekening combo box if it is present.
 	// So the rekening can only be selected when inserting a record without
-	// a default rekening being present (i.e., called from RubriekFrame).
+	// a default rekening being present (i.e., called from EditRubriek).
 	if ( rekeningId != 0 ) {
 	    rekeningComboBox.setEnabled( false );
 	}

@@ -22,16 +22,13 @@ import table.*;
 
 /**
  * Frame to show, insert and update records in the rekening table in schema financien.
- * An instance of RekeningFrame is created by class financien.Main.
- *
  * @author Chris van Engelen
  */
-public class RekeningFrame {
-    final private Logger logger = Logger.getLogger( RekeningFrame.class.getCanonicalName() );
+public class EditRekening extends JInternalFrame {
+    final private Logger logger = Logger.getLogger( EditRekening.class.getCanonicalName() );
 
     private Connection connection;
-
-    private final JFrame frame = new JFrame( "Rekening" );
+    private JFrame parentFrame;
 
     private JTextField rekeningTextField;
     private JTextField rekeningNummerTextField;
@@ -49,10 +46,13 @@ public class RekeningFrame {
     private static final DecimalFormat decimalFormat = new DecimalFormat( "#0.0000;-#" );
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
-    public RekeningFrame( final Connection connection ) {
-        this.connection = connection;
+    public EditRekening( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit rekening", true, true, true, true);
 
-        final Container container = frame.getContentPane( );
+        this.connection = connection;
+        this.parentFrame = parentFrame;
+
+        final Container container = getContentPane( );
 
         final ActionListener textFilterActionListener = ( ActionEvent actionEvent ) -> setupRekeningTableModel( );
 
@@ -281,7 +281,7 @@ public class RekeningFrame {
                         logger.severe( "Invalid selected row" );
                     } else {
                         int result =
-                            JOptionPane.showConfirmDialog( frame,
+                            JOptionPane.showConfirmDialog( parentFrame,
                                                            "Data zijn gewijzigd: modificaties opslaan?",
                                                            "Record is gewijzigd",
                                                            JOptionPane.YES_NO_OPTION,
@@ -346,8 +346,8 @@ public class RekeningFrame {
         class ButtonActionListener implements ActionListener {
             public void actionPerformed( ActionEvent actionEvent ) {
                 if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-                    frame.setVisible( false );
-                    frame.dispose();
+                    setVisible( false );
+                    dispose();
                     return;
                 } else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
                     try {
@@ -369,11 +369,19 @@ public class RekeningFrame {
                             ", start_saldo = 0";
                         logger.info( "insertString: " + insertString );
                         if ( statement.executeUpdate( insertString ) != 1 ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    "Could not insert record in rekening",
+                                    "Insert rekening record error",
+                                    JOptionPane.ERROR_MESSAGE);
                             logger.severe( "Could not insert in rekening" );
                             return;
                         }
-                    } catch ( SQLException ex ) {
-                        logger.severe( "SQLException: " + ex.getMessage( ) );
+                    } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                sqlException.getMessage( ),
+                                "Insert rekening record exception",
+                                JOptionPane.ERROR_MESSAGE);
+                        logger.severe( "SQLException: " + sqlException.getMessage( ) );
                         return;
                     }
 
@@ -382,9 +390,9 @@ public class RekeningFrame {
                 } else {
                     int selectedRow = rekeningListSelectionListener.getSelectedRow( );
                     if ( selectedRow < 0 ) {
-                        JOptionPane.showMessageDialog( frame,
+                        JOptionPane.showMessageDialog( parentFrame,
                                                        "Geen rekening geselecteerd",
-                                                       "Rekening frame error",
+                                                       "Edit rekening error",
                                                        JOptionPane.ERROR_MESSAGE );
                         return;
                     }
@@ -400,10 +408,10 @@ public class RekeningFrame {
                                 rekeningId;
                             ResultSet resultSet = statement.executeQuery( rekeningMutatieQueryString );
                             if ( resultSet.next( ) ) {
-                                JOptionPane.showMessageDialog( frame,
+                                JOptionPane.showMessageDialog( parentFrame,
                                                                "Tabel rekening_mutatie gebruikt rekening " +
                                                                rekeningString,
-                                                               "Rekening frame error",
+                                                               "Edit rekening error",
                                                                JOptionPane.ERROR_MESSAGE );
                                 return;
                             }
@@ -413,7 +421,7 @@ public class RekeningFrame {
                         }
 
                         int result =
-                            JOptionPane.showConfirmDialog( frame,
+                            JOptionPane.showConfirmDialog( parentFrame,
                                                            "Delete rekening " + rekeningString + " ?",
                                                            "Delete rekening record",
                                                            JOptionPane.YES_NO_OPTION,
@@ -431,7 +439,7 @@ public class RekeningFrame {
                             int nUpdate = statement.executeUpdate( deleteString );
                             if ( nUpdate != 1 ) {
                                 String errorString = "Could not delete rekening_id " + rekeningId;
-                                JOptionPane.showMessageDialog( frame,
+                                JOptionPane.showMessageDialog( parentFrame,
                                                                errorString,
                                                                "Delete rekening record",
                                                                JOptionPane.ERROR_MESSAGE);
@@ -439,6 +447,10 @@ public class RekeningFrame {
                                 return;
                             }
                         } catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    sqlException.getMessage( ),
+                                    "Edit rekening exception",
+                                    JOptionPane.ERROR_MESSAGE);
                             logger.severe( "SQLException: " + sqlException.getMessage( ) );
                             return;
                         }
@@ -524,22 +536,10 @@ public class RekeningFrame {
 
         container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-        frame.setSize( 1290, 680 );
-        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        frame.setVisible( true );
+        setSize( 1290, 680 );
+        setLocation(x, y);
+        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        setVisible( true );
     }
 
     private void setupRekeningTable( ) {

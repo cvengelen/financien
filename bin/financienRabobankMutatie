@@ -1,2 +1,0 @@
-# Start financien.Main, met financien.rabobankmutatie.RabobankMutatieFrame als argument
-java -cp /Users/cvengelen/java/financien/build/financien.jar:${JAVA_LIBS}/table.jar -Djava.util.logging.config.file=/Users/cvengelen/java/financien/resources/logging.properties financien.Main financien.rabobankmutatie.RabobankMutatieFrame

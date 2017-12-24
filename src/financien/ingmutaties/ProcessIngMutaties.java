@@ -270,9 +270,8 @@ public class ProcessIngMutaties extends JInternalFrame {
 	final JButton deleteMutatieButton = new JButton( "Delete" );
 
 	// Create rekening_mutatie table from rekening_mutatie table model
-	rekeningMutatieTableModel = new RekeningMutatieTableModel( connection,
-								   cancelMutatieButton,
-								   saveMutatieButton );
+	rekeningMutatieTableModel = new RekeningMutatieTableModel( connection, parentFrame,
+								   cancelMutatieButton, saveMutatieButton );
 	rekeningMutatieTableSorter = new TableSorter( rekeningMutatieTableModel );
 	rekeningMutatieTable = new JTable( rekeningMutatieTableSorter );
 	// rekeningMutatieTable.setBackground( Color.white );
