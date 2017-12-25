@@ -28,7 +28,6 @@ public class EditRekening extends JInternalFrame {
     final private Logger logger = Logger.getLogger( EditRekening.class.getCanonicalName() );
 
     private Connection connection;
-    private JFrame parentFrame;
 
     private JTextField rekeningTextField;
     private JTextField rekeningNummerTextField;
@@ -50,7 +49,6 @@ public class EditRekening extends JInternalFrame {
         super("Edit rekening", true, true, true, true);
 
         this.connection = connection;
-        this.parentFrame = parentFrame;
 
         final Container container = getContentPane( );
 

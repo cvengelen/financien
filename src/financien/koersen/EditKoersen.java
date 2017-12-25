@@ -19,23 +19,20 @@ import table.TableSorter;
 
 /**
  * Frame to show, insert and update records in the koersen table in schema financien.
- * An instance of KoersenFrame is created by class financien.Main.
- *
  * @author Chris van Engelen
  */
-public class KoersenFrame {
-    final private Logger logger = Logger.getLogger( KoersenFrame.class.getCanonicalName( ) );
-
-    private final JFrame frame = new JFrame( "Koersen" );
+public class EditKoersen extends JInternalFrame {
+    final private Logger logger = Logger.getLogger( EditKoersen.class.getCanonicalName( ) );
 
     private KoersenTableModel koersenTableModel;
     private TableSorter koersenTableSorter;
     private static final DecimalFormat koersDecimalFormat = new DecimalFormat( "#0.0000;-#" );
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
-    public KoersenFrame( final Connection connection ) {
+    public EditKoersen( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit koersen", true, true, true, true);
 
-	final Container container = frame.getContentPane( );
+	final Container container = getContentPane( );
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -141,7 +138,7 @@ public class KoersenFrame {
 			logger.severe( "Invalid selected row" );
 		    } else {
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Data zijn gewijzigd: modificaties opslaan?",
 							   "Record is gewijzigd",
 							   JOptionPane.YES_NO_OPTION,
@@ -203,8 +200,8 @@ public class KoersenFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    final Aex aex = new Aex( );
@@ -225,7 +222,7 @@ public class KoersenFrame {
 			    String errorString = ( "Could not insert record with\n" +
 						   "datum       = " + insertDatumString +
 						   " in koersen" );
-			    JOptionPane.showMessageDialog( frame,
+			    JOptionPane.showMessageDialog( parentFrame,
 							   errorString,
 							   "Insert koersen record",
 							   JOptionPane.ERROR_MESSAGE);
@@ -233,6 +230,10 @@ public class KoersenFrame {
 			    return;
 			}
 		    } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                sqlException.getMessage( ),
+                                "Insert koersen record exception",
+                                JOptionPane.ERROR_MESSAGE);
 			logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			return;
 		    }
@@ -242,9 +243,9 @@ public class KoersenFrame {
 		} else {
 		    int selectedRow = mutatieListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen mutatie geselecteerd",
-						       "Rubriek frame error",
+						       "Edit koersen error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
@@ -260,20 +261,24 @@ public class KoersenFrame {
 				datumString + "'";
 			    ResultSet resultSet = statement.executeQuery( totaalQueryString );
 			    if ( resultSet.next( ) ) {
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       "Tabel totaal gebruikt datum " +
 							        datumString,
-							       "Koersen frame error",
+							       "Edit koersen error",
 							       JOptionPane.ERROR_MESSAGE );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    sqlException.getMessage( ),
+                                    "Edit koersen SQL exception",
+                                    JOptionPane.ERROR_MESSAGE);
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
 
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete record for datum " +
 							   datumString + " in koersen ?",
 							   "Delete koersen record",
@@ -294,7 +299,7 @@ public class KoersenFrame {
 				String errorString = ( "Could not delete record with\n" +
 						       "datum       = " + datumString +
 						       " in koersen" );
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
 							       "Delete koersen record",
 							       JOptionPane.ERROR_MESSAGE);
@@ -302,6 +307,10 @@ public class KoersenFrame {
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    sqlException.getMessage( ),
+                                    "Delete koersen record SQL exception",
+                                    JOptionPane.ERROR_MESSAGE);
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -387,21 +396,9 @@ public class KoersenFrame {
         constraints.fill = GridBagConstraints.NONE;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( fullTableWidth + 60, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible( true );
+	setSize( fullTableWidth + 60, 500 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible( true );
     }
 }
