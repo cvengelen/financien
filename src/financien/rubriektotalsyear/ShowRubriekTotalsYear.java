@@ -13,10 +13,7 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -25,14 +22,13 @@ import java.util.logging.Logger;
 
 /**
  * Frame to show totals per year for a rubriek
- * An instance of RubriekTotalsYearFrame is created by class financien.Main.
+ * An instance of ShowRubriekTotalsYear is created by class financien.Main.
  *
  * @author Chris van Engelen
  */
-public class RubriekTotalsYearFrame {
-    final private Logger logger = Logger.getLogger( RubriekTotalsYearFrame.class.getCanonicalName() );
+public class ShowRubriekTotalsYear extends JInternalFrame {
+    final private Logger logger = Logger.getLogger( ShowRubriekTotalsYear.class.getCanonicalName() );
 
-    private final JFrame frame = new JFrame( "Rubriek Totals" );
     private final Font dialogFont = new Font( "Dialog", Font.BOLD, 12 );
 
     private RubriekListModel rubriekListModel;
@@ -54,11 +50,11 @@ public class RubriekTotalsYearFrame {
     private JTable rubriekTotalsTable;
     private final DecimalFormat decimalFormat = new DecimalFormat( "#0.00;-#" );
 
-    public RubriekTotalsYearFrame( final Connection connection ) {
-        // frame.setBackground( Color.white );
+    public ShowRubriekTotalsYear( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Show rubriek totals per year", true, true, true, true);
 
         // Get the container for the frame
-        final Container container = frame.getContentPane( );
+        final Container container = getContentPane( );
         // container.setBackground( Color.white );
 
         // Set grid bag layout manager
@@ -181,7 +177,7 @@ public class RubriekTotalsYearFrame {
         container.add( lastYearSpinner, constraints );
 
         // Create rubriek totals table from rubriek totals table model
-        rubriekTotalsTableModel = new RubriekTotalsYearTableModel( connection);
+        rubriekTotalsTableModel = new RubriekTotalsYearTableModel( connection, parentFrame );
         rubriekTotalsTableSorter = new TableSorter( rubriekTotalsTableModel );
         rubriekTotalsTable = new JTable( rubriekTotalsTableSorter );
         // rubriekTotalsTable.setBackground( Color.white );
@@ -250,8 +246,8 @@ public class RubriekTotalsYearFrame {
         class ButtonActionListener implements ActionListener {
             public void actionPerformed( ActionEvent actionEvent ) {
                 if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-                    frame.setVisible( false );
-                    frame.dispose();
+                    setVisible( false );
+                    dispose();
                 } else if ( actionEvent.getActionCommand( ).equals( "update" ) ) {
                     setupRubriekTotalsTable();
                 }
@@ -278,26 +274,13 @@ public class RubriekTotalsYearFrame {
         constraints.insets = new Insets( 5, 20, 20, 20 );
         container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-        frame.setSize( 700, 800 );
-        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        frame.getRootPane().setDefaultButton( updateButton );
-        frame.setVisible( true );
-        boolean focusSet = rekeningHouderComboBox.requestFocusInWindow( );
+        setSize( 700, 800 );
+        setLocation( x, y );
+        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        getRootPane().setDefaultButton( updateButton );
+        setVisible( true );
+        rekeningHouderComboBox.requestFocusInWindow( );
     }
-
 
     private void setupRubriekTotalsTable( ) {
         // Setup the rubriek totals table for the selected rubriek

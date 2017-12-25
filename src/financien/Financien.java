@@ -88,13 +88,13 @@ public class Financien extends JFrame implements ActionListener {
         menuBar.add(menu);
 
         // Load ING mutaties
-        JMenuItem menuItem = new JMenuItem("ING Mutaties");
+        JMenuItem menuItem = new JMenuItem("ING mutaties");
         menuItem.setActionCommand("loadIngMutaties");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
         // Load Rabobank mutaties
-        menuItem = new JMenuItem("Rabobank Mutaties");
+        menuItem = new JMenuItem("Rabobank mutaties");
         menuItem.setActionCommand("loadRabobankMutatie");
         menuItem.addActionListener(this);
         menu.add(menuItem);
@@ -105,14 +105,14 @@ public class Financien extends JFrame implements ActionListener {
         menuBar.add(menu);
 
         // Process ING mutaties
-        menuItem = new JMenuItem("ING Mutaties", KeyEvent.VK_I);
+        menuItem = new JMenuItem("ING mutaties", KeyEvent.VK_I);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.ALT_MASK));
         menuItem.setActionCommand("processIngMutaties");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
         // Process Rabobank mutaties
-        menuItem = new JMenuItem("Rabobank Mutaties", KeyEvent.VK_R);
+        menuItem = new JMenuItem("Rabobank mutaties", KeyEvent.VK_R);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.ALT_MASK));
         menuItem.setActionCommand("processRabobankMutaties");
         menuItem.addActionListener(this);
@@ -124,9 +124,15 @@ public class Financien extends JFrame implements ActionListener {
         menuBar.add(menu);
 
         // Edit rekening mutaties
-        menuItem = new JMenuItem("Rekening Mutaties", KeyEvent.VK_M);
+        menuItem = new JMenuItem("Rekening mutaties", KeyEvent.VK_M);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.ALT_MASK));
         menuItem.setActionCommand("editRekeningMutaties");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Edit rekening mutaties rubriek
+        menuItem = new JMenuItem("Rekening mutaties rubriek");
+        menuItem.setActionCommand("editRekeningMutatiesRubriek");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
@@ -146,6 +152,30 @@ public class Financien extends JFrame implements ActionListener {
         // Edit rubriek
         menuItem = new JMenuItem("Rubriek");
         menuItem.setActionCommand("editRubriek");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Edit koersen
+        menuItem = new JMenuItem("Koersen", KeyEvent.VK_K);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, InputEvent.ALT_MASK));
+        menuItem.setActionCommand("editKoersen");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Set up the Show menu
+        menu = new JMenu("Show");
+        menu.setMnemonic(KeyEvent.VK_S);
+        menuBar.add(menu);
+
+        // Show rubriek totals per month
+        menuItem = new JMenuItem("Rubriek total per month");
+        menuItem.setActionCommand("showRubriekTotalsMonth");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Show rubriek totals per year
+        menuItem = new JMenuItem("Rubriek total per year");
+        menuItem.setActionCommand("showRubriekTotalsYear");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
@@ -200,6 +230,15 @@ public class Financien extends JFrame implements ActionListener {
             } catch ( java.beans.PropertyVetoException propertyVetoException ) {
                 logger.severe( propertyVetoException.getMessage() );
             }
+        } else if ("editRekeningMutatiesRubriek".equals(actionEvent.getActionCommand())) {
+            JInternalFrame editRekeningMutatiesRubriek = new financien.rekeningmutatiesrubriek.EditRekeningMutatiesRubriek( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            editRekeningMutatiesRubriek.setVisible( true );
+            desktopPane.add( editRekeningMutatiesRubriek );
+            try {
+                editRekeningMutatiesRubriek.setSelected( true );
+            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
+                logger.severe( propertyVetoException.getMessage() );
+            }
         } else if ("editRekening".equals(actionEvent.getActionCommand())) {
             JInternalFrame editRekening = new financien.rekening.EditRekening( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
             editRekening.setVisible( true );
@@ -224,6 +263,33 @@ public class Financien extends JFrame implements ActionListener {
             desktopPane.add( editRubriek );
             try {
                 editRubriek.setSelected( true );
+            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
+                logger.severe( propertyVetoException.getMessage() );
+            }
+        } else if ("editKoersen".equals(actionEvent.getActionCommand())) {
+            JInternalFrame editKoersen = new financien.koersen.EditKoersen( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            editKoersen.setVisible( true );
+            desktopPane.add( editKoersen );
+            try {
+                editKoersen.setSelected( true );
+            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
+                logger.severe( propertyVetoException.getMessage() );
+            }
+        } else if ("showRubriekTotalsMonth".equals(actionEvent.getActionCommand())) {
+            JInternalFrame showRubriekTotalsMonth = new financien.rubriektotalsmonth.ShowRubriekTotalsMonth( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            showRubriekTotalsMonth.setVisible( true );
+            desktopPane.add( showRubriekTotalsMonth );
+            try {
+                showRubriekTotalsMonth.setSelected( true );
+            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
+                logger.severe( propertyVetoException.getMessage() );
+            }
+        } else if ("showRubriekTotalsYear".equals(actionEvent.getActionCommand())) {
+            JInternalFrame showRubriekTotalsYear = new financien.rubriektotalsyear.ShowRubriekTotalsYear( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+            showRubriekTotalsYear.setVisible( true );
+            desktopPane.add( showRubriekTotalsYear );
+            try {
+                showRubriekTotalsYear.setSelected( true );
             } catch ( java.beans.PropertyVetoException propertyVetoException ) {
                 logger.severe( propertyVetoException.getMessage() );
             }

@@ -1,5 +1,6 @@
 package financien.rubriektotalsyear;
 
+import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -17,6 +18,7 @@ class RubriekTotalsYearTableModel extends AbstractTableModel {
     private final Logger m_logger = Logger.getLogger( "financien.gui.RubriekTotalsYearTableModel" );
 
     private Connection m_connection;
+    private JFrame m_parentFrame;
     private Vector<String> m_headings = new Vector<>();
 
     private class RubriekTotalsRecord {
@@ -32,8 +34,9 @@ class RubriekTotalsYearTableModel extends AbstractTableModel {
     private final ArrayList< RubriekTotalsRecord > m_rubriekTotalsRecordList = new ArrayList< >( 200 );
 
     // Constructor
-    RubriekTotalsYearTableModel( Connection connection ) {
+    RubriekTotalsYearTableModel( Connection connection, JFrame parentFrame ) {
 	m_connection = connection;
+        m_parentFrame = parentFrame;
     }
 
     void setupRubriekTotalsTableModel( Vector<Integer> selectedRubriekIds,
@@ -106,6 +109,10 @@ class RubriekTotalsYearTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( m_parentFrame,
+                    sqlException.getMessage( ),
+                    "Rubriek totals per year SQL exception",
+                    JOptionPane.ERROR_MESSAGE);
 	    m_logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }

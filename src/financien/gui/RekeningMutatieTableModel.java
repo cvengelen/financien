@@ -250,7 +250,7 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
 	} catch ( SQLException sqlException ) {
             JOptionPane.showMessageDialog( parentFrame,
                     sqlException.getMessage( ),
-                    "Rekening mutatie exception",
+                    "Rekening mutatie SQL exception",
                     JOptionPane.ERROR_MESSAGE);
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
@@ -660,7 +660,7 @@ public class RekeningMutatieTableModel extends AbstractTableModel {
 	} catch ( SQLException sqlException ) {
             JOptionPane.showMessageDialog( parentFrame,
                     sqlException.getMessage( ),
-                    "Rekening mutatie exception",
+                    "Rekening mutatie SQL exception",
                     JOptionPane.ERROR_MESSAGE);
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return false;

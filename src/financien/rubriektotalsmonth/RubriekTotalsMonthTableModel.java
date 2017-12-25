@@ -1,5 +1,6 @@
 package financien.rubriektotalsmonth;
 
+import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -16,9 +17,11 @@ class RubriekTotalsMonthTableModel extends AbstractTableModel {
     private final Logger m_logger = Logger.getLogger( "financien.gui.RubriekTotalsMonthTableModel" );
 
     private Connection m_connection;
+    private JFrame m_parentFrame;
+
     private final String[ ] m_headings = { "Month", "In", "Uit", "Totaal" };
 
-    double m_sumIn, m_sumOut, m_sumTotal;
+    private double m_sumIn, m_sumOut, m_sumTotal;
 
     private class RubriekTotalRecord {
 	String  m_month;
@@ -48,8 +51,9 @@ class RubriekTotalsMonthTableModel extends AbstractTableModel {
     private final ArrayList< RubriekTotalRecord > rubriekTotalRecordList = new ArrayList< >( 200 );
 
     // Constructor
-    RubriekTotalsMonthTableModel( Connection connection ) {
-	m_connection = connection;
+    RubriekTotalsMonthTableModel( Connection connection, JFrame parentFrame ) {
+        m_connection = connection;
+        m_parentFrame = parentFrame;
     }
 
     void setupRubriekTotalsTableModel( int rubriekId,
@@ -114,6 +118,10 @@ class RubriekTotalsMonthTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( m_parentFrame,
+                    sqlException.getMessage( ),
+                    "Rubriek totals per month SQL exception",
+                    JOptionPane.ERROR_MESSAGE);
 	    m_logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }

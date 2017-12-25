@@ -10,29 +10,22 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 /**
  * Frame to show totals per month for a rubriek
- * An instance of RubriekTotalsMonthFrame is created by class financien.Main.
- *
  * @author Chris van Engelen
  */
-public class RubriekTotalsMonthFrame {
-    final private Logger logger = Logger.getLogger( RubriekTotalsMonthFrame.class.getCanonicalName() );
+public class ShowRubriekTotalsMonth extends JInternalFrame {
+    final private Logger logger = Logger.getLogger( ShowRubriekTotalsMonth.class.getCanonicalName() );
 
-    private final JFrame frame = new JFrame( "Rubriek Totals" );
     private final Font dialogFont = new Font( "Dialog", Font.BOLD, 12 );
 
     private RubriekComboBox rubriekComboBox;
@@ -61,20 +54,14 @@ public class RubriekTotalsMonthFrame {
     private JTable rubriekTotalsTable;
     private final DecimalFormat euroDecimalFormat = new DecimalFormat( "EUR #0.00;EUR -#" );
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
     private final GregorianCalendar calendar = new GregorianCalendar( );
 
-    // Pattern to find a single quote in the titel, to be replaced
-    // with escaped quote (the double slashes are really necessary)
-    private final Pattern quotePattern = Pattern.compile( "\\'" );
 
-
-    public RubriekTotalsMonthFrame( final Connection connection ) {
-
-	// frame.setBackground( Color.white );
+    public ShowRubriekTotalsMonth( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Show rubriek totals per month", true, true, true, true);
 
 	// Get the container for the frame
-	final Container container = frame.getContentPane( );
+	final Container container = getContentPane( );
 	// container.setBackground( Color.white );
 
 	// Set grid bag layout manager
@@ -136,6 +123,10 @@ public class RubriekTotalsMonthFrame {
                         }
                         rubriekOmschrijvingLabel.setText( resultSet.getString( 1 ) );
                     } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                sqlException.getMessage( ),
+                                "Show rubriek totals per month SQL exception",
+                                JOptionPane.ERROR_MESSAGE);
                         logger.severe( "SQLException: " + sqlException.getMessage( ) );
                     }
                 }
@@ -160,7 +151,7 @@ public class RubriekTotalsMonthFrame {
 
 	constraints.gridx = 0;
 	constraints.gridy = 3;
-	constraints.insets = new Insets( 5, 20, 5, 5 );;
+	constraints.insets = new Insets( 5, 20, 5, 5 );
 	container.add( new JLabel( "Start jaar, maand:" ), constraints );
 
 	firstYear = calendar.get( Calendar.YEAR );
@@ -202,7 +193,7 @@ public class RubriekTotalsMonthFrame {
 
         constraints.gridx = 0;
         constraints.gridy = 4;
-        constraints.insets = new Insets( 5, 20, 5, 5 );;
+        constraints.insets = new Insets( 5, 20, 5, 5 );
         container.add( new JLabel( "Laatste jaar, maand:" ), constraints );
 
         lastYear = firstYear;
@@ -270,7 +261,7 @@ public class RubriekTotalsMonthFrame {
         constraints.gridwidth = 1;
 
 	// Create rubriek totals table from rubriek totals table model
-	rubriekTotalsTableModel = new RubriekTotalsMonthTableModel( connection);
+	rubriekTotalsTableModel = new RubriekTotalsMonthTableModel( connection, parentFrame );
 	rubriekTotalsTableSorter = new TableSorter( rubriekTotalsTableModel );
 	rubriekTotalsTable = new JTable( rubriekTotalsTableSorter );
 	// rubriekTotalsTable.setBackground( Color.white );
@@ -342,8 +333,8 @@ public class RubriekTotalsMonthFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		} else if ( actionEvent.getActionCommand( ).equals( "update" ) ) {
                     setupRubriekTotalsTable();
 		}
@@ -370,26 +361,13 @@ public class RubriekTotalsMonthFrame {
         constraints.insets = new Insets( 5, 20, 20, 20 );
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 600, 600 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        frame.getRootPane().setDefaultButton( updateButton );
-	frame.setVisible( true );
-        boolean focusSet = rekeningHouderComboBox.requestFocusInWindow( );
+	setSize( 600, 600 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        getRootPane().setDefaultButton( updateButton );
+	setVisible( true );
+        rekeningHouderComboBox.requestFocusInWindow( );
     }
-
 
     private void setupRubriekTotalsTable( ) {
 	// Setup the rubriek totals table for the selected rubriek

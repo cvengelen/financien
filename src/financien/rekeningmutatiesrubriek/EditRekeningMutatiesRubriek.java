@@ -1,4 +1,4 @@
-package financien.rekeningmutatierubriek;
+package financien.rekeningmutatiesrubriek;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -19,19 +19,15 @@ import financien.gui.RubriekComboBox;
 import table.*;
 
 /**
- * Frame to show, insert and update records in the rekening_mutatie table in schema financien.
- * An instance of RekeningMutatieRubriekFrame is created by class financien.Main.
- *
+ * Frame to show, insert and update records for a specific rubriek in the rekening_mutatie table in schema financien.
  * @author Chris van Engelen
  */
-public class RekeningMutatieRubriekFrame {
-    private final Logger logger = Logger.getLogger( RekeningMutatieRubriekFrame.class.getCanonicalName() );
+public class EditRekeningMutatiesRubriek extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( EditRekeningMutatiesRubriek.class.getCanonicalName() );
 
-    private final JFrame frame = new JFrame( "RekeningMutatieRubriek" );
-
-    private RekeningMutatieRubriekTableModel rekeningMutatieRubriekTableModel;
-    private TableSorter rekeningMutatieRubriekTableSorter;
-    private JTable rekeningMutatieRubriekTable;
+    private RekeningMutatiesRubriekTableModel rekeningMutatiesRubriekTableModel;
+    private TableSorter rekeningMutatiesRubriekTableSorter;
+    private JTable rekeningMutatiesRubriekTable;
 
     private RubriekComboBox rubriekComboBox;
     private int selectedRubriekId;
@@ -41,7 +37,8 @@ public class RekeningMutatieRubriekFrame {
     private final int maximumRekeningTypeId = 9;	// Maximum value field rekening_type_id in table rekening_type
     private final DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
 
-    public RekeningMutatieRubriekFrame( final Connection connection ) {
+    public EditRekeningMutatiesRubriek( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Edit rekening mutatie rubriek", true, true, true, true);
 
 	// Get the values for rekening_pattern, used for rendering mutatieIn and mutatieUit,
 	// for all records in table rekening_type and store in array indexed by rekening_type_id.
@@ -55,10 +52,14 @@ public class RekeningMutatieRubriekFrame {
 		mutatieDecimalFormat[ rekeningTypeId ] = new DecimalFormat( rekeningTypeResultSet.getString( 2 ) );
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                    sqlException.getMessage( ),
+                    "Edit rekening mutatie rubriek SQL exception",
+                    JOptionPane.ERROR_MESSAGE);
 	    logger.severe( "SQLException in rekeningTypeStatement: " + sqlException.getMessage( ) );
 	}
 
-	final Container container = frame.getContentPane( );
+	final Container container = getContentPane( );
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -97,6 +98,10 @@ public class RekeningMutatieRubriekFrame {
                 // Setup the rekening_mutatie table for the selected rubriek
                 setupRekeningMutatieRubriekTable( selectedRubriekId );
             } catch ( SQLException sqlException ) {
+                JOptionPane.showMessageDialog( parentFrame,
+                        sqlException.getMessage( ),
+                        "Edit rekening mutatie rubriek SQL exception",
+                        JOptionPane.ERROR_MESSAGE);
                 logger.severe( "SQLException: " + sqlException.getMessage( ) );
             }
         } );
@@ -120,17 +125,17 @@ public class RekeningMutatieRubriekFrame {
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	container.add( omschrijvingLabel, constraints );
 
-	// Create rekening_mutatie table from rekening_mutatie table model
-	rekeningMutatieRubriekTableModel = new RekeningMutatieRubriekTableModel( connection );
-	rekeningMutatieRubriekTableSorter = new TableSorter( rekeningMutatieRubriekTableModel );
-	rekeningMutatieRubriekTable = new JTable( rekeningMutatieRubriekTableSorter );
-	rekeningMutatieRubriekTableSorter.setTableHeader( rekeningMutatieRubriekTable.getTableHeader( ) );
-	// rekeningMutatieRubriekTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
+	// Create rekening_mutaties table from rekening_mutaties table model
+	rekeningMutatiesRubriekTableModel = new RekeningMutatiesRubriekTableModel( connection, parentFrame );
+	rekeningMutatiesRubriekTableSorter = new TableSorter( rekeningMutatiesRubriekTableModel );
+	rekeningMutatiesRubriekTable = new JTable( rekeningMutatiesRubriekTableSorter );
+	rekeningMutatiesRubriekTableSorter.setTableHeader( rekeningMutatiesRubriekTable.getTableHeader( ) );
+	// rekeningMutatiesRubriekTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
-	rekeningMutatieRubriekTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+	rekeningMutatiesRubriekTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 
 	// Set vertical size just enough for 20 entries, horizontal 870+16 for scrollbar
-	rekeningMutatieRubriekTable.setPreferredScrollableViewportSize( new Dimension( 1220, 320 ) );
+	rekeningMutatiesRubriekTable.setPreferredScrollableViewportSize( new Dimension( 1220, 320 ) );
 
 	// Set renderer for Double objects
 	class DoubleRenderer extends JTextField implements TableCellRenderer {
@@ -148,7 +153,7 @@ public class RekeningMutatieRubriekFrame {
 			this.setText( "" );
 		    } else {
 			// Get the rekening type id of this row from the table
-			final int rekeningTypeId = rekeningMutatieRubriekTableModel.getRekeningTypeId( row );
+			final int rekeningTypeId = rekeningMutatiesRubriekTableModel.getRekeningTypeId( row );
 
 			// Use the formatter defined for this rekening_type in table rekening_type
 			this.setText( mutatieDecimalFormat[ rekeningTypeId ].format( mutatie ) );
@@ -169,7 +174,7 @@ public class RekeningMutatieRubriekFrame {
 	doubleRenderer.setEnabled( false );
 	final Border emptyBorder = BorderFactory.createEmptyBorder( );
 	doubleRenderer.setBorder( emptyBorder );
-	rekeningMutatieRubriekTable.setDefaultRenderer( Double.class, doubleRenderer );
+	rekeningMutatiesRubriekTable.setDefaultRenderer( Double.class, doubleRenderer );
 
         constraints.insets = new Insets( 5, 20, 5, 20 );
         constraints.anchor = GridBagConstraints.CENTER;
@@ -182,7 +187,7 @@ public class RekeningMutatieRubriekFrame {
         constraints.weighty = 1d;
         constraints.fill = GridBagConstraints.BOTH;
 
-	container.add( new JScrollPane( rekeningMutatieRubriekTable ), constraints );
+	container.add( new JScrollPane( rekeningMutatiesRubriekTable ), constraints );
 
         constraints.weightx = 0d;
         constraints.weighty = 0d;
@@ -198,7 +203,7 @@ public class RekeningMutatieRubriekFrame {
 	final JButton deleteMutatieButton = new JButton( "Delete" );
 
 	// Get the selection model related to the rekening_mutatie table
-	final ListSelectionModel mutatieListSelectionModel = rekeningMutatieRubriekTable.getSelectionModel( );
+	final ListSelectionModel mutatieListSelectionModel = rekeningMutatiesRubriekTable.getSelectionModel( );
 
 	class MutatieListSelectionListener implements ListSelectionListener {
 	    private int selectedRow = -1;
@@ -216,7 +221,7 @@ public class RekeningMutatieRubriekFrame {
 		}
 
 		int viewRow = mutatieListSelectionModel.getMinSelectionIndex( );
-		selectedRow = rekeningMutatieRubriekTableSorter.modelIndex( viewRow );
+		selectedRow = rekeningMutatiesRubriekTableSorter.modelIndex( viewRow );
 		editMutatieButton.setEnabled( true );
 		deleteMutatieButton.setEnabled( true );
 	    }
@@ -233,34 +238,34 @@ public class RekeningMutatieRubriekFrame {
 	class ButtonActionListener implements ActionListener {
 	    public void actionPerformed( ActionEvent actionEvent ) {
 		if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-		    frame.setVisible( false );
-                    frame.dispose();
+		    setVisible( false );
+                    dispose();
 		    return;
 		} else if ( actionEvent.getActionCommand( ).equals( "insert" ) ) {
 		    new RekeningMutatieDialog( connection,
-                                               frame,
+                                               parentFrame,
                                                selectedRubriekId,
                                                0, 1 );
 		} else {
 		    int selectedRow = mutatieListSelectionListener.getSelectedRow( );
 		    if ( selectedRow < 0 ) {
-			JOptionPane.showMessageDialog( frame,
+			JOptionPane.showMessageDialog( parentFrame,
 						       "Geen mutatie geselecteerd",
 						       "Rubriek frame error",
 						       JOptionPane.ERROR_MESSAGE );
 			return;
 		    }
 
-		    final int rubriekId = rekeningMutatieRubriekTableModel.getRubriekId( );
-		    final String datumString = rekeningMutatieRubriekTableModel.getDatumString( selectedRow );
-		    final int debCredId = rekeningMutatieRubriekTableModel.getDebCredId( selectedRow );
-		    final int rekeningId = rekeningMutatieRubriekTableModel.getRekeningId( selectedRow );
-                    final int rekeningHouderId = rekeningMutatieRubriekTableModel.getRekeningHouderId( selectedRow );
-		    final int volgNummer = rekeningMutatieRubriekTableModel.getVolgNummer( selectedRow );
+		    final int rubriekId = rekeningMutatiesRubriekTableModel.getRubriekId( );
+		    final String datumString = rekeningMutatiesRubriekTableModel.getDatumString( selectedRow );
+		    final int debCredId = rekeningMutatiesRubriekTableModel.getDebCredId( selectedRow );
+		    final int rekeningId = rekeningMutatiesRubriekTableModel.getRekeningId( selectedRow );
+                    final int rekeningHouderId = rekeningMutatiesRubriekTableModel.getRekeningHouderId( selectedRow );
+		    final int volgNummer = rekeningMutatiesRubriekTableModel.getVolgNummer( selectedRow );
 
 		    if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
 			new RekeningMutatieDialog( connection,
-                                                   frame,
+                                                   parentFrame,
                                                    rubriekId,
                                                    datumString,
                                                    debCredId,
@@ -269,12 +274,12 @@ public class RekeningMutatieRubriekFrame {
                                                    volgNummer );
 		    } else if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
 			int result =
-			    JOptionPane.showConfirmDialog( frame,
+			    JOptionPane.showConfirmDialog( parentFrame,
 							   "Delete record for rekening " +
-							   rekeningMutatieRubriekTableModel.getRekeningString( selectedRow ) +
+							   rekeningMutatiesRubriekTableModel.getRekeningString( selectedRow ) +
 							   " at date " + datumString +
 							   " in rekening_mutatie ?",
-							   "Delete rekening_mutatie record",
+							   "Delete rekening mutatie record",
 							   JOptionPane.YES_NO_OPTION,
 							   JOptionPane.QUESTION_MESSAGE,
 							   null );
@@ -301,14 +306,18 @@ public class RekeningMutatieRubriekFrame {
 						       "rekening_id = " + rekeningId + "\n" +
 						       "volgnummer = "  + volgNummer + "\n" +
 						       "in rekening_mutatie" );
-				JOptionPane.showMessageDialog( frame,
+				JOptionPane.showMessageDialog( parentFrame,
 							       errorString,
-							       "Delete rekening_mutatie record",
+							       "Delete rekening mutatie record",
 							       JOptionPane.ERROR_MESSAGE);
 				logger.severe( errorString );
 				return;
 			    }
 			} catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    sqlException.getMessage( ),
+                                    "Delete rekening mutatie record SQL exception",
+                                    JOptionPane.ERROR_MESSAGE);
 			    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 			    return;
 			}
@@ -348,41 +357,29 @@ public class RekeningMutatieRubriekFrame {
 	constraints.gridy = 3;
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 1280, 500 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible( true );
+	setSize( 1280, 500 );
+        setLocation(x, y);
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible( true );
     }
 
 
     private void setupRekeningMutatieRubriekTable( int rubriekId ) {
 	// Setup the rekening_mutatie table for the selected rubriek
-	rekeningMutatieRubriekTableModel.setupRekeningMutatieRubriekTableModel( rubriekId );
+	rekeningMutatiesRubriekTableModel.setupRekeningMutatieRubriekTableModel( rubriekId );
 
 	// Setup the tableSorter again so that the TableSorter gets the new table size (# rows)
-	rekeningMutatieRubriekTableSorter.setTableModel( rekeningMutatieRubriekTableModel );
+	rekeningMutatiesRubriekTableSorter.setTableModel( rekeningMutatiesRubriekTableModel );
 
 	// Need to setup preferred column width up again
-	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 0 ).setPreferredWidth( 100 );  // Datum
-	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 1 ).setPreferredWidth( 150 );  // Deb/Cred
-	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 2 ).setPreferredWidth( 150 );  // Rekening
-	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 3 ).setPreferredWidth( 100 );  // In
-	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 4 ).setPreferredWidth( 100 );  // Uit
-	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 5 ).setPreferredWidth( 40 );   // VolgNummer
-	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth( 40 );   // Jaar
-	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 7 ).setPreferredWidth( 40 );   // Maand
-	rekeningMutatieRubriekTable.getColumnModel( ).getColumn( 8 ).setPreferredWidth( 500 );  // Omschrijving
+	rekeningMutatiesRubriekTable.getColumnModel( ).getColumn( 0 ).setPreferredWidth( 100 );  // Datum
+	rekeningMutatiesRubriekTable.getColumnModel( ).getColumn( 1 ).setPreferredWidth( 150 );  // Deb/Cred
+	rekeningMutatiesRubriekTable.getColumnModel( ).getColumn( 2 ).setPreferredWidth( 150 );  // Rekening
+	rekeningMutatiesRubriekTable.getColumnModel( ).getColumn( 3 ).setPreferredWidth( 100 );  // In
+	rekeningMutatiesRubriekTable.getColumnModel( ).getColumn( 4 ).setPreferredWidth( 100 );  // Uit
+	rekeningMutatiesRubriekTable.getColumnModel( ).getColumn( 5 ).setPreferredWidth( 40 );   // VolgNummer
+	rekeningMutatiesRubriekTable.getColumnModel( ).getColumn( 6 ).setPreferredWidth( 40 );   // Jaar
+	rekeningMutatiesRubriekTable.getColumnModel( ).getColumn( 7 ).setPreferredWidth( 40 );   // Maand
+	rekeningMutatiesRubriekTable.getColumnModel( ).getColumn( 8 ).setPreferredWidth( 500 );  // Omschrijving
     }
 }

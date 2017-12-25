@@ -1,12 +1,13 @@
 // Class to setup a TableModel for all records in rekening_mutatie for a specific rubriek
 
-package financien.rekeningmutatierubriek;
+package financien.rekeningmutatiesrubriek;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
@@ -14,10 +15,12 @@ import java.util.logging.*;
 /**
  * Setup a TableModel for all records in rekening_mutatie for a specific rubriek
  */
-class RekeningMutatieRubriekTableModel extends AbstractTableModel {
-    private final Logger logger = Logger.getLogger( RekeningMutatieRubriekTableModel.class.getCanonicalName() );
+class RekeningMutatiesRubriekTableModel extends AbstractTableModel {
+    private final Logger logger = Logger.getLogger( RekeningMutatiesRubriekTableModel.class.getCanonicalName() );
 
     private Connection connection;
+    private JFrame parentFrame;
+
     private final String[ ] headings = { "Datum", "Deb/Cred",
 				         "Rekening", "In", "Uit", "Nr",
 				         "Jaar", "Maand", "Omschrijving" };
@@ -73,8 +76,9 @@ class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 
 
     // Constructor
-    RekeningMutatieRubriekTableModel( Connection connection ) {
-	this.connection = connection;
+    RekeningMutatiesRubriekTableModel( Connection connection, JFrame parentFrame) {
+        this.connection = connection;
+        this.parentFrame = parentFrame;
     }
 
     void setupRekeningMutatieRubriekTableModel( int rubriekId ) {
@@ -123,6 +127,10 @@ class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 	    // Trigger update of table data
 	    fireTableDataChanged( );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                    sqlException.getMessage( ),
+                    "Rekening mutatie rubriek SQL exception",
+                    JOptionPane.ERROR_MESSAGE);
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	}
     }
@@ -251,6 +259,10 @@ class RekeningMutatieRubriekTableModel extends AbstractTableModel {
 	    	return;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                    sqlException.getMessage( ),
+                    "Rekening mutatie rubriek SQL exception",
+                    JOptionPane.ERROR_MESSAGE);
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return;
 	}
