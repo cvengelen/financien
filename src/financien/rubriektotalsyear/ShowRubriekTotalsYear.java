@@ -22,8 +22,6 @@ import java.util.logging.Logger;
 
 /**
  * Frame to show totals per year for a rubriek
- * An instance of ShowRubriekTotalsYear is created by class financien.Main.
- *
  * @author Chris van Engelen
  */
 public class ShowRubriekTotalsYear extends JInternalFrame {

@@ -23,16 +23,13 @@ import table.*;
 
 /**
  * Frame to show, insert and update waarde for all rekeningen for a specific date.
- * An instance of WaardeDatumFrame is created by class financien.Main.
- *
  * @author Chris van Engelen
  */
-public class WaardeDatumFrame {
-    final private Logger logger = Logger.getLogger( WaardeDatumFrame.class.getCanonicalName() );
+public class ShowWaardeDatum extends JInternalFrame {
+    final private Logger logger = Logger.getLogger( ShowWaardeDatum.class.getCanonicalName() );
 
     private final Connection connection;
-
-    private final JFrame frame = new JFrame( "Waarde op geselecteerde datum" );
+    private final JFrame parentFrame;
 
     private WaardeDatumTableModel waardeDatumTableModel;
     private TableSorter waardeDatumTableSorter;
@@ -71,8 +68,11 @@ public class WaardeDatumFrame {
 
     private static final long milliSecondsPerDay = 24 * 60 * 60 * 1000;
 
-    public WaardeDatumFrame( final Connection connection ) {
+    public ShowWaardeDatum( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Show waarde op datum", true, true, true, true);
+
         this.connection = connection;
+        this.parentFrame = parentFrame;
 
         // Do not allow incorrect dates (e.g., day>31)
         dateFormat.setLenient( false );
@@ -86,7 +86,7 @@ public class WaardeDatumFrame {
             return;
         }
 
-        final Container container = frame.getContentPane( );
+        final Container container = getContentPane( );
 
         // Set grid bag layout manager
         container.setLayout( new GridBagLayout( ) );
@@ -134,6 +134,10 @@ public class WaardeDatumFrame {
                 rekeningTypeTotaalFieldString[ rekeningTypeId ] = rekeningTypeResultSet.getString( 4 );
             }
         } catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                    sqlException.getMessage( ),
+                    "Show waarde datum SQL exception in rekening type",
+                    JOptionPane.ERROR_MESSAGE);
             logger.severe( "SQLException in rekeningTypeStatement: " + sqlException.getMessage( ) );
         }
 
@@ -212,7 +216,7 @@ public class WaardeDatumFrame {
 
 
         // Create waarde-datum table from waarde-datum table model
-        waardeDatumTableModel = new WaardeDatumTableModel( connection );
+        waardeDatumTableModel = new WaardeDatumTableModel( connection, parentFrame );
         waardeDatumTableSorter = new TableSorter( waardeDatumTableModel );
         waardeDatumTable = new JTable( waardeDatumTableSorter );
         waardeDatumTableSorter.setTableHeader( waardeDatumTable.getTableHeader( ) );
@@ -317,14 +321,14 @@ public class WaardeDatumFrame {
             public void actionPerformed( ActionEvent actionEvent ) {
                 final String actionCommandString = actionEvent.getActionCommand( );
                 if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-                    frame.setVisible( false );
-                    frame.dispose();
+                    setVisible( false );
+                    dispose();
                     return;
                 } else if ( actionCommandString.equals( insertActionCommandString ) ) {
                     final GregorianCalendar calendar = new GregorianCalendar( );
                     final Date todayDate = calendar.getTime( );
                     String insertDatumString = dateFormat.format( todayDate );
-                    insertDatumString = ( String ) JOptionPane.showInputDialog( frame,
+                    insertDatumString = ( String ) JOptionPane.showInputDialog( parentFrame,
                             "Insert datum:",
                             "Insert waarde datum",
                             JOptionPane.PLAIN_MESSAGE,
@@ -339,7 +343,7 @@ public class WaardeDatumFrame {
 
                         // Check for insert date in the future
                         if ( insertDate.after( todayDate ) ) {
-                            JOptionPane.showMessageDialog( frame,
+                            JOptionPane.showMessageDialog( parentFrame,
                                     "Insert datum: " + insertDatumString +
                                             "\nin de toekomst niet toegestaan",
                                     "Insert waarde datum error",
@@ -350,7 +354,7 @@ public class WaardeDatumFrame {
 
                         // Insert new records in waarde and totaal for the specified date
                         if ( !updateWaarde( actionCommandString, insertDatumString ) ) {
-                            JOptionPane.showMessageDialog( frame,
+                            JOptionPane.showMessageDialog( parentFrame,
                                     "Geen insert nodig voor datum " + insertDatumString,
                                     "Insert waarde",
                                     JOptionPane.INFORMATION_MESSAGE );
@@ -364,7 +368,7 @@ public class WaardeDatumFrame {
                         setupWaardeDatumTable( insertDatumString );
                     } catch ( ParseException parseException ) {
                         // The exception message already shows the invalid date string
-                        JOptionPane.showMessageDialog( frame,
+                        JOptionPane.showMessageDialog( parentFrame,
                                 "Incorrecte insert datum syntax (yyyy-mm-dd)\n" +
                                         parseException.getMessage( ),
                                 "Insert waarde datum error",
@@ -379,7 +383,7 @@ public class WaardeDatumFrame {
                     // Check if rekening has been selected
                     if ( ( selectedWaardeDatumString == null ) ||
                             ( selectedWaardeDatumString.length( ) == 0 ) ) {
-                        JOptionPane.showMessageDialog( frame,
+                        JOptionPane.showMessageDialog( parentFrame,
                                 "Geen datum geselecteerd",
                                 "Waarde frame error",
                                 JOptionPane.ERROR_MESSAGE );
@@ -391,7 +395,7 @@ public class WaardeDatumFrame {
                         // Setup the totaal fields and waarde table for the specified date
                         setupWaardeDatumTable( selectedWaardeDatumString );
                     } else {
-                        JOptionPane.showMessageDialog( frame,
+                        JOptionPane.showMessageDialog( parentFrame,
                                 "Geen update nodig voor datum " + selectedWaardeDatumString,
                                 "Update waarde",
                                 JOptionPane.INFORMATION_MESSAGE );
@@ -428,24 +432,11 @@ public class WaardeDatumFrame {
         constraints.insets = new Insets( 5, 20, 20, 20 );
         container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-        frame.setSize( 1260, 850 );
-        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        frame.setVisible( true );
+        setSize( 1280, 820 );
+        setLocation( x, y );
+        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        setVisible( true );
     }
-
 
     private void setupWaardeDatumTable( String waardeDatumString ) {
         // Get the related record for the selected date from table totaal
@@ -479,6 +470,10 @@ public class WaardeDatumFrame {
             // Set the totaal koersen datum text field
             totaalKoersenDatumTextField.setText( totaalKoersenDatumString );
         } catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                    sqlException.getMessage( ),
+                    "Show waarde datum SQL exception in totaal",
+                    JOptionPane.ERROR_MESSAGE);
             logger.severe( "SQLException in totaalStatement: " + sqlException.getMessage( ) );
         }
 
@@ -558,7 +553,7 @@ public class WaardeDatumFrame {
                         "Geen koers info gevonden tussen " + minimumKoersenDatumString +
                                 " en " + waardeDatumString;
                 logger.severe( errorString );
-                JOptionPane.showMessageDialog( frame, errorString,
+                JOptionPane.showMessageDialog( parentFrame, errorString,
                         actionCommandString + " waarde error",
                         JOptionPane.ERROR_MESSAGE );
                 return false;
@@ -567,6 +562,10 @@ public class WaardeDatumFrame {
             koersenDatumString = koersenDatumResultSet.getString( 1 );
             logger.info( "Datum koersen: " + koersenDatumString );
         } catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                    sqlException.getMessage( ),
+                    "Show waarde datum SQL exception in koersen datum",
+                    JOptionPane.ERROR_MESSAGE);
             logger.severe( "SQLException in koersenDatumStatement: " + sqlException.getMessage( ) );
         }
 
@@ -634,6 +633,10 @@ public class WaardeDatumFrame {
 
                     saldo = sumResultSet.getDouble( 1 ) - sumResultSet.getDouble( 2 );
                 } catch ( SQLException sqlException ) {
+                    JOptionPane.showMessageDialog( parentFrame,
+                            sqlException.getMessage( ),
+                            "Show waarde datum SQL exception in sum",
+                            JOptionPane.ERROR_MESSAGE);
                     logger.severe( "SQLException in sumStatement: " + sqlException.getMessage( ) );
                 }
 
@@ -723,6 +726,10 @@ public class WaardeDatumFrame {
                                     " at waarde date " + waardeDatumString );
                         }
                     } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                sqlException.getMessage( ),
+                                "Show waarde datum SQL exception in splits",
+                                JOptionPane.ERROR_MESSAGE);
                         logger.severe( "SQLException in splitsStatement: " + sqlException.getMessage( ) );
                     }
 
@@ -757,6 +764,10 @@ public class WaardeDatumFrame {
                         koers = koersenResultSet.getDouble( 2 );
                         waarde = saldo * koers;
                     } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                sqlException.getMessage( ),
+                                "Show waarde datum SQL exception in koersen",
+                                JOptionPane.ERROR_MESSAGE);
                         logger.severe( "SQLException in koersenStatement: " + sqlException.getMessage( ) );
                     }
 
@@ -905,6 +916,10 @@ public class WaardeDatumFrame {
                             rendement = waardeMinusInleg / inlegAandelenTotaal;
                         }
                     } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                sqlException.getMessage( ),
+                                "Show waarde datum SQL exception in inleg",
+                                JOptionPane.ERROR_MESSAGE);
                         logger.severe( "SQLException in inlegStatement: " + sqlException.getMessage( ) );
                     }
                 }
@@ -1073,7 +1088,7 @@ public class WaardeDatumFrame {
 
                         logger.info( infoString + "\n" + "updateString: " + updateString + "\n" );
 
-                        JOptionPane.showMessageDialog( frame, infoString,
+                        JOptionPane.showMessageDialog( parentFrame, infoString,
                                 "Update waarde",
                                 JOptionPane.INFORMATION_MESSAGE );
 
@@ -1086,6 +1101,10 @@ public class WaardeDatumFrame {
                                 update = true;
                             }
                         } catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    sqlException.getMessage( ),
+                                    "Show waarde datum SQL exception in update",
+                                    JOptionPane.ERROR_MESSAGE);
                             logger.severe( "SQLException in updateStatement: " + sqlException.getMessage( ) );
                         }
 
@@ -1128,7 +1147,7 @@ public class WaardeDatumFrame {
 
                         logger.info( infoString + "\n" + "insertString: " + insertString + "\n" );
 
-                        JOptionPane.showMessageDialog( frame, infoString,
+                        JOptionPane.showMessageDialog( parentFrame, infoString,
                                 "Insert waarde",
                                 JOptionPane.INFORMATION_MESSAGE );
 
@@ -1141,10 +1160,18 @@ public class WaardeDatumFrame {
                                 update = true;
                             }
                         } catch ( SQLException sqlException ) {
+                            JOptionPane.showMessageDialog( parentFrame,
+                                    sqlException.getMessage( ),
+                                    "Show waarde datum SQL exception in insert",
+                                    JOptionPane.ERROR_MESSAGE);
                             logger.severe( "SQLException in insertStatement: " + sqlException.getMessage( ) );
                         }
                     }
                 } catch ( SQLException sqlException ) {
+                    JOptionPane.showMessageDialog( parentFrame,
+                            sqlException.getMessage( ),
+                            "Show waarde datum SQL exception in waarde",
+                            JOptionPane.ERROR_MESSAGE);
                     logger.severe( "SQLException in waardeStatement: " + sqlException.getMessage( ) );
                 }
             }
@@ -1213,7 +1240,7 @@ public class WaardeDatumFrame {
 
                     logger.info( infoString + "\n" + "updateString: " + updateString + "\n" );
 
-                    JOptionPane.showMessageDialog( frame, infoString,
+                    JOptionPane.showMessageDialog( parentFrame, infoString,
                             "Update totaal",
                             JOptionPane.INFORMATION_MESSAGE );
 
@@ -1226,6 +1253,10 @@ public class WaardeDatumFrame {
                             update = true;
                         }
                     } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                sqlException.getMessage( ),
+                                "Show waarde datum SQL exception in update",
+                                JOptionPane.ERROR_MESSAGE);
                         logger.severe( "SQLException in updateStatement: " + sqlException.getMessage( ) );
                     }
 
@@ -1265,7 +1296,7 @@ public class WaardeDatumFrame {
 
                     logger.info( infoString + "\n" + "insertString: " + insertString + "\n" );
 
-                    JOptionPane.showMessageDialog( frame, infoString,
+                    JOptionPane.showMessageDialog( parentFrame, infoString,
                             "Insert totaal",
                             JOptionPane.INFORMATION_MESSAGE );
 
@@ -1278,13 +1309,25 @@ public class WaardeDatumFrame {
                             update = true;
                         }
                     } catch ( SQLException sqlException ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                sqlException.getMessage( ),
+                                "Show waarde datum SQL exception in insert",
+                                JOptionPane.ERROR_MESSAGE);
                         logger.severe( "SQLException in insertStatement: " + sqlException.getMessage( ) );
                     }
                 }
             } catch ( SQLException sqlException ) {
+                JOptionPane.showMessageDialog( parentFrame,
+                        sqlException.getMessage( ),
+                        "Show waarde datum SQL exception in totaal",
+                        JOptionPane.ERROR_MESSAGE);
                 logger.severe( "SQLException in totaalStatement: " + sqlException.getMessage( ) );
             }
         } catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                    sqlException.getMessage( ),
+                    "Show waarde datum SQL exception in rekening",
+                    JOptionPane.ERROR_MESSAGE);
             logger.severe( "SQLException in rekeningStatement: " + sqlException.getMessage( ) );
         }
 

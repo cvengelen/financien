@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import javax.swing.*;
 import javax.swing.table.*;
 import java.util.*;
 import java.util.logging.*;
@@ -17,6 +18,8 @@ class WaardeDatumTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( "financien.waardedatum.WaardeDatumTableModel" );
 
     private final Connection connection;
+    private final JFrame parentFrame;
+
     private final String[] headings = { "Rekening", "Type", "Saldo", "Koers", "Waarde",
                                         "Inleg", "Waarde-Inleg", "R. direct", "R. som",
                                         "Jaren som", "R. som/jaar", "R. 20150101/jaar" };
@@ -72,8 +75,9 @@ class WaardeDatumTableModel extends AbstractTableModel {
     private final ArrayList< WaardeDatumRecord > waardeDatumRecordList = new ArrayList< >( 20 );
 
     // Constructor
-    WaardeDatumTableModel( Connection connection ) {
+    WaardeDatumTableModel( Connection connection, JFrame parentFrame ) {
         this.connection = connection;
+        this.parentFrame = parentFrame;
     }
 
     void setupWaardeDatumTableModel( String datumString ) {
@@ -119,6 +123,10 @@ class WaardeDatumTableModel extends AbstractTableModel {
             // Trigger update of table data
             fireTableDataChanged( );
         } catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                    sqlException.getMessage( ),
+                    "Waarde datum table model SQL exception",
+                    JOptionPane.ERROR_MESSAGE);
             logger.severe( "SQLException: " + sqlException.getMessage( ) );
         }
     }

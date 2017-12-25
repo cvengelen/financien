@@ -20,14 +20,10 @@ import table.*;
 
 /**
  * Frame to show waarde for a specific rekening.
- * An instance of WaardeRekeningrame is created by class financien.Main.
- *
  * @author Chris van Engelen
  */
-public class WaardeRekeningFrame {
-    private final Logger logger = Logger.getLogger( WaardeRekeningFrame.class.getCanonicalName( ) );
-
-    private final JFrame frame = new JFrame( "Waarde geselecteerde rekening" );
+public class ShowWaardeRekening extends JInternalFrame {
+    private final Logger logger = Logger.getLogger( ShowWaardeRekening.class.getCanonicalName( ) );
 
     private WaardeRekeningTableModel waardeRekeningTableModel;
     private TableSorter waardeRekeningTableSorter;
@@ -53,7 +49,8 @@ public class WaardeRekeningFrame {
     private static final DecimalFormat usdDecimalFormat     = new DecimalFormat( "USD #0.00;USD -#" );
     private static final DecimalFormat percentDecimalFormat = new DecimalFormat( "% #0.00;% -#" );
 
-    public WaardeRekeningFrame( final Connection connection ) {
+    public ShowWaardeRekening( final Connection connection, final JFrame parentFrame, int x, int y ) {
+        super("Show waarde rekening", true, true, true, true);
 
 	// Get date from datum string objects
 	try {
@@ -64,7 +61,7 @@ public class WaardeRekeningFrame {
 	    return;
 	}
 
-	final Container container = frame.getContentPane( );
+	final Container container = getContentPane( );
 
 	// Set grid bag layout manager
 	container.setLayout( new GridBagLayout( ) );
@@ -165,6 +162,10 @@ public class WaardeRekeningFrame {
 		    rekeningCurrencyId = rekeningResultSet.getInt( 1 );
 		    rekeningDecimalFormat = new DecimalFormat( rekeningResultSet.getString( 2 ) );
 		} catch ( SQLException sqlException ) {
+                    JOptionPane.showMessageDialog( parentFrame,
+                            sqlException.getMessage( ),
+                            "Show waarde rekening SQL exception in rekening",
+                            JOptionPane.ERROR_MESSAGE);
 		    logger.severe( "SQLException in rekeningStatement: " + sqlException.getMessage( ) );
 		}
 
@@ -188,7 +189,7 @@ public class WaardeRekeningFrame {
 
 
 	// Create waarde-datum table from waarde-datum table model
-	waardeRekeningTableModel = new WaardeRekeningTableModel( connection );
+	waardeRekeningTableModel = new WaardeRekeningTableModel( connection, parentFrame );
 	waardeRekeningTableSorter = new TableSorter( waardeRekeningTableModel );
 	waardeRekeningTable = new JTable( waardeRekeningTableSorter );
 	waardeRekeningTableSorter.setTableHeader( waardeRekeningTable.getTableHeader( ) );
@@ -290,8 +291,8 @@ public class WaardeRekeningFrame {
 	final JButton closeButton = new JButton( "Close" );
 	closeButton.addActionListener( ( ActionEvent actionEvent ) -> {
             if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
-                frame.setVisible( false );
-                frame.dispose();
+                setVisible( false );
+                dispose();
             }
         } );
 	closeButton.setActionCommand( "close" );
@@ -303,22 +304,10 @@ public class WaardeRekeningFrame {
 	constraints.insets = new Insets( 5, 20, 20, 20 );
 	container.add( buttonPanel, constraints );
 
-        // Add a window listener to close the connection when the frame is disposed
-        frame.addWindowListener( new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                try {
-                    // Close the connection to the MySQL database
-                    connection.close( );
-                } catch (SQLException sqlException) {
-                    logger.severe( "SQL exception closing connection: " + sqlException.getMessage() );
-                }
-            }
-        } );
-
-	frame.setSize( 880, 550 );
-	frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-	frame.setVisible( true );
+	setSize( 880, 550 );
+        setLocation( x, y );
+	setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+	setVisible( true );
     }
 
     private void setupWaardeRekeningTable( int rekeningId ) {

@@ -168,14 +168,27 @@ public class Financien extends JFrame implements ActionListener {
         menu.setMnemonic(KeyEvent.VK_S);
         menuBar.add(menu);
 
+        // Show waarde for a given date
+        menuItem = new JMenuItem("Waarde op datum", KeyEvent.VK_W);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.ALT_MASK));
+        menuItem.setActionCommand("showWaardeDatum");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Show waarde for a given rekening
+        menuItem = new JMenuItem("Waarde rekening");
+        menuItem.setActionCommand("showWaardeRekening");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
         // Show rubriek totals per month
-        menuItem = new JMenuItem("Rubriek total per month");
+        menuItem = new JMenuItem("Rubriek total per maand");
         menuItem.setActionCommand("showRubriekTotalsMonth");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
         // Show rubriek totals per year
-        menuItem = new JMenuItem("Rubriek total per year");
+        menuItem = new JMenuItem("Rubriek total per jaar");
         menuItem.setActionCommand("showRubriekTotalsYear");
         menuItem.addActionListener(this);
         menu.add(menuItem);
@@ -185,7 +198,6 @@ public class Financien extends JFrame implements ActionListener {
 
     // React to menu selections.
     public void actionPerformed(ActionEvent actionEvent) {
-        openFrameCount++;
         JInternalFrame internalFrame = null;
         if ("loadIngMutaties".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.ingmutaties.LoadIngMutaties( password, xOffset * openFrameCount, yOffset * openFrameCount );
@@ -207,18 +219,32 @@ public class Financien extends JFrame implements ActionListener {
             internalFrame = new financien.rubriek.EditRubriek( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("editKoersen".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.koersen.EditKoersen( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        } else if ("showWaardeDatum".equals(actionEvent.getActionCommand())) {
+            internalFrame = new financien.waardedatum.ShowWaardeDatum( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        } else if ("showWaardeRekening".equals(actionEvent.getActionCommand())) {
+            internalFrame = new financien.waarderekening.ShowWaardeRekening( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("showRubriekTotalsMonth".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.rubriektotalsmonth.ShowRubriekTotalsMonth( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("showRubriekTotalsYear".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.rubriektotalsyear.ShowRubriekTotalsYear( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        } else if ("showRubriekTotalsYear".equals(actionEvent.getActionCommand())) {
+            internalFrame = new financien.rubriektotalsyear.ShowRubriekTotalsYear( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         }
 
-        if (internalFrame == null) return;
+        if (internalFrame == null) {
+            logger.severe( "Invalid action command: " + actionEvent.getActionCommand() );
+            return;
+        }
+
         internalFrame.setVisible( true );
         desktopPane.add( internalFrame );
         try {
             internalFrame.setSelected( true );
+            openFrameCount++;
         } catch ( java.beans.PropertyVetoException propertyVetoException ) {
+            JOptionPane.showMessageDialog( this, propertyVetoException.getMessage( ),
+                    "The internal frame could not be dusplayed",
+                    JOptionPane.ERROR_MESSAGE);
             logger.severe( propertyVetoException.getMessage() );
         }
     }
