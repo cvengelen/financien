@@ -3,6 +3,7 @@ package financien;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -185,138 +186,63 @@ public class Financien extends JFrame implements ActionListener {
     // React to menu selections.
     public void actionPerformed(ActionEvent actionEvent) {
         openFrameCount++;
+        JInternalFrame internalFrame = null;
         if ("loadIngMutaties".equals(actionEvent.getActionCommand())) {
-            JInternalFrame loadIngMutaties = new financien.ingmutaties.LoadIngMutaties( password, xOffset * openFrameCount, yOffset * openFrameCount );
-            loadIngMutaties.setVisible( true );
-            desktopPane.add( loadIngMutaties );
-            try {
-                loadIngMutaties.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.ingmutaties.LoadIngMutaties( password, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("loadRabobankMutaties".equals(actionEvent.getActionCommand())) {
-            JInternalFrame loadRabobankMutaties = new financien.rabobankmutaties.LoadRabobankMutaties(password, xOffset*openFrameCount, yOffset*openFrameCount);
-            loadRabobankMutaties.setVisible( true );
-            desktopPane.add(loadRabobankMutaties);
-            try {
-                loadRabobankMutaties.setSelected(true);
-            } catch (java.beans.PropertyVetoException propertyVetoException) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.rabobankmutaties.LoadRabobankMutaties(password, xOffset*openFrameCount, yOffset*openFrameCount);
         } else if ("processIngMutaties".equals(actionEvent.getActionCommand())) {
-            JInternalFrame processIngMutaties = new financien.ingmutaties.ProcessIngMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-            processIngMutaties.setVisible( true );
-            desktopPane.add( processIngMutaties );
-            try {
-                processIngMutaties.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.ingmutaties.ProcessIngMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("processRabobankMutaties".equals(actionEvent.getActionCommand())) {
-            JInternalFrame processRabobankMutaties = new financien.rabobankmutaties.ProcessRabobankMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-            processRabobankMutaties.setVisible( true );
-            desktopPane.add( processRabobankMutaties );
-            try {
-                processRabobankMutaties.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.rabobankmutaties.ProcessRabobankMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("editRekeningMutaties".equals(actionEvent.getActionCommand())) {
-            JInternalFrame editRekeningMutaties = new financien.rekeningmutaties.EditRekeningMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-            editRekeningMutaties.setVisible( true );
-            desktopPane.add( editRekeningMutaties );
-            try {
-                editRekeningMutaties.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.rekeningmutaties.EditRekeningMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("editRekeningMutatiesRubriek".equals(actionEvent.getActionCommand())) {
-            JInternalFrame editRekeningMutatiesRubriek = new financien.rekeningmutatiesrubriek.EditRekeningMutatiesRubriek( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-            editRekeningMutatiesRubriek.setVisible( true );
-            desktopPane.add( editRekeningMutatiesRubriek );
-            try {
-                editRekeningMutatiesRubriek.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.rekeningmutatiesrubriek.EditRekeningMutatiesRubriek( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("editRekening".equals(actionEvent.getActionCommand())) {
-            JInternalFrame editRekening = new financien.rekening.EditRekening( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-            editRekening.setVisible( true );
-            desktopPane.add( editRekening );
-            try {
-                editRekening.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.rekening.EditRekening( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("editDebCred".equals(actionEvent.getActionCommand())) {
-            JInternalFrame editDebCred = new financien.debcred.EditDebCred( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-            editDebCred.setVisible( true );
-            desktopPane.add( editDebCred );
-            try {
-                editDebCred.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.debcred.EditDebCred( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("editRubriek".equals(actionEvent.getActionCommand())) {
-            JInternalFrame editRubriek = new financien.rubriek.EditRubriek( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-            editRubriek.setVisible( true );
-            desktopPane.add( editRubriek );
-            try {
-                editRubriek.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.rubriek.EditRubriek( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("editKoersen".equals(actionEvent.getActionCommand())) {
-            JInternalFrame editKoersen = new financien.koersen.EditKoersen( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-            editKoersen.setVisible( true );
-            desktopPane.add( editKoersen );
-            try {
-                editKoersen.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.koersen.EditKoersen( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("showRubriekTotalsMonth".equals(actionEvent.getActionCommand())) {
-            JInternalFrame showRubriekTotalsMonth = new financien.rubriektotalsmonth.ShowRubriekTotalsMonth( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-            showRubriekTotalsMonth.setVisible( true );
-            desktopPane.add( showRubriekTotalsMonth );
-            try {
-                showRubriekTotalsMonth.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.rubriektotalsmonth.ShowRubriekTotalsMonth( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("showRubriekTotalsYear".equals(actionEvent.getActionCommand())) {
-            JInternalFrame showRubriekTotalsYear = new financien.rubriektotalsyear.ShowRubriekTotalsYear( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-            showRubriekTotalsYear.setVisible( true );
-            desktopPane.add( showRubriekTotalsYear );
-            try {
-                showRubriekTotalsYear.setSelected( true );
-            } catch ( java.beans.PropertyVetoException propertyVetoException ) {
-                logger.severe( propertyVetoException.getMessage() );
-            }
+            internalFrame = new financien.rubriektotalsyear.ShowRubriekTotalsYear( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         }
-    }
 
-    /**
-     * Create the GUI and show it.
-     */
-    private static void createAndShowGUI() {
-        // Use the default window decorations.
-        JFrame.setDefaultLookAndFeelDecorated(true);
-
-        // Create and set up the window.
-        Financien financien = new Financien();
-        financien.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE);
-
-        // Display the window.
-        financien.setVisible(true);
+        if (internalFrame == null) return;
+        internalFrame.setVisible( true );
+        desktopPane.add( internalFrame );
+        try {
+            internalFrame.setSelected( true );
+        } catch ( java.beans.PropertyVetoException propertyVetoException ) {
+            logger.severe( propertyVetoException.getMessage() );
+        }
     }
 
     public static void main(String[] args) {
         // Schedule a job for the event-dispatching thread, creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
-            }
-        });
+        // See: https://docs.oracle.com/javase/tutorial/uiswing/concurrency/initial.html
+        // and: https://docs.oracle.com/javase/tutorial/uiswing/concurrency/dispatch.html
+        try {
+            javax.swing.SwingUtilities.invokeAndWait( () -> {
+                // Use the default window decorations.
+                JFrame.setDefaultLookAndFeelDecorated( true );
+
+                // Create and set up the window.
+                Financien financien = new Financien();
+                financien.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE );
+
+                // Display the window.
+                financien.setVisible( true );
+            } );
+        }
+        catch (InvocationTargetException | InterruptedException exc) {
+            System.err.print("Exception: " + exc.getMessage());
+            System.exit(1);
+        }
     }
 }
