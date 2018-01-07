@@ -96,7 +96,7 @@ public class Financien extends JFrame implements ActionListener {
 
         // Load Rabobank mutaties
         menuItem = new JMenuItem("Rabobank mutaties");
-        menuItem.setActionCommand("loadRabobankMutatie");
+        menuItem.setActionCommand("loadRabobankMutaties");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 

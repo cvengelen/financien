@@ -502,6 +502,10 @@ public class RekeningMutatieDialog {
 	    	return false;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog(parentFrame,
+                                          "SQLException: " + sqlException.getMessage(),
+                                          "RekeningMutatieDialog error",
+                                          JOptionPane.ERROR_MESSAGE);
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return false;
 	}
@@ -697,6 +701,10 @@ public class RekeningMutatieDialog {
 	    	return false;
 	    }
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog(parentFrame,
+                                          "SQLException: " + sqlException.getMessage(),
+                                          "RekeningMutatieDialog error",
+                                          JOptionPane.ERROR_MESSAGE);
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return false;
 	}

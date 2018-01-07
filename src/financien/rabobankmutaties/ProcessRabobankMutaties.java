@@ -345,14 +345,14 @@ public class ProcessRabobankMutaties extends JInternalFrame {
                                                        "mededelingen_4, mededelingen_5, mededelingen_6, transactie_referentie " +
 						       "FROM rabobank_mutatie ORDER BY datum, naam_omschrijving" );
 	} catch ( SQLException sqlException ) {
-	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
-            JOptionPane.showMessageDialog( parentFrame,
-                    "SQLException: " + sqlException.getMessage( ) ,
-                    "Process Rabobank mutaties exception",
-                    JOptionPane.ERROR_MESSAGE );
-	    setVisible( false );
+            logger.severe("SQLException: " + sqlException.getMessage());
+            JOptionPane.showMessageDialog(parentFrame,
+                                          "SQLException: " + sqlException.getMessage(),
+                                          "Process Rabobank mutaties exception",
+                                          JOptionPane.ERROR_MESSAGE);
+            setVisible(false);
             dispose();
-	}
+        }
 
 	getNextMutatieRecord( );
 
@@ -800,6 +800,10 @@ public class ProcessRabobankMutaties extends JInternalFrame {
                     throw new Exception( String.format( "Eigen rekening met nummer %s niet gevonden", mutatieEigenRekeningString ) );
                 }
             } catch ( SQLException sqlException ) {
+                JOptionPane.showMessageDialog(parentFrame,
+                                              "SQLException bij ophalen eigen rekening ID: " + sqlException.getMessage(),
+                                              "Process Rabobank mutaties exception",
+                                              JOptionPane.ERROR_MESSAGE);
                 logger.severe( "Exceptie bij ophalen eigen rekening ID: " + sqlException.getMessage() );
             }
 

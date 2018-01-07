@@ -797,6 +797,10 @@ public class ProcessIngMutaties extends JInternalFrame {
                     throw new Exception( String.format( "Eigen rekening met nummer %s niet gevonden", mutatieEigenRekeningString ) );
                 }
             } catch ( SQLException sqlException ) {
+                JOptionPane.showMessageDialog( parentFrame,
+                                               "Exceptie bij ophalen eigen rekening ID: " + sqlException.getMessage( ),
+                                               "Process ING mutaties error",
+                                               JOptionPane.ERROR_MESSAGE);
                 logger.severe( "Exceptie bij ophalen eigen rekening ID: " + sqlException.getMessage() );
             }
 

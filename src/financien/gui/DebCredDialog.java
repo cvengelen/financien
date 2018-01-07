@@ -449,6 +449,10 @@ public class DebCredDialog {
 
 	    updateDebCredButton.setEnabled( true );
 	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog(parentFrame,
+                                          "SQLException: " + sqlException.getMessage(),
+                                          "DebCredDialog error",
+                                          JOptionPane.ERROR_MESSAGE);
 	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    updateDebCredButton.setEnabled( false );
 	}
@@ -518,8 +522,12 @@ public class DebCredDialog {
 	    	logger.severe( "Could not insert in deb_cred" );
 	    	return false;
 	    }
-	} catch ( SQLException ex ) {
-	    logger.severe( "SQLException: " + ex.getMessage( ) );
+	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog(parentFrame,
+                                          "SQLException: " + sqlException.getMessage(),
+                                          "DebCredDialog error",
+                                          JOptionPane.ERROR_MESSAGE);
+	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return false;
 	}
 
@@ -648,8 +656,12 @@ public class DebCredDialog {
 	    	logger.severe( errorString );
 	    	return false;
 	    }
-	} catch ( SQLException ex ) {
-	    logger.severe( "SQLException: " + ex.getMessage( ) );
+	} catch ( SQLException sqlException ) {
+            JOptionPane.showMessageDialog(parentFrame,
+                                          "SQLException: " + sqlException.getMessage(),
+                                          "DebCredDialog error",
+                                          JOptionPane.ERROR_MESSAGE);
+	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
 	    return false;
 	}
 
