@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 /**
  * Main program for schema financien.
  * The first and only argument must specify the fully-qualified name of the class which should be started,
- * e.g.: java -cp ...  financien.Main financien.rekeningmutatie.RekeningMutatieFrame
+ * e.g.: java -cp ...  financien.Main financien.rekeningmutaties.EditRekeningMutaties
  *
  * Created by cvengelen on 25-04-16.
  */
@@ -22,7 +22,7 @@ public class Main {
     public static void main( String[ ] args ) {
         if (args.length == 0 || args[0].length() == 0) {
             logger.severe("No class");
-            System.err.println("Geef de naam van de class die gestart moet worden, bijvoorbeeld: financien.rekeningmutatie.RekeningMutatieFrame");
+            System.err.println("Geef de naam van de class die gestart moet worden, bijvoorbeeld: financien.rekeningmutaties.EditRekeningMutaties");
             System.exit(1);
         }
         final String financienClassName = args[0];
@@ -56,11 +56,11 @@ public class Main {
             constructor.newInstance( DriverManager.getConnection( "jdbc:mysql://localhost/financien?user=financien&password=" + password ) );
         } catch ( ClassNotFoundException classNotFoundException ) {
             logger.severe( "ClassNotFoundException: " + classNotFoundException.getMessage( ) );
-            System.err.println("Class " + financienClassName + " bestaat niet.\nControleer de naam van de class, bijvoorbeeld: financien.rekeningmutatie.RekeningMutatieFrame");
+            System.err.println("Class " + financienClassName + " bestaat niet.\nControleer de naam van de class, bijvoorbeeld: financien.rekeningmutaties.EditRekeningMutaties");
             System.exit( 1 );
         } catch ( NoSuchMethodException noSuchMethodException ) {
             logger.severe( "NoSuchMethodException: " + noSuchMethodException.getMessage( ) );
-            System.err.println("Class " + financienClassName + " bestaat niet.\nControleer de naam van de class, bijvoorbeeld: financien.rekeningmutatie.RekeningMutatieFrame");
+            System.err.println("Class " + financienClassName + " bestaat niet.\nControleer de naam van de class, bijvoorbeeld: financien.rekeningmutaties.EditRekeningMutaties");
             System.exit( 1 );
         } catch ( InstantiationException instantiationException ) {
             logger.severe( "InstantiationException: " + instantiationException.getMessage( ) );

@@ -33,7 +33,7 @@ public class LoadRabobankMutaties extends JInternalFrame {
 
 	class TransactionsFilenameFilter implements FilenameFilter {
 	    public boolean accept( File directory, String filenameString ) {
-		Matcher fileNameMatcher = Pattern.compile( "transactions.*\\.txt" ).matcher( filenameString );
+		Matcher fileNameMatcher = Pattern.compile( "CSV_A.*\\.csv" ).matcher( filenameString );
 		return fileNameMatcher.find( );
 	    }
 	}
@@ -53,14 +53,13 @@ public class LoadRabobankMutaties extends JInternalFrame {
 
 	class TransactionsFileFilter extends FileFilter {
 	    public boolean accept( File file ) {
-
 		//Accept directories, and comma separated value files only
 		if ( file.isDirectory( ) ) {
 		    return true;
  		}
 
 		String fileNameString = file.getName( );
-		Matcher fileNameMatcher = Pattern.compile( "transactions.*\\.txt" ).matcher( fileNameString );
+		Matcher fileNameMatcher = Pattern.compile( "CSV_A.*\\.csv" ).matcher( fileNameString );
 		return fileNameMatcher.find( );
 	    }
 

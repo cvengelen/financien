@@ -83,81 +83,72 @@ public class Financien extends JFrame implements ActionListener {
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
-        // Set up the Load menu
-        JMenu menu = new JMenu("Load");
-        menu.setMnemonic(KeyEvent.VK_L);
+        // Set up the ING menu
+        JMenu menu = new JMenu("ING");
         menuBar.add(menu);
 
         // Load ING mutaties
-        JMenuItem menuItem = new JMenuItem("ING mutaties");
+        JMenuItem menuItem = new JMenuItem("Load ING mutaties", KeyEvent.VK_L);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.ALT_MASK));
         menuItem.setActionCommand("loadIngMutaties");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
-        // Load Rabobank mutaties
-        menuItem = new JMenuItem("Rabobank mutaties");
-        menuItem.setActionCommand("loadRabobankMutaties");
-        menuItem.addActionListener(this);
-        menu.add(menuItem);
-
-        // Set up the Process menu
-        menu = new JMenu("Process");
-        menu.setMnemonic(KeyEvent.VK_P);
-        menuBar.add(menu);
-
         // Process ING mutaties
-        menuItem = new JMenuItem("ING mutaties", KeyEvent.VK_I);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.ALT_MASK));
+        menuItem = new JMenuItem("Process ING mutaties", KeyEvent.VK_P);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK));
         menuItem.setActionCommand("processIngMutaties");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
+        // Set up the Rabobank menu
+        menu = new JMenu("Rabobank");
+        menuBar.add(menu);
+
+        // Load Rabobank mutaties
+        menuItem = new JMenuItem("Load Rabobank mutaties");
+        menuItem.setActionCommand("loadRabobankMutaties");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
         // Process Rabobank mutaties
-        menuItem = new JMenuItem("Rabobank mutaties", KeyEvent.VK_R);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.ALT_MASK));
+        menuItem = new JMenuItem("Process Rabobank mutaties");
         menuItem.setActionCommand("processRabobankMutaties");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
-        // Set up the Edit menu
+        // Set up the Rekeningen menu
         menu = new JMenu("Edit");
-        menu.setMnemonic(KeyEvent.VK_E);
         menuBar.add(menu);
 
         // Edit rekening mutaties
-        menuItem = new JMenuItem("Rekening mutaties", KeyEvent.VK_M);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.ALT_MASK));
+        menuItem = new JMenuItem("Edit rekening mutaties", KeyEvent.VK_R);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.ALT_MASK));
         menuItem.setActionCommand("editRekeningMutaties");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
-        // Edit rekening mutaties rubriek
-        menuItem = new JMenuItem("Rekening mutaties rubriek");
-        menuItem.setActionCommand("editRekeningMutatiesRubriek");
-        menuItem.addActionListener(this);
-        menu.add(menuItem);
-
         // Edit rekening
-        menuItem = new JMenuItem("Rekening");
+        menuItem = new JMenuItem("Edit rekening");
         menuItem.setActionCommand("editRekening");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
         // Edit deb/cred
-        menuItem = new JMenuItem("Deb/Cred", KeyEvent.VK_D);
+        menuItem = new JMenuItem("Edit debiteur/crediteur", KeyEvent.VK_D);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.ALT_MASK));
         menuItem.setActionCommand("editDebCred");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
         // Edit rubriek
-        menuItem = new JMenuItem("Rubriek");
+        menuItem = new JMenuItem("Edit rubriek");
         menuItem.setActionCommand("editRubriek");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
         // Edit koersen
-        menuItem = new JMenuItem("Koersen", KeyEvent.VK_K);
+        menuItem = new JMenuItem("Edit koersen", KeyEvent.VK_K);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, InputEvent.ALT_MASK));
         menuItem.setActionCommand("editKoersen");
         menuItem.addActionListener(this);
@@ -169,26 +160,26 @@ public class Financien extends JFrame implements ActionListener {
         menuBar.add(menu);
 
         // Show waarde for a given date
-        menuItem = new JMenuItem("Waarde op datum", KeyEvent.VK_W);
+        menuItem = new JMenuItem("Show waarde op datum", KeyEvent.VK_W);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.ALT_MASK));
         menuItem.setActionCommand("showWaardeDatum");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
         // Show waarde for a given rekening
-        menuItem = new JMenuItem("Waarde rekening");
+        menuItem = new JMenuItem("Show waarde rekening");
         menuItem.setActionCommand("showWaardeRekening");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
         // Show rubriek totals per month
-        menuItem = new JMenuItem("Rubriek total per maand");
+        menuItem = new JMenuItem("Show rubriek total per maand");
         menuItem.setActionCommand("showRubriekTotalsMonth");
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
         // Show rubriek totals per year
-        menuItem = new JMenuItem("Rubriek total per jaar");
+        menuItem = new JMenuItem("Show rubriek total per jaar");
         menuItem.setActionCommand("showRubriekTotalsYear");
         menuItem.addActionListener(this);
         menu.add(menuItem);
@@ -201,10 +192,10 @@ public class Financien extends JFrame implements ActionListener {
         JInternalFrame internalFrame = null;
         if ("loadIngMutaties".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.ingmutaties.LoadIngMutaties( password, xOffset * openFrameCount, yOffset * openFrameCount );
-        } else if ("loadRabobankMutaties".equals(actionEvent.getActionCommand())) {
-            internalFrame = new financien.rabobankmutaties.LoadRabobankMutaties(password, xOffset*openFrameCount, yOffset*openFrameCount);
         } else if ("processIngMutaties".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.ingmutaties.ProcessIngMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        } else if ("loadRabobankMutaties".equals(actionEvent.getActionCommand())) {
+            internalFrame = new financien.rabobankmutaties.LoadRabobankMutaties(password, xOffset*openFrameCount, yOffset*openFrameCount);
         } else if ("processRabobankMutaties".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.rabobankmutaties.ProcessRabobankMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("editRekeningMutaties".equals(actionEvent.getActionCommand())) {

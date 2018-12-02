@@ -27,6 +27,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Math.abs;
+
 /**
  * Frame to copy downloaded Rabobank mutatie records to rekening_mutatie, and deb_cred tables in schema financien.
  * @author Chris van Engelen
@@ -56,9 +58,6 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 
     private double mutatieBedrag;
     private JLabel mutatieBedragLabel;
-
-    private String mutatieDebetCreditString;
-    private JLabel mutatieDebetCreditLabel;
 
     private JSpinner jaarSpinner;
     private JSpinner maandSpinner;
@@ -167,10 +166,6 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 	constraints.gridx = GridBagConstraints.RELATIVE;
 	constraints.insets = insetsRight;
 	container.add( mutatieBedragLabel, constraints );
-
-	mutatieDebetCreditLabel = new JLabel( );
-	constraints.gridx = GridBagConstraints.RELATIVE;
-	container.add( mutatieDebetCreditLabel, constraints );
 
 	constraints.gridx = 0;
 	constraints.gridy = 3;
@@ -340,10 +335,10 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 	try {
 	    final Statement statement = connection.createStatement( );
 	    mutatieResultSet = statement.executeQuery( "SELECT datum, tegen_rekening, naam_omschrijving, " +
-						       "mutatie, debet_credit, code, eigen_rekening, " +
+						       "mutatie, code, eigen_rekening, " +
                                                        "mededelingen_1, mededelingen_2, mededelingen_3, " +
-                                                       "mededelingen_4, mededelingen_5, mededelingen_6, transactie_referentie " +
-						       "FROM rabobank_mutatie ORDER BY datum, naam_omschrijving" );
+                                                       "reden_retour, transactie_referentie, volgnummer " +
+						       "FROM rabobank_mutatie ORDER BY volgnummer" );
 	} catch ( SQLException sqlException ) {
             logger.severe("SQLException: " + sqlException.getMessage());
             JOptionPane.showMessageDialog(parentFrame,
@@ -686,16 +681,10 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 	insertString += ", datum = '" + mutatieDatumString + "'";
 	insertString += ", deb_cred_id = " + debCredId;
 
-        switch ( mutatieDebetCreditString ) {
-        case "D":
-            insertString += ", mutatie_uit = " + mutatieBedrag;
-            break;
-        case "C":
+        if ( mutatieBedrag < 0.0 ) {
+            insertString += ", mutatie_uit = " + Math.abs(mutatieBedrag);
+        } else {
             insertString += ", mutatie_in = " + mutatieBedrag;
-            break;
-        default:
-            logger.severe( "invalid Debet/Credit string" );
-            return false;
         }
 
 	int jaar = ( Integer )( jaarSpinner.getValue( ) );
@@ -780,13 +769,10 @@ public class ProcessRabobankMutaties extends JInternalFrame {
             }
 	    mutatieBedragLabel.setText( euroDecimalFormat.format( mutatieBedrag ) );
 
-	    mutatieDebetCreditString = mutatieResultSet.getString( 5 );
-	    mutatieDebetCreditLabel.setText( mutatieDebetCreditString );
-
-            mutatieCodeString = mutatieResultSet.getString( 6 );
+            mutatieCodeString = mutatieResultSet.getString( 5 );
 
             // Haal de rekening ID op van de eigen rekening
-            mutatieEigenRekeningString = mutatieResultSet.getString( 7 );
+            mutatieEigenRekeningString = mutatieResultSet.getString( 6 );
             try {
                 final String queryEigenRekening = String.format( "SELECT rekening_id FROM rekening WHERE nummer = '%s'", mutatieEigenRekeningString );
 
@@ -809,11 +795,11 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 
             // Bouw de mededelingen string op
             StringBuilder mutatieMededelingenStringBuilder = new StringBuilder( );
-            for ( int resultSetIndex = 8; resultSetIndex <= 13; resultSetIndex++ ) {
+            for ( int resultSetIndex = 7; resultSetIndex <= 10; resultSetIndex++ ) {
                 if ( !( mutatieResultSet.getString( resultSetIndex ).isEmpty() ) )
                     mutatieMededelingenStringBuilder.append( mutatieResultSet.getString( resultSetIndex ) );
             }
-            if ( !( mutatieResultSet.getString( 14 ).isEmpty( ) ) ) {
+            if ( !( mutatieResultSet.getString( 11 ).isEmpty( ) ) ) {
                 if ( mutatieMededelingenStringBuilder.length( ) > 0 ) mutatieMededelingenStringBuilder.append( "; " );
                 mutatieMededelingenStringBuilder.append( "transactie referentie: " );
                 mutatieMededelingenStringBuilder.append( mutatieResultSet.getString( 14 ) );
@@ -821,8 +807,8 @@ public class ProcessRabobankMutaties extends JInternalFrame {
             mutatieMededelingenString = mutatieMededelingenStringBuilder.toString( );
             mutatieMededelingenTextField.setText( mutatieMededelingenString );
 
-            // Clear volgnummer
-            volgNummerSpinner.setValue( 0 );
+            // Set volgnummer from volgnummer in mutatie
+            volgNummerSpinner.setValue( mutatieResultSet.getInt(12) );
 
             if ( !( getDebCredId( ) ) ) {
                 JOptionPane.showMessageDialog( parentFrame,
