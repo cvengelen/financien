@@ -158,6 +158,16 @@ public class LoadRabobankMutaties extends JInternalFrame {
                     logger.info( "Process exit status: " + exitStatus );
                     if ( exitStatus != 0 ) {
                         System.err.println( "Error in executing " + loadRabobankMutatieDataCmd );
+                        JOptionPane.showMessageDialog( this,
+                                                       "Error in executing " + loadRabobankMutatieDataCmd,
+                                                       "Load Rabobank mutaties error",
+                                                       JOptionPane.ERROR_MESSAGE );
+                    }
+                    else {
+                        JOptionPane.showMessageDialog( this,
+                                                       "Successfully loaded Rabobank mutatie data",
+                                                       "Load Rabobank mutaties",
+                                                       JOptionPane.INFORMATION_MESSAGE );
                     }
                 } catch ( InterruptedException | IOException exception ) {
                     logger.severe( exception.getMessage( ) );

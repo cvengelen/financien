@@ -160,6 +160,12 @@ public class LoadIngMutaties extends JInternalFrame {
                                 "Load ING mutaties error",
                                 JOptionPane.ERROR_MESSAGE );
                     }
+                    else {
+                        JOptionPane.showMessageDialog( this,
+                                                       "Successfully loaded ING mutatie data",
+                                                       "Load ING mutaties",
+                                                       JOptionPane.INFORMATION_MESSAGE );
+                    }
                 } catch ( InterruptedException | IOException exception ) {
                     logger.severe( exception.getMessage( ) );
                     JOptionPane.showMessageDialog( this,

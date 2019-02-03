@@ -949,7 +949,12 @@ public class ShowWaardeDatum extends JInternalFrame {
 
                         final double saldoWaardeTable = waardeResultSet.getDouble( 1 );
                         if ( Math.abs( saldo - saldoWaardeTable ) > 0.01 ) {
-                            addToUpdateString( "saldo = " + saldo );
+                            // Truncate on 5 decimals, to avoid data truncation error in SQL update
+                            // Zie: http://docs.oracle.com/javase/6/docs/api/java/math/BigDecimal.html
+                            // Scale is the number of digits to the right of the decimal point
+                            BigDecimal bigDecimal = new BigDecimal( saldo );
+                            String saldoConverted = bigDecimal.setScale( 5, RoundingMode.HALF_UP ).toString( );
+                            addToUpdateString( "saldo = " + saldoConverted );
                             infoString +=
                                     "\nsaldo  \t\t" + saldoDecimalFormat.format( saldoWaardeTable ) +
                                             "  \t" + saldoDecimalFormat.format( saldo ) +
@@ -958,7 +963,12 @@ public class ShowWaardeDatum extends JInternalFrame {
 
                         final double waardeWaardeTable = waardeResultSet.getDouble( 3 );
                         if ( Math.abs( waarde - waardeWaardeTable ) > 0.01 ) {
-                            addToUpdateString( "waarde = " + waarde );
+                            // Truncate on 2 decimals, to avoid data truncation error in SQL update
+                            // Zie: http://docs.oracle.com/javase/6/docs/api/java/math/BigDecimal.html
+                            // Scale is the number of digits to the right of the decimal point
+                            BigDecimal bigDecimal = new BigDecimal( waarde );
+                            String waardeConverted = bigDecimal.setScale( 2, RoundingMode.HALF_UP ).toString( );
+                            addToUpdateString( "waarde = " + waardeConverted );
                             infoString +=
                                     "\nwaarde  \t" + euroDecimalFormat.format( waardeWaardeTable ) +
                                             "  \t" + euroDecimalFormat.format( waarde ) +
@@ -998,7 +1008,7 @@ public class ShowWaardeDatum extends JInternalFrame {
 
                             final double rendementWaardeTable = waardeResultSet.getDouble( 6 );
                             if ( Math.abs( rendement - rendementWaardeTable ) > 0.0001 ) {
-                                // Truncate on 5 decimals, to avoid data truncation error in SQL update
+                                // Truncate on 4 decimals, to avoid data truncation error in SQL update
                                 // Zie: http://docs.oracle.com/javase/6/docs/api/java/math/BigDecimal.html
                                 // Scale is the number of digits to the right of the decimal point
                                 BigDecimal bigDecimal = new BigDecimal( rendement );
@@ -1013,7 +1023,7 @@ public class ShowWaardeDatum extends JInternalFrame {
 
                             final double rendementTotaalWaardeTable = waardeResultSet.getDouble( 7 );
                             if ( Math.abs( rendementTotaal - rendementTotaalWaardeTable ) > 0.0001 ) {
-                                // Truncate on 5 decimals, to avoid data truncation error in SQL update
+                                // Truncate on 4 decimals, to avoid data truncation error in SQL update
                                 // Zie: http://docs.oracle.com/javase/6/docs/api/java/math/BigDecimal.html
                                 // Scale is the number of digits to the right of the decimal point
                                 BigDecimal bigDecimal = new BigDecimal( rendementTotaal );
@@ -1043,7 +1053,7 @@ public class ShowWaardeDatum extends JInternalFrame {
 
                             final double rendementPerJaarWaardeTable = waardeResultSet.getDouble( 9 );
                             if ( Math.abs( rendementPerJaar - rendementPerJaarWaardeTable ) > 0.0001 ) {
-                                // Truncate on 5 decimals, to avoid data truncation error in SQL update
+                                // Truncate on 4 decimals, to avoid data truncation error in SQL update
                                 // Zie: http://docs.oracle.com/javase/6/docs/api/java/math/BigDecimal.html
                                 // Scale is the number of digits to the right of the decimal point
                                 BigDecimal bigDecimal = new BigDecimal( rendementPerJaar );
@@ -1058,7 +1068,7 @@ public class ShowWaardeDatum extends JInternalFrame {
 
                             final double rendementComparePerJaarWaardeTable = waardeResultSet.getDouble( 10 );
                             if ( Math.abs( rendementComparePerJaar - rendementComparePerJaarWaardeTable ) > 0.0001 ) {
-                                // Truncate on 5 decimals, to avoid data truncation error in SQL update
+                                // Truncate on 4 decimals, to avoid data truncation error in SQL update
                                 // Zie: http://docs.oracle.com/javase/6/docs/api/java/math/BigDecimal.html
                                 // Scale is the number of digits to the right of the decimal point
                                 BigDecimal bigDecimal = new BigDecimal( rendementComparePerJaar );
