@@ -2,6 +2,9 @@
 
 package financien.waardedatum;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
@@ -63,8 +66,10 @@ public class ShowWaardeDatum extends JInternalFrame {
     private static final DecimalFormat usdDecimalFormat = new DecimalFormat( "USD #0.00;USD -#" );
     private static final DecimalFormat percentDecimalFormat = new DecimalFormat( "% #0.00;% -#" );
 
+    private static final String closeActionCommandString = "close";
     private static final String insertActionCommandString = "insert";
     private static final String updateActionCommandString = "update";
+    private static final String exportActionCommandString = "export";
 
     private static final long milliSecondsPerDay = 24 * 60 * 60 * 1000;
 
@@ -320,11 +325,13 @@ public class ShowWaardeDatum extends JInternalFrame {
         class ButtonActionListener implements ActionListener {
             public void actionPerformed( ActionEvent actionEvent ) {
                 final String actionCommandString = actionEvent.getActionCommand( );
-                if ( actionEvent.getActionCommand( ).equals( "close" ) ) {
+                switch (actionCommandString)
+                {
+                case closeActionCommandString:
                     setVisible( false );
                     dispose();
-                    return;
-                } else if ( actionCommandString.equals( insertActionCommandString ) ) {
+                    break;
+                case insertActionCommandString:
                     final GregorianCalendar calendar = new GregorianCalendar( );
                     final Date todayDate = calendar.getTime( );
                     String insertDatumString = dateFormat.format( todayDate );
@@ -374,13 +381,14 @@ public class ShowWaardeDatum extends JInternalFrame {
                                 "Insert waarde datum error",
                                 JOptionPane.ERROR_MESSAGE
                         );
-                        return;
                     }
-                } else if ( actionCommandString.equals( updateActionCommandString ) ) {
+                    break;
+
+                case updateActionCommandString:
                     // Get the selected waarde datum
                     selectedWaardeDatumString = waardeDatumComboBox.getSelectedWaardeDatumString( );
 
-                    // Check if rekening has been selected
+                    // Check if waarde datum has been selected
                     if ( ( selectedWaardeDatumString == null ) ||
                             ( selectedWaardeDatumString.length( ) == 0 ) ) {
                         JOptionPane.showMessageDialog( parentFrame,
@@ -400,7 +408,24 @@ public class ShowWaardeDatum extends JInternalFrame {
                                 "Update waarde",
                                 JOptionPane.INFORMATION_MESSAGE );
                     }
+                    break;
 
+                case exportActionCommandString:
+                    // Get the selected waarde datum
+                    selectedWaardeDatumString = waardeDatumComboBox.getSelectedWaardeDatumString( );
+
+                    // Check if waarde datum has been selected
+                    if ( ( selectedWaardeDatumString == null ) ||
+                            ( selectedWaardeDatumString.length( ) == 0 ) ) {
+                        JOptionPane.showMessageDialog( parentFrame,
+                                                       "Geen datum geselecteerd",
+                                                       "Waarde frame error",
+                                                       JOptionPane.ERROR_MESSAGE );
+                        return;
+                    }
+
+                    exportWaarde(selectedWaardeDatumString);
+                    break;
                 }
             }
         }
@@ -410,18 +435,23 @@ public class ShowWaardeDatum extends JInternalFrame {
 
         final JButton insertButton = new JButton( "Insert" );
         insertButton.addActionListener( buttonActionListener );
-        insertButton.setActionCommand( "insert" );
+        insertButton.setActionCommand( insertActionCommandString );
         buttonPanel.add( insertButton );
 
         final JButton updateButton = new JButton( "Update" );
         updateButton.addActionListener( buttonActionListener );
-        updateButton.setActionCommand( "update" );
+        updateButton.setActionCommand( updateActionCommandString );
         buttonPanel.add( updateButton );
 
         final JButton closeButton = new JButton( "Close" );
         closeButton.addActionListener( buttonActionListener );
-        closeButton.setActionCommand( "close" );
+        closeButton.setActionCommand( closeActionCommandString );
         buttonPanel.add( closeButton );
+
+        final JButton exportButton = new JButton( "Export" );
+        exportButton.addActionListener( buttonActionListener );
+        exportButton.setActionCommand( exportActionCommandString );
+        buttonPanel.add( exportButton );
 
 
         constraints.gridx = 0;
@@ -1342,5 +1372,58 @@ public class ShowWaardeDatum extends JInternalFrame {
         }
 
         return update;
+    }
+
+    private void exportWaarde(String selectedWaardeDatumString) {
+        try {
+            final String fileName = "/Users/cvengelen/Documents/Financien/WaardeDatum_" + selectedWaardeDatumString + ".csv";
+            FileWriter fileWriter = new FileWriter(fileName);
+            PrintWriter printWriter = new PrintWriter(fileWriter);
+
+            double rekeningTypeTotaal = 0.0;
+            double totaal = 0.0;
+            int rekening;
+            int totaalRekeningTypeId = 1;
+            for (rekening = 0; rekening < waardeDatumTableModel.getRowCount(); rekening++) {
+                double waarde = ((Double)(waardeDatumTableModel.getValueAt(rekening, 4))).doubleValue();
+
+                final int rekeningTypeId = (Integer)(waardeDatumTableModel.getValueAt(rekening, 1));
+                if (rekeningTypeId != totaalRekeningTypeId) {
+                    if (rekeningTypeTotaal > 0.0) {
+                        printWriter.printf("Totaal %s;%.2f\n", rekeningTypeString[totaalRekeningTypeId], rekeningTypeTotaal);
+                        printWriter.print(";\n");
+                    }
+                    rekeningTypeTotaal = 0.0;
+                    totaalRekeningTypeId = rekeningTypeId;
+                }
+
+                if (waarde <= 0.0) continue;
+
+                printWriter.printf("%s;%.2f\n", (String)(waardeDatumTableModel.getValueAt(rekening, 0)), waarde);
+                rekeningTypeTotaal += waarde;
+                totaal += waarde;
+            }
+
+            if (rekeningTypeTotaal > 0.0) {
+                printWriter.printf("Totaal %s;%.2f\n", rekeningTypeString[totaalRekeningTypeId], rekeningTypeTotaal);
+                printWriter.print(";\n");
+            }
+            printWriter.printf("Totaal;%.2f\n", totaal);
+
+            printWriter.flush();
+            fileWriter.close();
+
+            JOptionPane.showMessageDialog(this,
+                                          "Successfully exported waarde to file " + fileName,
+                                          "Export waarde datum",
+                                           JOptionPane.INFORMATION_MESSAGE );
+            }
+        catch (IOException ioException ) {
+            JOptionPane.showMessageDialog( parentFrame,
+                                           ioException.getMessage( ),
+                                           "Show waarde datum IO exception",
+                                           JOptionPane.ERROR_MESSAGE);
+            logger.severe( "IOException: " + ioException.getMessage( ) );
+        }
     }
 }
