@@ -30,7 +30,7 @@ public class Main {
 
         try {
             // Load the MySQL JDBC driver
-            Class.forName( "com.mysql.jdbc.Driver" );
+            Class.forName( "com.mysql.cj.jdbc.Driver" );
         } catch ( ClassNotFoundException classNotFoundException ) {
             logger.severe( "ClassNotFoundException: " + classNotFoundException.getMessage() );
             System.exit( 1 );
@@ -49,7 +49,7 @@ public class Main {
             // Find the constructor of the class with name financienClassName which has a Connection as parameter
             // See: https://docs.oracle.com/javase/tutorial/reflect/class/classNew.html
             // and: http://tutorials.jenkov.com/java-reflection/constructors.html
-            final Constructor constructor = Class.forName(financienClassName).getConstructor( Connection.class );
+            final Constructor<?> constructor = Class.forName(financienClassName).getConstructor( Connection.class );
 
             // Open a connection to the financien schema of the MySQL database, and create the frame with the MySQL connection as parameter.
             // No need to save a reference of the instance: when the frame is finished, the application is finished.

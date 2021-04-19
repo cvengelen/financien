@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 public class Financien extends JFrame implements ActionListener {
     private final static Logger logger = Logger.getLogger( financien.Main.class.getCanonicalName() );
 
-    private JDesktopPane desktopPane;
+    private final JDesktopPane desktopPane;
     private Connection connection;
     private String password;
 
@@ -40,7 +40,7 @@ public class Financien extends JFrame implements ActionListener {
 
         try {
             // Load the MySQL JDBC driver
-            Class.forName( "com.mysql.jdbc.Driver" );
+            Class.forName( "com.mysql.cj.jdbc.Driver" );
         } catch ( ClassNotFoundException classNotFoundException ) {
             logger.severe( "ClassNotFoundException: " + classNotFoundException.getMessage() );
             System.exit( 1 );
