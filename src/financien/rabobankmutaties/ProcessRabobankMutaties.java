@@ -767,7 +767,7 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 	        logger.severe( "Double parse number format exception: " + numberFormatException.getMessage( ) );
 	        mutatieBedrag = 0;
             }
-	    mutatieBedragLabel.setText( euroDecimalFormat.format( mutatieBedrag ) );
+	    	mutatieBedragLabel.setText( euroDecimalFormat.format( mutatieBedrag ) );
 
             mutatieCodeString = mutatieResultSet.getString( 5 );
 
@@ -802,7 +802,7 @@ public class ProcessRabobankMutaties extends JInternalFrame {
             if ( !( mutatieResultSet.getString( 11 ).isEmpty( ) ) ) {
                 if ( mutatieMededelingenStringBuilder.length( ) > 0 ) mutatieMededelingenStringBuilder.append( "; " );
                 mutatieMededelingenStringBuilder.append( "transactie referentie: " );
-                mutatieMededelingenStringBuilder.append( mutatieResultSet.getString( 14 ) );
+                mutatieMededelingenStringBuilder.append( mutatieResultSet.getString( 11 ) );
             }
             mutatieMededelingenString = mutatieMededelingenStringBuilder.toString( );
             mutatieMededelingenTextField.setText( mutatieMededelingenString );
