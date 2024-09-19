@@ -55,6 +55,9 @@ public class ShowWaardeDatum extends JInternalFrame {
     private JTextField totaalTextField = new JTextField( );
     private String selectQueryTotaalString;
 
+    private final HashMap<Integer, JLabel> rekeningTypeLabelHashMap = new HashMap<Integer, JLabel>();
+    private final HashMap<Integer, JTextField> rekeningTypeTotaalTextFieldHashMap = new HashMap<Integer, JTextField>();
+
     private JTextField totaalKoersenDatumTextField = new JTextField( );
     private String totaalKoersenDatumString = null;
     private Date totaalKoersenDatumDate;
@@ -116,7 +119,7 @@ public class ShowWaardeDatum extends JInternalFrame {
             }
 
             // Setup the totaal fields and waarde table for the specified date
-            setupWaardeDatumTable( selectedWaardeDatumString );
+            setupWaardeDatumTable( selectedWaardeDatumString, container );
         } );
 
         constraints.anchor = GridBagConstraints.WEST;
@@ -146,36 +149,16 @@ public class ShowWaardeDatum extends JInternalFrame {
             logger.severe( "SQLException in rekeningTypeStatement: " + sqlException.getMessage( ) );
         }
 
-        // Setup the JTextField fields for the totaal value of each rekening_type,
-        // and setup the string used in the SELECT query on the totaal table
+        // Set up the string used in the SELECT query on the totaal table
         selectQueryTotaalString = "";
-        final Insets insetsLabel = new Insets( 2, 50, 2, 5 );
-        final Insets insetsText = new Insets( 2, 5, 2, 700 );
         int rekeningTypeId;
         for ( rekeningTypeId = 1; rekeningTypeId <= maximumRekeningTypeId; rekeningTypeId++ ) {
-            constraints.gridx = 0;
-            constraints.gridy = rekeningTypeId;
-            constraints.anchor = GridBagConstraints.EAST;
-            constraints.insets = insetsLabel;
-            constraints.gridwidth = 1;
-            constraints.weightx = 1.0;
-            constraints.fill = GridBagConstraints.NONE;
-            container.add( new JLabel( rekeningTypeString[ rekeningTypeId ] + ":" ), constraints );
-
-            rekeningTypeTotaalTextField[ rekeningTypeId ] = new JTextField( 10 );
-            rekeningTypeTotaalTextField[ rekeningTypeId ].setHorizontalAlignment( JTextField.RIGHT );
-            rekeningTypeTotaalTextField[ rekeningTypeId ].setEnabled( false );
-            constraints.gridx = GridBagConstraints.RELATIVE;
-            constraints.anchor = GridBagConstraints.WEST;
-            constraints.insets = insetsText;
-            constraints.gridwidth = 1;
-            constraints.weightx = 1.0;
-            constraints.fill = GridBagConstraints.HORIZONTAL;
-            container.add( rekeningTypeTotaalTextField[ rekeningTypeId ], constraints );
-
             selectQueryTotaalString += rekeningTypeTotaalFieldString[ rekeningTypeId ] + ", ";
         }
         logger.info( "selectQueryTotaalString: " + selectQueryTotaalString );
+
+        final Insets insetsLabel = new Insets( 2, 50, 2, 5 );
+        final Insets insetsText = new Insets( 2, 5, 2, 700 );
 
         // Setup the JTextField field for the overall totaal
         constraints.gridx = 0;
@@ -367,12 +350,12 @@ public class ShowWaardeDatum extends JInternalFrame {
                                     JOptionPane.INFORMATION_MESSAGE );
                         }
 
-                        // Alway setup the waarde Datum combo box, the totaal fields,
+                        // Always set up the waarde Datum combo box, the totaal fields,
                         // and the waarde table for the specified date again because
-                        // even if the dat already existed and no update was necessary,
+                        // even if the date already existed and no update was necessary,
                         // this date may not be the selected date.
                         waardeDatumComboBox.setupWaardeDatumComboBox( insertDatumString );
-                        setupWaardeDatumTable( insertDatumString );
+                        setupWaardeDatumTable( insertDatumString, container );
                     } catch ( ParseException parseException ) {
                         // The exception message already shows the invalid date string
                         JOptionPane.showMessageDialog( parentFrame,
@@ -401,7 +384,7 @@ public class ShowWaardeDatum extends JInternalFrame {
                     // Update existing records in waarde and totaal for the selected date
                     if ( updateWaarde( actionCommandString, selectedWaardeDatumString ) ) {
                         // Setup the totaal fields and waarde table for the specified date
-                        setupWaardeDatumTable( selectedWaardeDatumString );
+                        setupWaardeDatumTable( selectedWaardeDatumString, container );
                     } else {
                         JOptionPane.showMessageDialog( parentFrame,
                                 "Geen update nodig voor datum " + selectedWaardeDatumString,
@@ -468,7 +451,16 @@ public class ShowWaardeDatum extends JInternalFrame {
         setVisible( true );
     }
 
-    private void setupWaardeDatumTable( String waardeDatumString ) {
+    private void setupWaardeDatumTable( String waardeDatumString, Container container ) {
+        // Remove the current rekening type label
+        for ( JLabel rekeningTypeLabel : rekeningTypeLabelHashMap.values() ) {
+            container.remove(rekeningTypeLabel);
+        }
+        // Remove the current rekening type totaal text field
+        for ( JTextField rekeningTypeTotaalTextField : rekeningTypeTotaalTextFieldHashMap.values() ) {
+            container.remove(rekeningTypeTotaalTextField);
+        }
+
         // Get the related record for the selected date from table totaal
         try {
             Statement totaalStatement = connection.createStatement( );
@@ -482,12 +474,37 @@ public class ShowWaardeDatum extends JInternalFrame {
                 return;
             }
 
+            GridBagConstraints constraints = new GridBagConstraints( );
+            final Insets insetsLabel = new Insets( 2, 50, 2, 5 );
+            final Insets insetsText = new Insets( 2, 5, 2, 700 );
+
             // Store the values from the totaal record in the totaal labels of the accounts
             int rekeningTypeId;
             for ( rekeningTypeId = 1; rekeningTypeId <= maximumRekeningTypeId; rekeningTypeId++ ) {
-                final String rekeningTypeTotaalString =
-                        euroDecimalFormat.format( totaalResultSet.getDouble( rekeningTypeId ) );
-                rekeningTypeTotaalTextField[ rekeningTypeId ].setText( rekeningTypeTotaalString );
+                // Get the totaal for this rekening type
+                Double totaal = totaalResultSet.getDouble( rekeningTypeId );
+                // Check totaal of this rekening type is larger than 0
+                if (totaal != 0) {
+                    constraints.gridx = 0;
+                    constraints.gridy = rekeningTypeId;
+                    constraints.anchor = GridBagConstraints.EAST;
+                    constraints.insets = insetsLabel;
+                    constraints.gridwidth = 1;
+                    constraints.weightx = 1.0;
+                    constraints.fill = GridBagConstraints.NONE;
+                    rekeningTypeLabelHashMap.put(rekeningTypeId, new JLabel(rekeningTypeString[rekeningTypeId] + ":"));
+                    container.add(rekeningTypeLabelHashMap.get(rekeningTypeId), constraints);
+
+                    final JTextField rekeningTypeTotaalTextField = new JTextField(euroDecimalFormat.format(totaal),10);
+                    rekeningTypeTotaalTextField.setHorizontalAlignment(JTextField.RIGHT);
+                    rekeningTypeTotaalTextField.setEnabled(false);
+                    constraints.gridx = GridBagConstraints.RELATIVE;
+                    constraints.anchor = GridBagConstraints.WEST;
+                    constraints.insets = insetsText;
+                    constraints.fill = GridBagConstraints.HORIZONTAL;
+                    container.add(rekeningTypeTotaalTextField, constraints);
+                    rekeningTypeTotaalTextFieldHashMap.put(rekeningTypeId, rekeningTypeTotaalTextField);
+                }
             }
 
             // Store the value from the totaal record for the overall totaal
@@ -499,6 +516,9 @@ public class ShowWaardeDatum extends JInternalFrame {
 
             // Set the totaal koersen datum text field
             totaalKoersenDatumTextField.setText( totaalKoersenDatumString );
+
+            container.validate();
+            container.repaint();
         } catch ( SQLException sqlException ) {
             JOptionPane.showMessageDialog( parentFrame,
                     sqlException.getMessage( ),
@@ -617,7 +637,7 @@ public class ShowWaardeDatum extends JInternalFrame {
                             "rekening_type.rekening_pattern " +
                             "FROM rekening " +
                             "LEFT JOIN rekening_type ON rekening.type_id = rekening_type.rekening_type_id " +
-                            "WHERE rekening_houder_id = 1" );
+                            "WHERE rekening_houder_id = 1 AND aktief = 1" );
 
             // Setup Totaal for each rekening type
             double[] rekeningTypeTotaal = new double[ maximumRekeningTypeId + 1 ];
@@ -696,7 +716,8 @@ public class ShowWaardeDatum extends JInternalFrame {
 
                 // Continue with next rekening if absolute value of rekening is 0
                 // Maar niet voor Credit cards, want daarvoor kan het saldo 0 zijn
-                if ( ( rekeningTypeId != 6 ) && ( Math.abs( saldo ) < 0.1 ) ) continue;
+                // Obsolete: selecteer alleen actieve rekeningen
+                // if ( ( rekeningTypeId != 6 ) && ( Math.abs( saldo ) < 0.1 ) ) continue;
 
                 double waarde = saldo;
                 double koers = 0.0;
