@@ -47,7 +47,7 @@ public class ShowWaardeDatum extends JInternalFrame {
     private Date euroDatumDate;
     private Date euroKoersenDatumDate;
 
-    private static final int maximumRekeningTypeId = 9;    // Maximum value field rekening_type_id in table rekening_type
+    private static final int maximumRekeningTypeId = 10;    // Maximum value field rekening_type_id in table rekening_type
 
     private final String[] rekeningTypeString = new String[ maximumRekeningTypeId + 1 ];
     private final String[] rekeningTypeTotaalFieldString = new String[ maximumRekeningTypeId + 1 ];
@@ -734,7 +734,7 @@ public class ShowWaardeDatum extends JInternalFrame {
 
                 // Check the type of account
                 if ( ( rekeningTypeId == 4 ) || ( rekeningTypeId == 5 ) ||
-                        ( rekeningTypeId == 7 ) ) {
+                        ( rekeningTypeId == 7 ) || ( rekeningTypeId == 10 ) ) {
 
                     ///////////////////////////////////////
                     // Stock account

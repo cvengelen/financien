@@ -91,7 +91,7 @@ class WaardeDatumTableModel extends AbstractTableModel {
                             " FROM waarde" +
                             " LEFT JOIN rekening ON rekening.rekening_id = waarde.rekening_id" +
                             " WHERE waarde.datum = '" + datumString + "'" +
-                            " ORDER BY rekening.type_id, rekening.rekening";
+                            " ORDER BY rekening.rekening";
 
             Statement statement = connection.createStatement( );
             ResultSet resultSet = statement.executeQuery( waardeDatumQueryString );
