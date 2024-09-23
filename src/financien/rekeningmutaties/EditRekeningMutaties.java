@@ -68,7 +68,7 @@ public class EditRekeningMutaties extends JInternalFrame {
     private JLabel sumMutatieOutLabel;
 
     // Maximum value field rekening_type_id in table rekening_type
-    private final int maximumRekeningTypeId = 9;
+    private final int maximumRekeningTypeId = 10;
     private DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
 
     public EditRekeningMutaties( final Connection connection, final JFrame parentFrame, int x, int y ) {

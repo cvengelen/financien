@@ -34,7 +34,7 @@ public class EditRekeningMutatiesRubriek extends JInternalFrame {
 
     private JLabel omschrijvingLabel;
 
-    private final int maximumRekeningTypeId = 9;	// Maximum value field rekening_type_id in table rekening_type
+    private final int maximumRekeningTypeId = 10;	// Maximum value field rekening_type_id in table rekening_type
     private final DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
 
     public EditRekeningMutatiesRubriek( final Connection connection, final JFrame parentFrame, int x, int y ) {
