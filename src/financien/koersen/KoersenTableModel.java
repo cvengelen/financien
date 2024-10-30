@@ -78,7 +78,7 @@ class KoersenTableModel extends AbstractTableModel {
 	    Statement statement = connection.createStatement( );
 	    String rekeningQueryString =
 		"SELECT fonds FROM rekening WHERE " +
-		"( type_id = 4 OR type_id = 5 OR type_id = 7 ) AND ( aktief != 0 ) AND " +
+		"( type_id = 4 OR type_id = 5 OR type_id = 7 OR type_id = 10 ) AND ( aktief != 0 ) AND " +
 		"( NOT ISNULL( fonds ) ) ORDER BY fonds";
 	    ResultSet resultSet = statement.executeQuery( rekeningQueryString );
 
