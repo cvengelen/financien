@@ -1403,32 +1403,25 @@ public class ShowWaardeDatum extends JInternalFrame {
 
             double rekeningTypeTotaal = 0.0;
             double totaal = 0.0;
-            int rekening;
-            int totaalRekeningTypeId = 1;
-            for (rekening = 0; rekening < waardeDatumTableModel.getRowCount(); rekening++) {
-                double waarde = ((Double)(waardeDatumTableModel.getValueAt(rekening, 4))).doubleValue();
+            for (int rekeningTypeId = 1; rekeningTypeId <= 10; rekeningTypeId++) {
+                for (int rekening = 0; rekening < waardeDatumTableModel.getRowCount(); rekening++) {
+                    double waarde = ((Double) (waardeDatumTableModel.getValueAt(rekening, 4))).doubleValue();
+                    if (waarde <= 0.0) continue;
 
-                final int rekeningTypeId = (Integer)(waardeDatumTableModel.getValueAt(rekening, 1));
-                if (rekeningTypeId != totaalRekeningTypeId) {
-                    if (rekeningTypeTotaal > 0.0) {
-                        printWriter.printf("Totaal %s;%.2f\n", rekeningTypeString[totaalRekeningTypeId], rekeningTypeTotaal);
-                        printWriter.print(";\n");
-                    }
-                    rekeningTypeTotaal = 0.0;
-                    totaalRekeningTypeId = rekeningTypeId;
+                    if ((Integer)(waardeDatumTableModel.getValueAt(rekening, 1)) != rekeningTypeId) continue;
+
+                    printWriter.printf("%s;%.2f\n", (String) (waardeDatumTableModel.getValueAt(rekening, 0)), waarde);
+                    rekeningTypeTotaal += waarde;
+                    totaal += waarde;
                 }
 
-                if (waarde <= 0.0) continue;
-
-                printWriter.printf("%s;%.2f\n", (String)(waardeDatumTableModel.getValueAt(rekening, 0)), waarde);
-                rekeningTypeTotaal += waarde;
-                totaal += waarde;
+                if (rekeningTypeTotaal > 0.0) {
+                    printWriter.printf("Totaal %s;%.2f\n", rekeningTypeString[rekeningTypeId], rekeningTypeTotaal);
+                    printWriter.print(";\n");
+                }
+                rekeningTypeTotaal = 0.0;
             }
 
-            if (rekeningTypeTotaal > 0.0) {
-                printWriter.printf("Totaal %s;%.2f\n", rekeningTypeString[totaalRekeningTypeId], rekeningTypeTotaal);
-                printWriter.print(";\n");
-            }
             printWriter.printf("Totaal;%.2f\n", totaal);
 
             printWriter.flush();
