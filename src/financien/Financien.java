@@ -26,9 +26,10 @@ public class Financien extends JFrame implements ActionListener {
     private Financien() {
         super("Financien");
 
-        final int inset = 100;
+        final int xInset = 500;
+        final int yInset = 200;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds(inset, inset, screenSize.width  - (3 * inset), screenSize.height - (2 * inset));
+        setBounds(xInset, yInset, screenSize.width  - xInset, screenSize.height - yInset);
 
         // Set up the GUI.
         desktopPane = new JDesktopPane();
@@ -216,8 +217,6 @@ public class Financien extends JFrame implements ActionListener {
             internalFrame = new financien.waarderekening.ShowWaardeRekening( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("showRubriekTotalsMonth".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.rubriektotalsmonth.ShowRubriekTotalsMonth( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        } else if ("showRubriekTotalsYear".equals(actionEvent.getActionCommand())) {
-            internalFrame = new financien.rubriektotalsyear.ShowRubriekTotalsYear( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("showRubriekTotalsYear".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.rubriektotalsyear.ShowRubriekTotalsYear( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         }
