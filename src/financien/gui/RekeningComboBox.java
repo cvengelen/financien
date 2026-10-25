@@ -16,19 +16,19 @@ public class RekeningComboBox extends JComboBox<String> {
     private final Logger logger = Logger.getLogger( RekeningComboBox.class.getCanonicalName() );
 
     private final Map<String, Integer> rekeningMap = new HashMap<>( 20 );
-    private Connection	connection = null;
+    private final Connection connection;
 
     public RekeningComboBox( final Connection	connection,
-                             final int		selectedRekeningId,
+                             final int		    selectedRekeningId,
                              final int          rekeningHouderId,
-                             final boolean	activeOnly ) {
+                             final boolean	    activeOnly ) {
         this.connection = connection;
 
         setupRekeningComboBox( selectedRekeningId, rekeningHouderId, activeOnly );
     }
 
-    public void setupRekeningComboBox( final int	selectedRekeningId,
-				       final int	rekeningHouderId,
+    public void setupRekeningComboBox( final int	    selectedRekeningId,
+                                       final int	    rekeningHouderId,
                                        final boolean	activeOnly ) {
         // Remove all existing items in the boek combo box
         removeAllItems( );
@@ -90,7 +90,7 @@ public class RekeningComboBox extends JComboBox<String> {
         if ( rekeningString == null ) return 0;
 
         // Check if empty string is selected
-        if ( rekeningString.length( ) == 0 ) return 0;
+        if ( rekeningString.isEmpty( ) ) return 0;
 
         // Get the rekening_id from the map
         if ( rekeningMap.containsKey( rekeningString ) ) {

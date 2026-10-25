@@ -16,49 +16,71 @@ public class RubriekComboBox extends JComboBox<String> {
     private final Logger logger = Logger.getLogger( RubriekComboBox.class.getCanonicalName() );
 
     private final Map<String, Integer> rubriekMap = new HashMap<>( 300 );
+	private final Connection connection;
 
     public RubriekComboBox( Connection	connection,
-			    int		selectedRubriekId,
-			    boolean	addRubriekId ) {
+			    			int		selectedRubriekId,
+			    			boolean	addRubriekId ) {
 
-	// Add first empty item to force selection of non-empty item
-	addItem( "" );
+		this.connection = connection;
 
-	if ( !rubriekMap.isEmpty( ) ) {
-	    // Remove all items in the rubriek hash table
-	    rubriekMap.clear( );
+		setupRubriekComboBox( selectedRubriekId, addRubriekId, true );
 	}
 
-	try {
-	    // Fill the combo box and hash table
-	    Statement statement = connection.createStatement( );
-	    ResultSet resultSet = statement.executeQuery( "SELECT rubriek_id, rubriek FROM rubriek " +
-							  "ORDER BY rubriek" );
+	public void setupRubriekComboBox( final int	selectedRubriekId,
+									   final boolean	addRubriekId,
+									   final boolean	activeOnly ) {
 
-	    while ( resultSet.next( ) ) {
-		String rubriekString = resultSet.getString( 2 );
-		if ( addRubriekId ) {
-		    rubriekString += " (" + resultSet.getInt( 1 ) + ")";
+		// Remove all existing items in the rubriek combo box
+		removeAllItems( );
+
+		// Add first empty item to force selection of non-empty item
+		addItem( "" );
+
+		if ( !rubriekMap.isEmpty( ) ) {
+	    	// Remove all items in the rubriek hash table
+	    	rubriekMap.clear( );
 		}
 
-		// Store the rubriek_id in the map indexed by the rubriekString
-		rubriekMap.put( rubriekString, resultSet.getInt( 1 ) );
+		try {
+	    	// Fill the combo box and hash table
+			String rubriekQueryString = "SELECT rubriek_id, rubriek FROM rubriek";
 
-		// Add the rubriekString to the combo box
-		addItem( rubriekString );
+			// Check if only active accounts are required
+			if ( activeOnly ) {
+				rubriekQueryString += " WHERE aktief != 0";
+			}
 
-		// Check if this is the selected rubriek
-		if ( resultSet.getInt( 1 ) == selectedRubriekId ) {
-		    // Select this rubriek
-		    setSelectedItem( rubriekString );
+			// Add order to query
+			rubriekQueryString += " ORDER BY rubriek";
+
+	    	Statement statement = connection.createStatement( );
+	    	ResultSet resultSet = statement.executeQuery( rubriekQueryString );
+
+	    	while ( resultSet.next( ) ) {
+				String rubriekString = resultSet.getString( 2 );
+				if ( addRubriekId ) {
+		    		rubriekString += " (" + resultSet.getInt( 1 ) + ")";
+				}
+
+				// Store the rubriek_id in the map indexed by the rubriekString
+				rubriekMap.put( rubriekString, resultSet.getInt( 1 ) );
+
+				// Add the rubriekString to the combo box
+				addItem( rubriekString );
+
+				// Check if this is the selected rubriek
+				if ( resultSet.getInt( 1 ) == selectedRubriekId ) {
+		    		// Select this rubriek
+		    		setSelectedItem( rubriekString );
+				}
+	    	}
+		} catch ( SQLException sqlException ) {
+	    	logger.severe( "SQLException: " + sqlException.getMessage( ) );
 		}
-	    }
-	} catch ( SQLException sqlException ) {
-	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
+
+		setMaximumRowCount( 20 );
 	}
-
-	setMaximumRowCount( 20 );
-    }
 
     public String getSelectedRubriekString( ) {
 	return ( String )getSelectedItem( );
@@ -72,7 +94,7 @@ public class RubriekComboBox extends JComboBox<String> {
 	if ( rubriekString == null ) return 0;
 
 	// Check if empty string is selected
-	if ( rubriekString.length( ) == 0 ) return 0;
+	if ( rubriekString.isEmpty( ) ) return 0;
 
 	// Get the rubriek_id from the map
 	if ( rubriekMap.containsKey( rubriekString ) ) {
