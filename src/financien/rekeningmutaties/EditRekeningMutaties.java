@@ -27,21 +27,21 @@ import table.*;
 public class EditRekeningMutaties extends JInternalFrame {
     private final Logger logger = Logger.getLogger( EditRekeningMutaties.class.getCanonicalName( ) );
 
-    private Connection connection;
-    private JFrame parentFrame;
+    private final Connection connection;
+    private final JFrame parentFrame;
 
-    private RekeningMutatieTableModel rekeningMutatieTableModel;
-    private TableSorter rekeningMutatieTableSorter;
-    private JTable rekeningMutatieTable;
+    private final RekeningMutatieTableModel rekeningMutatieTableModel;
+    private final TableSorter rekeningMutatieTableSorter;
+    private final JTable rekeningMutatieTable;
 
-    private RekeningHouderComboBox rekeningHouderComboBox;
+    private final RekeningHouderComboBox rekeningHouderComboBox;
     private int selectedRekeningHouderId = 1;
 
-    private RekeningComboBox rekeningComboBox;
+    private final RekeningComboBox rekeningComboBox;
     private int selectedRekeningId = 0;
-    private JLabel rekeningNummerLabel;
-    private JLabel saldoLabel;
-    private JLabel datumLabel;
+    private final JLabel rekeningNummerLabel;
+    private final JLabel saldoLabel;
+    private final JLabel datumLabel;
     private final JButton updateSaldoButton = new JButton( "Update" );
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
@@ -54,22 +54,22 @@ public class EditRekeningMutaties extends JInternalFrame {
 
     private RubriekComboBox rubriekComboBox;
     private int selectedRubriekId = 0;
-    private JLabel rubriekOmschrijvingLabel;
+    private final JLabel rubriekOmschrijvingLabel;
 
-    private DebCredComboBox debCredComboBox;
+    private final DebCredComboBox debCredComboBox;
     private int selectedDebCredId = 0;
-    private JLabel debCredOmschrijvingLabel;
+    private final JLabel debCredOmschrijvingLabel;
     private String debCredFilterString = null;
 
-    private JTextField omschrijvingFilterTextField = null;
+    private final JTextField omschrijvingFilterTextField;
 
-    private JLabel sumMutatieSaldoLabel;
-    private JLabel sumMutatieInLabel;
-    private JLabel sumMutatieOutLabel;
+    private final JLabel sumMutatieSaldoLabel;
+    private final JLabel sumMutatieInLabel;
+    private final JLabel sumMutatieOutLabel;
 
     // Maximum value field rekening_type_id in table rekening_type
     private final int maximumRekeningTypeId = 10;
-    private DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
+    private final DecimalFormat [ ] mutatieDecimalFormat = new DecimalFormat[ maximumRekeningTypeId + 1 ];
 
     public EditRekeningMutaties( final Connection connection, final JFrame parentFrame, int x, int y ) {
         super("Edit rekening mutaties", true, true, true, true);
@@ -108,7 +108,13 @@ public class EditRekeningMutaties extends JInternalFrame {
 
         JPanel rekeningPanel = new JPanel( );
 
-        // Setup a JComboBox with the results of the query on rekening houder
+        // Set up a JComboBox with the results of the query on rekening
+        rekeningComboBox = new RekeningComboBox( connection,
+                selectedRekeningId,
+                selectedRekeningHouderId,
+                true );
+
+        // Set up a JComboBox with the results of the query on rekening houder
         rekeningHouderComboBox = new RekeningHouderComboBox( connection, 1 );
         rekeningPanel.add( rekeningHouderComboBox );
 
@@ -149,15 +155,11 @@ public class EditRekeningMutaties extends JInternalFrame {
                                                         selectedRekeningHouderId,
                                                         onlyActiveAccountsButton.isSelected() );
 
-                // Setup the rekening_mutatie table for the selected debCred
+                // Set up the rekening_mutatie table for the selected debCred
                 setupRekeningMutatieTable();
             }
         } );
 
-        // Setup a JComboBox with the results of the query on rekening
-        rekeningComboBox = new RekeningComboBox( connection, selectedRekeningId,
-                                                 selectedRekeningHouderId,
-                                                 true );
         rekeningPanel.add( rekeningComboBox );
 
         class RekeningActionListener implements ActionListener {
@@ -208,7 +210,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                     }
                 }
 
-                // Setup the rekening_mutatie table
+                // Set up the rekening_mutatie table
                 setupRekeningMutatieTable( );
             }
         }
@@ -260,7 +262,30 @@ public class EditRekeningMutaties extends JInternalFrame {
 
         JPanel rubriekPanel = new JPanel( );
 
-        // Setup a JComboBox with the results of the query on rubriek
+        ActionListener rubriekSelectieActionListener = ( ActionEvent actionEvent ) ->
+                 rubriekComboBox.setupRubriekComboBox( selectedRubriekId,
+                         true,
+                         actionEvent.getActionCommand( ).equals( "onlyActiveRubrieken" ) );
+
+        final JRadioButton onlyActiveRubriekenButton = new JRadioButton( "Aktieve rubrieken", true );
+        onlyActiveRubriekenButton.setActionCommand( "onlyActiveRubrieken" );
+        onlyActiveRubriekenButton.addActionListener( rubriekSelectieActionListener );
+
+        JRadioButton allRubriekenButton = new JRadioButton( "Alle rubrieken" );
+        allRubriekenButton.setActionCommand( "allRubrieken" );
+        allRubriekenButton.addActionListener( rubriekSelectieActionListener );
+
+        ButtonGroup rubriekSelectieButtonGroup = new ButtonGroup( );
+        rubriekSelectieButtonGroup.add( onlyActiveRubriekenButton );
+        rubriekSelectieButtonGroup.add( allRubriekenButton );
+
+        JPanel rubriekSelectieButtonPanel = new JPanel( new GridLayout( 2, 1 ) );
+        rubriekSelectieButtonPanel.add( onlyActiveRubriekenButton );
+        rubriekSelectieButtonPanel.add( allRubriekenButton );
+
+        rubriekPanel.add( rubriekSelectieButtonPanel );
+
+        // Set up a JComboBox with the results of the query on rubriek
         rubriekComboBox = new RubriekComboBox( connection, 0, true );
         rubriekPanel.add( rubriekComboBox );
 
@@ -289,7 +314,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                     }
                 }
 
-                // Setup the rekening_mutatie table for the selected rubriek
+                // Set up the rekening_mutatie table for the selected rubriek
                 setupRekeningMutatieTable( );
             }
         }
@@ -312,7 +337,7 @@ public class EditRekeningMutaties extends JInternalFrame {
 
         JPanel debCredPanel = new JPanel( );
 
-        // Setup a JComboBox with the results of the query on debCred
+        // Set up a JComboBox with the results of the query on debCred
         debCredComboBox = new DebCredComboBox( connection, selectedDebCredId, "", true );
         debCredPanel.add( debCredComboBox );
 
@@ -341,7 +366,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                     }
                 }
 
-                // Setup the rekening_mutatie table for the selected debCred
+                // Set up the rekening_mutatie table for the selected debCred
                 setupRekeningMutatieTable( );
             }
         }
@@ -368,7 +393,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                         // Store the new Deb/Cred filter
                         debCredFilterString = newDebCredFilterString;
 
-                        // Setup the debCred combo box with the Deb/Cred filter
+                        // Set up the debCred combo box with the Deb/Cred filter
                         // Reset the selected Deb/Cred ID in order to avoid immediate selection
                         debCredComboBox.setupDebCredComboBox( 0, "", debCredFilterString, true );
                     }
@@ -637,7 +662,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                                                0,
                                                selectedRekeningHouderId );
 
-                    // Records may have been modified: setup the table model again
+                    // Records may have been modified: set up the table model again
                     setupRekeningMutatieTable( );
                 } else {
                     int selectedRow = mutatieListSelectionListener.getSelectedRow( );
@@ -705,7 +730,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                             return;
                         }
 
-                        // Records may have been modified: setup the table model again
+                        // Records may have been modified: set up the table model again
                         setupRekeningMutatieTable( );
                     } else if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
                         // Allow to edit the selected row
@@ -799,17 +824,17 @@ public class EditRekeningMutaties extends JInternalFrame {
 
 
     private void setupRekeningMutatieTable( ) {
-        // Setup the rekening_mutatie table
+        // Set up the rekening_mutatie table
         rekeningMutatieTableModel.setupRekeningMutatieTableModel( selectedRekeningHouderId,
                                                                   selectedRekeningId,
                                                                   selectedRubriekId,
                                                                   selectedDebCredId,
                                                                   omschrijvingFilterTextField.getText( ) );
 
-        // Setup the tableSorter again so that the TableSorter gets the new table size (# rows)
+        // Set up the tableSorter again so that the TableSorter gets the new table size (# rows)
         rekeningMutatieTableSorter.setTableModel( rekeningMutatieTableModel );
 
-        // Need to setup preferred column width up again
+        // Need to set up preferred column width up again
         rekeningMutatieTable.getColumnModel( ).getColumn(  0 ).setPreferredWidth( 100 );  // Datum
         rekeningMutatieTable.getColumnModel( ).getColumn(  1 ).setPreferredWidth( 150 );  // Rekening
         rekeningMutatieTable.getColumnModel( ).getColumn(  2 ).setPreferredWidth( 150 );  // Rubriek

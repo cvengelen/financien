@@ -17,11 +17,11 @@ class RubriekTotalsYearTableModel extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
     private final Logger m_logger = Logger.getLogger( "financien.gui.RubriekTotalsYearTableModel" );
 
-    private Connection m_connection;
-    private JFrame m_parentFrame;
-    private Vector<String> m_headings = new Vector<>();
+    private final Connection m_connection;
+    private final JFrame m_parentFrame;
+    private final Vector<String> m_headings = new Vector<>();
 
-    private class RubriekTotalsRecord {
+    private static class RubriekTotalsRecord {
 	int     m_year;
         Vector<Double> m_totals;
 
@@ -100,11 +100,11 @@ class RubriekTotalsYearTableModel extends AbstractTableModel {
                 totals.add(sumTotal);
 
                 // Add this year to the list of rubriek total records
-                m_rubriekTotalsRecordList.add( new RubriekTotalsRecord( year, totals ));
+                m_rubriekTotalsRecordList.add(new RubriekTotalsRecord(year, totals));
 	    }
 
             m_rubriekTotalsRecordList.trimToSize( );
-            m_logger.info("Table shows " + m_rubriekTotalsRecordList.size() + " rubriek totals per year records");
+            m_logger.fine("Table shows " + m_rubriekTotalsRecordList.size() + " rubriek totals per year records");
 
 	    // Trigger update of table data
 	    fireTableDataChanged( );
