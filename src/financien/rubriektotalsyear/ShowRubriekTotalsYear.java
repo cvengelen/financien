@@ -29,23 +29,23 @@ public class ShowRubriekTotalsYear extends JInternalFrame {
 
     private final Font dialogFont = new Font( "Dialog", Font.BOLD, 12 );
 
-    private RubriekListModel rubriekListModel;
-    private JList rubriekList;
-    private Vector<Integer> selectedRubriekIds = new Vector<>(10);
-    private Vector<String> selectedRubrieken = new Vector<>(10);
+    private final RubriekListModel rubriekListModel;
+    private final JList rubriekList;
+    private final Vector<Integer> selectedRubriekIds = new Vector<>(10);
+    private final Vector<String> selectedRubrieken = new Vector<>(10);
 
-    private RekeningHouderComboBox rekeningHouderComboBox;
+    private final RekeningHouderComboBox rekeningHouderComboBox;
     private int selectedRekeningHouderId = 1;
 
-    private JSpinner firstYearSpinner;
+    private final JSpinner firstYearSpinner;
     private int firstYear;
 
-    private JSpinner lastYearSpinner;
+    private final JSpinner lastYearSpinner;
     private int lastYear;
 
-    private RubriekTotalsYearTableModel rubriekTotalsTableModel;
-    private TableSorter rubriekTotalsTableSorter;
-    private JTable rubriekTotalsTable;
+    private final RubriekTotalsYearTableModel rubriekTotalsTableModel;
+    private final TableSorter rubriekTotalsTableSorter;
+    private final JTable rubriekTotalsTable;
     private final DecimalFormat decimalFormat = new DecimalFormat( "#0.00;-#" );
 
     public ShowRubriekTotalsYear( final Connection connection, final JFrame parentFrame, int x, int y ) {
@@ -68,11 +68,11 @@ public class ShowRubriekTotalsYear extends JInternalFrame {
 
         JPanel rekeningPanel = new JPanel( );
 
-        // Setup a JComboBox with the results of the query on rekening houder
+        // Set up a JComboBox with the results of the query on rekening houder
         rekeningHouderComboBox = new RekeningHouderComboBox( connection, 1 );
         rekeningPanel.add( rekeningHouderComboBox );
         rekeningHouderComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
-            // Setup the rubriek totals table for the selected rekening houder
+            // Set up the rubriek totals table for the selected rekening houder
             selectedRekeningHouderId = rekeningHouderComboBox.getSelectedRekeningHouderId();
             setupRubriekTotalsTable( );
         });
@@ -82,15 +82,15 @@ public class ShowRubriekTotalsYear extends JInternalFrame {
         constraints.gridwidth = 2;
         constraints.anchor = GridBagConstraints.WEST;
         container.add( rekeningPanel, constraints );
-        constraints.gridwidth = 1;
 
         constraints.insets = new Insets( 5, 20, 5, 5 );
         constraints.gridx = 0;
         constraints.gridy = 1;
+        constraints.gridwidth = 1;
         constraints.anchor = GridBagConstraints.EAST;
         container.add( new JLabel( "Rubriek:" ), constraints );
 
-        // Setup a JList for the rubriek using the ListModel for the rubriek
+        // Set up a JList for the rubriek using the ListModel for the rubriek
         rubriekListModel = new RubriekListModel( connection );
         rubriekList = new JList<>(rubriekListModel);
         rubriekList.setVisibleRowCount( 3 );
@@ -108,26 +108,56 @@ public class ShowRubriekTotalsYear extends JInternalFrame {
                     selectedRubrieken.add(rubriekListModel.getRubriek ( rubriekListModelIndex ));
                 }
 
-                // Setup the rubriek totals table for the selected rubriek
+                // Set up the rubriek totals table for the selected rubriek
                 setupRubriekTotalsTable( );
             }
         }
         rubriekList.addListSelectionListener(new RubriekListSelectionListener());
 
-        constraints.insets = new Insets( 5, 5, 5, 250 );
+        constraints.insets = new Insets( 5, 10, 5, 10 );
         constraints.gridx = GridBagConstraints.RELATIVE;
-        constraints.gridwidth = 2;
-        constraints.fill = GridBagConstraints.BOTH;
+        constraints.gridwidth = 1;
+        constraints.fill = GridBagConstraints.VERTICAL;;
         constraints.weightx = 0d;
-        constraints.weighty = 1.5d;
+        constraints.weighty = 1d;
         constraints.anchor = GridBagConstraints.WEST;
+        // Setting the minimum scroll pane size is required for the horizontal width
+        rubriekScrollPane.setMinimumSize( new Dimension( 350, 100 ) );
         container.add( rubriekScrollPane, constraints );
-        constraints.fill = GridBagConstraints.NONE;
+
+        ActionListener rubriekSelectieActionListener = ( ActionEvent actionEvent ) -> {
+            rubriekListModel.setupRubriekListModel(actionEvent.getActionCommand().equals("onlyActiveRubrieken"));
+            // Repaint to show the updated rubriek list immediately
+            rubriekScrollPane.repaint( );
+        };
+
+        final JRadioButton onlyActiveRubriekenButton = new JRadioButton( "Aktieve rubrieken" );
+        onlyActiveRubriekenButton.setActionCommand( "onlyActiveRubrieken" );
+        onlyActiveRubriekenButton.addActionListener( rubriekSelectieActionListener );
+
+        JRadioButton allRubriekenButton = new JRadioButton( "Alle rubrieken", true );
+        allRubriekenButton.setActionCommand( "allRubrieken" );
+        allRubriekenButton.addActionListener( rubriekSelectieActionListener );
+
+        ButtonGroup rubriekSelectieButtonGroup = new ButtonGroup( );
+        rubriekSelectieButtonGroup.add( onlyActiveRubriekenButton );
+        rubriekSelectieButtonGroup.add( allRubriekenButton );
+
+        JPanel rubriekSelectieButtonPanel = new JPanel( new GridLayout( 2, 1 ) );
+        rubriekSelectieButtonPanel.add( onlyActiveRubriekenButton );
+        rubriekSelectieButtonPanel.add( allRubriekenButton );
+
+        constraints.insets = new Insets( 5, 5, 5, 10 );
+        constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 1;
+        constraints.fill = GridBagConstraints.NONE;;
         constraints.weightx = 0d;
         constraints.weighty = 0d;
+        constraints.anchor = GridBagConstraints.WEST;
+        container.add( rubriekSelectieButtonPanel, constraints );
 
         constraints.gridx = 0;
-        constraints.gridy = 3;
+        constraints.gridy = 2;
         constraints.insets = new Insets( 5, 20, 5, 5 );
         container.add( new JLabel( "Start jaar:" ), constraints );
 
@@ -141,17 +171,19 @@ public class ShowRubriekTotalsYear extends JInternalFrame {
             firstYearSpinnerTextField.setFont( dialogFont );
         }
         firstYearSpinner.addChangeListener( ( ChangeEvent changeEvent ) -> {
-            // Setup the rubriek totals table for the selected first year
+            // Set up the rubriek totals table for the selected first year
             firstYear = (Integer)(firstYearSpinner.getValue());
             setupRubriekTotalsTable( );
         });
 
         constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
         constraints.insets = new Insets( 5, 5, 5, 5 );
         container.add( firstYearSpinner, constraints );
 
         constraints.gridx = 0;
-        constraints.gridy = 4;
+        constraints.gridy = 3;
+        constraints.gridwidth = 1;
         constraints.insets = new Insets( 5, 20, 5, 5 );
         container.add( new JLabel( "Laatste jaar:" ), constraints );
 
@@ -165,12 +197,13 @@ public class ShowRubriekTotalsYear extends JInternalFrame {
             lastYearSpinnerTextField.setFont( dialogFont );
         }
         lastYearSpinner.addChangeListener( ( ChangeEvent changeEvent ) -> {
-            // Setup the rubriek totals table for the selected last year
+            // Set up the rubriek totals table for the selected last year
             lastYear = (Integer)(lastYearSpinner.getValue());
             setupRubriekTotalsTable( );
         });
 
         constraints.gridx = GridBagConstraints.RELATIVE;
+        constraints.gridwidth = 2;
         constraints.insets = new Insets( 5, 5, 5, 5 );
         container.add( lastYearSpinner, constraints );
 
@@ -201,9 +234,12 @@ public class ShowRubriekTotalsYear extends JInternalFrame {
                     this.setText( object.toString( ) );
                 }
                 else {
-                    final double total = ( Double )object;
-                    if ( total == 0 ) {
-                        // Return empty string
+                    // Get the total and mutatie for this rubriek in this year from the RubriekTotal entry
+                    final double total = ( ( RubriekTotalsYearTableModel.RubriekTotal )object ).m_total;
+                    final boolean mutatie = ( ( RubriekTotalsYearTableModel.RubriekTotal )object ).m_mutatie;
+
+                    // If there is no mutatie for this rubriek in this year then return empty string
+                    if ( !mutatie && total == 0 ) {
                         this.setText( "" );
                     } else {
                         // Use the formatter defined for EUR
@@ -226,12 +262,12 @@ public class ShowRubriekTotalsYear extends JInternalFrame {
         // scrollPane.getViewport( ).setBackground( Color.white );
 
         constraints.gridx = 0;
-        constraints.gridy = 6;
+        constraints.gridy = 4;
         constraints.gridwidth = 3;
         constraints.insets = new Insets( 10, 20, 5, 20 );
         // Setting weightx, weighty and fill is necessary for proper filling the frame when resized.
         constraints.weightx = 1d;
-        constraints.weighty = 1d;
+        constraints.weighty = 2d;
         constraints.fill = GridBagConstraints.BOTH;
         constraints.anchor = GridBagConstraints.CENTER;
         container.add( scrollPane, constraints );
@@ -281,17 +317,17 @@ public class ShowRubriekTotalsYear extends JInternalFrame {
     }
 
     private void setupRubriekTotalsTable( ) {
-        // Setup the rubriek totals table for the selected rubriek
+        // Set up the rubriek totals table for the selected rubriek
         rubriekTotalsTableModel.setupRubriekTotalsTableModel(selectedRubriekIds, selectedRubrieken,
                                                              selectedRekeningHouderId, 0, firstYear, lastYear);
 
-        // Setup the tableSorter again so that the TableSorter gets the new table size (# rows)
+        // Set up the tableSorter again so that the TableSorter gets the new table size (# rows)
         rubriekTotalsTableSorter.setTableModel( rubriekTotalsTableModel );
 
         // Set the preferred column width for the Year
         rubriekTotalsTable.getColumnModel( ).getColumn(  0 ).setPreferredWidth( 70 );
 
-        // Loop over columns 1 .. end
+        // Loop over columns 1 ... end
         for (int column = 1; column < rubriekTotalsTableModel.getColumnCount(); column++) {
             // Set the preferred column width for the rubriek total
             rubriekTotalsTable.getColumnModel().getColumn( column ).setPreferredWidth( 80 );

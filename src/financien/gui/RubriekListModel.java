@@ -13,28 +13,32 @@ import java.util.logging.Logger;
  */
 public class RubriekListModel extends AbstractListModel<String> {
     private final Logger logger = Logger.getLogger( RubriekListModel.class.getCanonicalName() );
+    private final Connection connection;
 
-    private class RubriekRecord {
+    private static class RubriekRecord {
         int m_rubriekId;
         String m_rubriek;
-        String m_rubriekDescription;
 
-        RubriekRecord( int rubriekId, String rubriek, String rubriekDescription ) {
+        RubriekRecord( int rubriekId, String rubriek ) {
             m_rubriekId = rubriekId;
             m_rubriek = rubriek;
-            m_rubriekDescription = rubriekDescription;
         }
 
         RubriekRecord( RubriekRecord rubriekRecord ) {
             m_rubriekId = rubriekRecord.m_rubriekId;
             m_rubriek = rubriekRecord.m_rubriek;
-            m_rubriekDescription = rubriekRecord.m_rubriekDescription;
         }
     }
 
     private final Vector< RubriekRecord > rubriekVector = new Vector<>( 300 );
 
     public RubriekListModel( Connection connection ) {
+        this.connection = connection;
+
+        setupRubriekListModel( false );
+    }
+
+    public void setupRubriekListModel( final boolean activeOnly ) {
 
         if ( !rubriekVector.isEmpty() ) {
             // Remove all items in the rubriek vector
@@ -43,13 +47,22 @@ public class RubriekListModel extends AbstractListModel<String> {
 
         try {
             // Fill the vector with rubriek records
+            String rubriekQueryString = "SELECT rubriek_id, rubriek FROM rubriek";
+
+            // Check if only active accounts are required
+            if ( activeOnly ) {
+                rubriekQueryString += " WHERE aktief != 0";
+            }
+
+            // Add order to query
+            rubriekQueryString += " ORDER BY rubriek";
+
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery( "SELECT rubriek_id, rubriek, omschrijving FROM rubriek " +
-                    "ORDER BY rubriek" );
+            ResultSet resultSet = statement.executeQuery( rubriekQueryString );
 
             int index = 0;
             while ( resultSet.next() ) {
-                rubriekVector.add( index++, new RubriekRecord( resultSet.getInt( 1 ), resultSet.getString( 2 ), resultSet.getString( 3 ) ) );
+                rubriekVector.add( index++, new RubriekRecord( resultSet.getInt( 1 ), resultSet.getString( 2 ) ) );
             }
         } catch ( SQLException sqlException ) {
             logger.severe( "SQLException: " + sqlException.getMessage() );
@@ -70,9 +83,5 @@ public class RubriekListModel extends AbstractListModel<String> {
 
     public String getRubriek(int index) {
         return rubriekVector.get( index ).m_rubriek;
-    }
-
-    public String getRubriekDescription( int index ) {
-        return rubriekVector.get( index ).m_rubriekDescription;
     }
 }
