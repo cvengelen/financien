@@ -34,8 +34,8 @@ public class EditRekeningMutaties extends JInternalFrame {
     private final TableSorter rekeningMutatieTableSorter;
     private final JTable rekeningMutatieTable;
 
-    private final RekeningHouderComboBox rekeningHouderComboBox;
-    private int selectedRekeningHouderId = 1;
+    // ComboBox for selected rekening houder ID removed: now just use CvE fixed
+    private final int selectedRekeningHouderId = 1;
 
     private final RekeningComboBox rekeningComboBox;
     private int selectedRekeningId = 0;
@@ -109,14 +109,7 @@ public class EditRekeningMutaties extends JInternalFrame {
         JPanel rekeningPanel = new JPanel( );
 
         // Set up a JComboBox with the results of the query on rekening
-        rekeningComboBox = new RekeningComboBox( connection,
-                selectedRekeningId,
-                selectedRekeningHouderId,
-                true );
-
-        // Set up a JComboBox with the results of the query on rekening houder
-        rekeningHouderComboBox = new RekeningHouderComboBox( connection, 1 );
-        rekeningPanel.add( rekeningHouderComboBox );
+        rekeningComboBox = new RekeningComboBox( connection, selectedRekeningId, selectedRekeningHouderId, true );
 
         ActionListener rekeningSelectieActionListener = ( ActionEvent actionEvent ) ->
             rekeningComboBox.setupRekeningComboBox( selectedRekeningId,
@@ -140,26 +133,6 @@ public class EditRekeningMutaties extends JInternalFrame {
         rekeningSelectieButtonPanel.add( allAccountsButton );
 
         rekeningPanel.add( rekeningSelectieButtonPanel );
-
-        rekeningHouderComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
-            // Controleer of de rekeninghouder gewijzigd is
-            if ( rekeningHouderComboBox.getSelectedRekeningHouderId( ) != selectedRekeningHouderId ) {
-                // Get the selected Rekeninghouder ID
-                selectedRekeningHouderId = rekeningHouderComboBox.getSelectedRekeningHouderId();
-
-                // Reset de geselecteerde rekening
-                selectedRekeningId = 0;
-
-                // Setup the rekening combobox
-                rekeningComboBox.setupRekeningComboBox( selectedRekeningId,
-                                                        selectedRekeningHouderId,
-                                                        onlyActiveAccountsButton.isSelected() );
-
-                // Set up the rekening_mutatie table for the selected debCred
-                setupRekeningMutatieTable();
-            }
-        } );
-
         rekeningPanel.add( rekeningComboBox );
 
         class RekeningActionListener implements ActionListener {
@@ -181,8 +154,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                                                     "start_saldo, start_datum, rekening_pattern " +
                                                     "FROM rekening " +
                                                     "LEFT JOIN rekening_type ON rekening.type_id = rekening_type.rekening_type_id " +
-                                                    "WHERE rekening_id = " +
-                                                    selectedRekeningId );
+                                                    "WHERE rekening_id = " + selectedRekeningId );
                         if ( ! resultSet.next( ) ) {
                             logger.severe( "Could not get record for rekening_id " +
                                            selectedRekeningId + " in rekening" );
@@ -376,8 +348,8 @@ public class EditRekeningMutaties extends JInternalFrame {
         debCredPanel.add( debCredOmschrijvingLabel );
 
         // Class to handle Deb/Cred filter button
-       class DebCredFilterButtonActionListener implements ActionListener {
-           public void actionPerformed( ActionEvent actionEvent ) {
+        class DebCredFilterButtonActionListener implements ActionListener {
+            public void actionPerformed( ActionEvent actionEvent ) {
                 if ( actionEvent.getActionCommand( ).equals( "filter" ) ) {
                     String newDebCredFilterString =
                         ( String )JOptionPane.showInputDialog( parentFrame,
@@ -388,7 +360,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                                                                null,
                                                                debCredFilterString );
 
-                    // Check if dialog was completed successfully (i.e., not canceled)
+                    // Check if dialog was completed successfully (i.e., not cancelled)
                     if ( newDebCredFilterString != null ) {
                         // Store the new Deb/Cred filter
                         debCredFilterString = newDebCredFilterString;
@@ -474,7 +446,7 @@ public class EditRekeningMutaties extends JInternalFrame {
         rekeningMutatieTableSorter.setTableHeader( rekeningMutatieTable.getTableHeader( ) );
         // rekeningMutatieTableSorter.setSortingStatus( 0, TableSorter.DESCENDING );
 
-        // Initialize the table and the columns width
+        // Initialise the table and the columns width
         setupRekeningMutatieTable( );
 
         rekeningMutatieTable.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
@@ -625,7 +597,6 @@ public class EditRekeningMutaties extends JInternalFrame {
 
         rekeningMutatieTable.addMouseListener( new MouseListener ( ) {
             public void mouseClicked( MouseEvent mouseEvent ) {
-                logger.info( "Mouse clicked: " + mouseEvent.getClickCount( ) );
                 if ( mouseEvent.getClickCount( ) == 2 ) {
                     // Allow to edit the selected row
                     rekeningMutatieTableModel.setEditRow( mutatieListSelectionListener.getSelectedRow( ) );
@@ -659,7 +630,7 @@ public class EditRekeningMutaties extends JInternalFrame {
                     new RekeningMutatieDialog( connection,
                                                parentFrame,
                                                selectedRubriekId,
-                                               0,
+                                               selectedRekeningId,
                                                selectedRekeningHouderId );
 
                     // Records may have been modified: set up the table model again
@@ -674,102 +645,110 @@ public class EditRekeningMutaties extends JInternalFrame {
                         return;
                     }
 
-                    if ( actionEvent.getActionCommand( ).equals( "delete" ) ) {
-                        final String datumString = rekeningMutatieTableModel.getDatumString( selectedRow );
-                        int result =
-                            JOptionPane.showConfirmDialog( parentFrame,
-                                                           "Delete record for rekening " +
-                                                           rekeningMutatieTableModel.getRekeningString( selectedRow ) +
-                                                           " at date " + datumString +
-                                                           " in rekening_mutatie ?",
-                                                           "Delete rekening mutatie record",
-                                                           JOptionPane.YES_NO_OPTION,
-                                                           JOptionPane.QUESTION_MESSAGE,
-                                                           null );
+                    switch ( actionEvent.getActionCommand( ) ) {
+                        case "delete":
+                            final String datumString = rekeningMutatieTableModel.getDatumString( selectedRow );
+                            int result =
+                                JOptionPane.showConfirmDialog( parentFrame,
+                                        "Delete record for rekening " +
+                                                rekeningMutatieTableModel.getRekeningString( selectedRow ) +
+                                                " at date " + datumString +
+                                                " in rekening_mutatie ?",
+                                        "Delete rekening mutatie record",
+                                        JOptionPane.YES_NO_OPTION,
+                                        JOptionPane.QUESTION_MESSAGE,
+                                        null );
 
-                        if ( result != JOptionPane.YES_OPTION ) return;
+                            if ( result != JOptionPane.YES_OPTION ) return;
 
-                        final int rubriekId = rekeningMutatieTableModel.getRubriekId( selectedRow );
-                        final int debCredId = rekeningMutatieTableModel.getDebCredId( selectedRow );
-                        final int rekeningId = rekeningMutatieTableModel.getRekeningId( selectedRow );
-                        final int volgNummer = rekeningMutatieTableModel.getVolgNummer( selectedRow );
+                            final int rubriekId = rekeningMutatieTableModel.getRubriekId( selectedRow );
+                            final int debCredId = rekeningMutatieTableModel.getDebCredId( selectedRow );
+                            final int rekeningId = rekeningMutatieTableModel.getRekeningId( selectedRow );
+                            final int volgNummer = rekeningMutatieTableModel.getVolgNummer( selectedRow );
 
-                        String deleteString  = "DELETE FROM rekening_mutatie";
-                        deleteString += " WHERE rubriek_id = " + rubriekId;
-                        deleteString += " AND datum = '" + datumString + "'";
-                        deleteString += " AND deb_cred_id = " + debCredId;
-                        deleteString += " AND rekening_id = " + rekeningId;
-                        deleteString += " AND volgnummer = " + volgNummer;
+                            String deleteString  = "DELETE FROM rekening_mutatie";
+                            deleteString += " WHERE rubriek_id = " + rubriekId;
+                            deleteString += " AND datum = '" + datumString + "'";
+                            deleteString += " AND deb_cred_id = " + debCredId;
+                            deleteString += " AND rekening_id = " + rekeningId;
+                            deleteString += " AND volgnummer = " + volgNummer;
 
-                        logger.fine( "deleteString: " + deleteString );
+                            logger.fine( "deleteString: " + deleteString );
 
-                        try {
-                            Statement statement = connection.createStatement( );
-                            int nUpdate = statement.executeUpdate( deleteString );
-                            if ( nUpdate != 1 ) {
-                                String errorString = ( "Could not delete record with\n" +
-                                                       "rubriek_id  = " + rubriekId + "\n" +
-                                                       "datum       = " + datumString + "\n" +
-                                                       "deb_cred_id = " + debCredId + "\n" +
-                                                       "rekening_id = " + rekeningId + "\n" +
-                                                       "volgnummer = "  + volgNummer + "\n" +
-                                                       "in rekening_mutatie" );
+                            try {
+                                Statement statement = connection.createStatement( );
+                                int nUpdate = statement.executeUpdate( deleteString );
+                                if ( nUpdate != 1 ) {
+                                    String errorString = ( "Could not delete record with\n" +
+                                            "rubriek_id  = " + rubriekId + "\n" +
+                                            "datum       = " + datumString + "\n" +
+                                            "deb_cred_id = " + debCredId + "\n" +
+                                            "rekening_id = " + rekeningId + "\n" +
+                                            "volgnummer = "  + volgNummer + "\n" +
+                                            "in rekening_mutatie" );
+                                    JOptionPane.showMessageDialog( parentFrame,
+                                            errorString,
+                                            "Delete rekening mutatie record",
+                                            JOptionPane.ERROR_MESSAGE);
+                                    logger.severe( errorString );
+                                    return;
+                                }
+                            } catch ( SQLException sqlException ) {
                                 JOptionPane.showMessageDialog( parentFrame,
-                                                               errorString,
-                                                               "Delete rekening mutatie record",
-                                                               JOptionPane.ERROR_MESSAGE);
-                                logger.severe( errorString );
+                                        sqlException.getMessage( ),
+                                        "Delete rekening mutatie record exception",
+                                        JOptionPane.ERROR_MESSAGE);
+                                logger.severe( "SQLException: " + sqlException.getMessage( ) );
                                 return;
                             }
-                        } catch ( SQLException sqlException ) {
-                            JOptionPane.showMessageDialog( parentFrame,
-                                    sqlException.getMessage( ),
-                                    "Delete rekening mutatie record exception",
-                                    JOptionPane.ERROR_MESSAGE);
-                            logger.severe( "SQLException: " + sqlException.getMessage( ) );
-                            return;
-                        }
 
-                        // Records may have been modified: set up the table model again
-                        setupRekeningMutatieTable( );
-                    } else if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
-                        // Allow to edit the selected row
-                        rekeningMutatieTableModel.setEditRow( selectedRow );
+                            // Records may have been modified: set up the table model again
+                            setupRekeningMutatieTable( );
+                            break;
+                        case "edit":
+                            // Allow to edit the selected row
+                            rekeningMutatieTableModel.setEditRow( selectedRow );
 
-                        // Disable the edit button
-                        editMutatieButton.setEnabled( false );
-                    } else if ( actionEvent.getActionCommand( ).equals( "cancel" ) ) {
-                        // Cancel any edits in the selected row
-                        rekeningMutatieTableModel.cancelEditRow( selectedRow );
+                            // Disable the edit button
+                            editMutatieButton.setEnabled( false );
+                            break;
+                        case "cancel":
+                            // Cancel any edits in the selected row
+                            rekeningMutatieTableModel.cancelEditRow( selectedRow );
 
-                        // Remove the capability to edit the row
-                        rekeningMutatieTableModel.unsetEditRow( );
+                            // Remove the capability to edit the row
+                            rekeningMutatieTableModel.unsetEditRow( );
 
-                        // Enable the edit button, so that the user can select edit again
-                        editMutatieButton.setEnabled( true );
+                            // Enable the edit button, so that the user can select edit again
+                            editMutatieButton.setEnabled( true );
 
-                        // Disable the cancel and save buttons
-                        cancelMutatieButton.setEnabled( false );
-                        saveMutatieButton.setEnabled( false );
-                    } else if ( actionEvent.getActionCommand( ).equals( "save" ) ) {
-                        // Save the changes in the table model, and in the database
-                        if ( !( rekeningMutatieTableModel.saveEditRow( selectedRow ) ) ) {
-                            JOptionPane.showMessageDialog( parentFrame,
-                                                           "Error: row not saved",
-                                                           "Save rekening mutatie record error",
-                                                           JOptionPane.ERROR_MESSAGE );
-                            return;
-                        }
+                            // Disable the cancel and save buttons
+                            cancelMutatieButton.setEnabled( false );
+                            saveMutatieButton.setEnabled( false );
+                            break;
+                        case "save":
+                            // Save the changes in the table model, and in the database
+                            if ( !( rekeningMutatieTableModel.saveEditRow( selectedRow ) ) ) {
+                                JOptionPane.showMessageDialog( parentFrame,
+                                        "Error: row not saved",
+                                        "Save rekening mutatie record error",
+                                        JOptionPane.ERROR_MESSAGE );
+                                return;
+                            }
 
-                        // Remove the capability to edit the row
-                        rekeningMutatieTableModel.unsetEditRow( );
+                            // Remove the capability to edit the row
+                            rekeningMutatieTableModel.unsetEditRow( );
 
-                        // Enable the edit button, so that the user can select edit again
-                        editMutatieButton.setEnabled( true );
+                            // Enable the edit button, so that the user can select edit again
+                            editMutatieButton.setEnabled( true );
 
-                        // Disable the cancel and save buttons
-                        cancelMutatieButton.setEnabled( false );
-                        saveMutatieButton.setEnabled( false );
+                            // Disable the cancel and save buttons
+                            cancelMutatieButton.setEnabled( false );
+                            saveMutatieButton.setEnabled( false );
+                            break;
+                        default:
+                            logger.severe( "Invalid action command: " + actionEvent.getActionCommand( ) );
+                            break;
                     }
                 }
             }
