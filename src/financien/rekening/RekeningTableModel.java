@@ -20,7 +20,7 @@ import java.util.logging.*;
 class RekeningTableModel extends AbstractTableModel {
     private final Logger logger = Logger.getLogger( RekeningTableModel.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
     private final String[ ] headings = { "Id", "Rekening", "Nummer", "Type", "Fonds", "Currency",
                                          "Aktief", "Start Datum", "Start saldo",
                                          "Laatste update", "Saldo", "Waarde", "Koers" };
@@ -97,15 +97,15 @@ class RekeningTableModel extends AbstractTableModel {
     private final ArrayList< RekeningRecord > rekeningRecordList = new ArrayList< >( 40 );
 
     // Create rekeningType combo box to get rekening type ID from rekeningType string
-    private RekeningTypeComboBox rekeningTypeComboBox;
+    private final RekeningTypeComboBox rekeningTypeComboBox;
 
     // Create currency combo box to get currency ID from Currency string
-    private CurrencyComboBox currencyComboBox;
+    private final CurrencyComboBox currencyComboBox;
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
-    private JButton cancelRekeningButton;
-    private JButton saveRekeningButton;
+    private final JButton cancelRekeningButton;
+    private final JButton saveRekeningButton;
 
     private boolean	   rowModified = false;
     private int		   editRow = -1;
@@ -136,7 +136,7 @@ class RekeningTableModel extends AbstractTableModel {
                                   int currencyId,
                                   int selectedRekeningHouderId,
                                   boolean onlyActiveAccounts ) {
-        // Setup the table
+        // Set up the table
         try {
             String rekeningQueryString =
                 "SELECT rekening.rekening_id, rekening.rekening, rekening.nummer, " +
@@ -148,26 +148,29 @@ class RekeningTableModel extends AbstractTableModel {
                 "LEFT JOIN rekening_type ON rekening.type_id = rekening_type.rekening_type_id " +
                 "LEFT JOIN currency ON rekening.currency_id = currency.currency_id ";
 
-            if ( ( ( rekeningString != null ) && ( rekeningString.length( ) > 0 ) ) ||
-                 ( ( rekeningNummerString != null ) && ( rekeningNummerString.length( ) > 0 ) ) ||
-                 ( rekeningTypeId != 0 ) || (currencyId != 0 ) || onlyActiveAccounts ) {
+            if ( ( ( rekeningString != null ) && !rekeningString.isEmpty( ) ) ||
+                    ( ( rekeningNummerString != null ) && !rekeningNummerString.isEmpty( ) ) ||
+                    ( rekeningTypeId != 0 ) || (currencyId != 0 ) || ( selectedRekeningHouderId > 0 ) ||
+                    onlyActiveAccounts ) {
                 rekeningQueryString += "WHERE ";
 
-                if ( ( rekeningString != null ) && ( rekeningString.length( ) > 0 ) ) {
+                if ( ( rekeningString != null ) && !rekeningString.isEmpty( ) ) {
                     rekeningQueryString +=
                         "rekening.rekening LIKE '%" + rekeningString + "%' ";
 
-                    if ( ( ( rekeningNummerString != null ) && ( rekeningNummerString.length( ) > 0 ) ) ||
-                         ( rekeningTypeId != 0 ) || (currencyId != 0 ) || onlyActiveAccounts ) {
+                    if ( ( ( rekeningNummerString != null ) && !rekeningNummerString.isEmpty( ) ) ||
+                            ( rekeningTypeId != 0 ) || (currencyId != 0 ) || ( selectedRekeningHouderId > 0 ) ||
+                            onlyActiveAccounts ) {
                         rekeningQueryString += "AND ";
                     }
                 }
 
-                if ( ( rekeningNummerString != null ) && ( rekeningNummerString.length( ) > 0 ) ) {
+                if ( ( rekeningNummerString != null ) && !rekeningNummerString.isEmpty( ) ) {
                     rekeningQueryString +=
                         "rekening.nummer LIKE '%" + rekeningNummerString + "%' ";
 
-                    if ( ( rekeningTypeId != 0 ) || (currencyId != 0 ) || onlyActiveAccounts ) {
+                    if ( ( rekeningTypeId != 0 ) || (currencyId != 0 ) || ( selectedRekeningHouderId > 0 ) ||
+                            onlyActiveAccounts ) {
                         rekeningQueryString += "AND ";
                     }
                 }
@@ -175,7 +178,7 @@ class RekeningTableModel extends AbstractTableModel {
                 if ( rekeningTypeId > 0 ) {
                     rekeningQueryString += "rekening.type_id = " + rekeningTypeId + " ";
 
-                    if ( ( currencyId != 0 ) || onlyActiveAccounts ) {
+                    if ( ( currencyId != 0 ) || ( selectedRekeningHouderId > 0 ) || onlyActiveAccounts ) {
                         rekeningQueryString += "AND ";
                     }
                 }
@@ -183,7 +186,7 @@ class RekeningTableModel extends AbstractTableModel {
                 if ( currencyId > 0 ) {
                     rekeningQueryString += "rekening.currency_id = " + currencyId + " ";
 
-                    if ( onlyActiveAccounts ) {
+                    if ( ( selectedRekeningHouderId > 0 ) || onlyActiveAccounts ) {
                         rekeningQueryString += "AND ";
                     }
                 }
@@ -454,13 +457,13 @@ class RekeningTableModel extends AbstractTableModel {
 
 
     void setEditRow( int editRow ) {
-        // Initialize record to be edited
+        // Initialise record to be edited
         rekeningRecord = rekeningRecordList.get( editRow );
 
         // Copy record to use as key in table update
         originalRekeningRecord = new RekeningRecord( rekeningRecord );
 
-        // Initialize row modified status
+        // Initialise row modified status
         rowModified = false;
 
         // Allow editing for the selected row
@@ -472,13 +475,13 @@ class RekeningTableModel extends AbstractTableModel {
     }
 
     void cancelEditRow( int row ) {
-        // Check if row being canceled equals the row currently being edited
+        // Check if row being cancelled equals the row currently being edited
         if ( row != editRow ) return;
 
         // Check if row was modified
         if ( !rowModified ) return;
 
-        // Initialize row modified status
+        // Initialise row modified status
         rowModified = false;
 
         // Store original record in list
@@ -502,9 +505,9 @@ class RekeningTableModel extends AbstractTableModel {
         // If modified, add entry to update query string
 
         String rekeningString = rekeningRecord.rekeningString;
-        if ( ( ( rekeningString == null ) || ( rekeningString.length( ) == 0 ) ) &&
+        if ( ( ( rekeningString == null ) || rekeningString.isEmpty( ) ) &&
              ( originalRekeningRecord.rekeningString != null ) &&
-             ( originalRekeningRecord.rekeningString.length( ) != 0 ) ) {
+             ( !originalRekeningRecord.rekeningString.isEmpty( ) ) ) {
             updateString = "rekening = NULL ";
         } else if ( ( rekeningString != null ) &&
                     ( !rekeningString.equals( originalRekeningRecord.rekeningString ) ) ) {
@@ -512,9 +515,9 @@ class RekeningTableModel extends AbstractTableModel {
         }
 
         String rekeningNummerString = rekeningRecord.rekeningNummerString;
-        if ( ( ( rekeningNummerString == null ) || ( rekeningNummerString.length( ) == 0 ) ) &&
+        if ( ( ( rekeningNummerString == null ) || rekeningNummerString.isEmpty( ) ) &&
              ( originalRekeningRecord.rekeningNummerString != null ) &&
-             ( originalRekeningRecord.rekeningNummerString.length( ) != 0 ) ) {
+             ( !originalRekeningRecord.rekeningNummerString.isEmpty( ) ) ) {
             updateString = addToUpdateString( updateString, "nummer = NULL " );
         } else if ( ( rekeningNummerString != null ) &&
                     ( !rekeningNummerString.equals( originalRekeningRecord.rekeningNummerString ) ) ) {
@@ -528,9 +531,9 @@ class RekeningTableModel extends AbstractTableModel {
         }
 
         String fondsString = rekeningRecord.fondsString;
-        if ( ( ( fondsString == null ) || ( fondsString.length( ) == 0 ) ) &&
+        if ( ( ( fondsString == null ) || fondsString.isEmpty( ) ) &&
              ( originalRekeningRecord.fondsString != null ) &&
-             ( originalRekeningRecord.fondsString.length( ) != 0 ) ) {
+             ( !originalRekeningRecord.fondsString.isEmpty( ) ) ) {
             updateString = addToUpdateString( updateString, "fonds = NULL " );
         } else if ( ( fondsString != null ) &&
                     ( !fondsString.equals( originalRekeningRecord.fondsString ) ) ) {
@@ -548,9 +551,9 @@ class RekeningTableModel extends AbstractTableModel {
         }
 
         String startDatumString = rekeningRecord.startDatumString;
-        if ( ( ( startDatumString == null ) || ( startDatumString.length( ) == 0 ) ) &&
+        if ( ( ( startDatumString == null ) || startDatumString.isEmpty() ) &&
              ( originalRekeningRecord.startDatumString != null ) &&
-             ( originalRekeningRecord.startDatumString.length( ) != 0 ) ) {
+             ( !originalRekeningRecord.startDatumString.isEmpty( ) ) ) {
             updateString = addToUpdateString( updateString, "start_datum = NULL " );
         } else if ( ( startDatumString != null ) &&
                     ( !startDatumString.equals( originalRekeningRecord.startDatumString ) ) ) {
@@ -598,7 +601,7 @@ class RekeningTableModel extends AbstractTableModel {
         // logger.info( "storing record at row " + row );
         rekeningRecordList.set( row, rekeningRecord );
 
-        // Initialize row modified status
+        // Initialise row modified status
         rowModified = false;
 
         // Trigger update of table row data

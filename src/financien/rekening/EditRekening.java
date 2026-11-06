@@ -27,21 +27,21 @@ import table.*;
 public class EditRekening extends JInternalFrame {
     final private Logger logger = Logger.getLogger( EditRekening.class.getCanonicalName() );
 
-    private Connection connection;
+    private final Connection connection;
 
-    private JTextField rekeningTextField;
-    private JTextField rekeningNummerTextField;
-    private RekeningTypeComboBox rekeningTypeComboBox;
+    private final JTextField rekeningTextField;
+    private final JTextField rekeningNummerTextField;
+    private final RekeningTypeComboBox rekeningTypeComboBox;
     private int selectedRekeningTypeId = 0;
-    private CurrencyComboBox currencyComboBox;
+    private final CurrencyComboBox currencyComboBox;
     private int selectedCurrencyId = 0;
-    private RekeningHouderComboBox rekeningHouderComboBox;
-    private int selectedRekeningHouderId;
+    // ComboBox for selected rekening houder ID removed: now just use CvE fixed
+    private int selectedRekeningHouderId = 1;
     private boolean onlyActiveAccounts = true;
 
-    private RekeningTableModel rekeningTableModel;
-    private TableSorter rekeningTableSorter;
-    private JTable rekeningTable;
+    private final RekeningTableModel rekeningTableModel;
+    private final TableSorter rekeningTableSorter;
+    private final JTable rekeningTable;
     private static final DecimalFormat decimalFormat = new DecimalFormat( "#0.0000;-#" );
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
@@ -80,7 +80,7 @@ public class EditRekening extends JInternalFrame {
         ActionListener rekeningSelectieActionListener = ( ActionEvent actionEvent ) -> {
             onlyActiveAccounts = actionEvent.getActionCommand( ).equals( "onlyActiveAccounts" );
 
-            // Setup the rekening table
+            // Set up the rekening table
             setupRekeningTableModel( );
         };
 
@@ -135,13 +135,13 @@ public class EditRekening extends JInternalFrame {
         constraints.anchor = GridBagConstraints.EAST;
         container.add( new JLabel( "Rekening type filter:" ), constraints );
 
-        // Setup a JComboBox with the results of the query on rekeningType
+        // Set up a JComboBox with the results of the query on rekeningType
         rekeningTypeComboBox = new RekeningTypeComboBox( connection, 0 );
         rekeningTypeComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected Rekening Type ID
             selectedRekeningTypeId = rekeningTypeComboBox.getSelectedRekeningTypeId( );
 
-            // Setup the rekening table
+            // Set up the rekening table
             setupRekeningTableModel( );
         } );
 
@@ -159,13 +159,13 @@ public class EditRekening extends JInternalFrame {
         constraints.anchor = GridBagConstraints.EAST;
         container.add( new JLabel( "Rekening currency filter:" ), constraints );
 
-        // Setup a JComboBox with the results of the query on currency
+        // Set up a JComboBox with the results of the query on currency
         currencyComboBox = new CurrencyComboBox( connection, 0 );
         currencyComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
             // Get the selected Rekening Type ID
             selectedCurrencyId = currencyComboBox.getSelectedCurrencyId();
 
-            // Setup the rekening table
+            // Set up the rekening table
             setupRekeningTableModel( );
         } );
 
@@ -174,31 +174,6 @@ public class EditRekening extends JInternalFrame {
         constraints.gridwidth = 2;
         constraints.anchor = GridBagConstraints.WEST;
         container.add( currencyComboBox, constraints );
-        constraints.gridwidth = 1;
-
-
-        constraints.insets = new Insets( 5, 20, 5, 5 );
-        constraints.gridx = 0;
-        constraints.gridy = 4;
-        constraints.anchor = GridBagConstraints.EAST;
-        container.add( new JLabel( "Rekeninghouder:" ), constraints );
-
-        // Setup a JComboBox with the results of the query on currency
-        rekeningHouderComboBox = new RekeningHouderComboBox( connection, 1 );
-        rekeningHouderComboBox.addActionListener( ( ActionEvent actionEvent ) -> {
-            // Get the selected Rekeninghouder ID
-            selectedRekeningHouderId = rekeningHouderComboBox.getSelectedRekeningHouderId( );
-
-            // Setup the rekening table
-            setupRekeningTableModel( );
-        } );
-
-
-        constraints.insets = new Insets( 5, 5, 5, 20 );
-        constraints.gridx = GridBagConstraints.RELATIVE;
-        constraints.gridwidth = 2;
-        constraints.anchor = GridBagConstraints.WEST;
-        container.add( rekeningHouderComboBox, constraints );
         constraints.gridwidth = 1;
 
 
@@ -217,7 +192,7 @@ public class EditRekening extends JInternalFrame {
         rekeningTable = new JTable( rekeningTableSorter );
         rekeningTableSorter.setTableHeader( rekeningTable.getTableHeader( ) );
 
-        // Setup the table columns and editors
+        // Set up the table columns and editors
         setupRekeningTable( );
 
         rekeningTable.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
@@ -383,7 +358,7 @@ public class EditRekening extends JInternalFrame {
                         return;
                     }
 
-                    // Records may have been modified: setup the table model again
+                    // Records may have been modified: set up the table model again
                     setupRekeningTableModel( );
                 } else {
                     int selectedRow = rekeningListSelectionListener.getSelectedRow( );
@@ -453,7 +428,7 @@ public class EditRekening extends JInternalFrame {
                             return;
                         }
 
-                        // Records may have been modified: setup the table model again
+                        // Records may have been modified: set up the table model again
                         setupRekeningTableModel( );
                     } else if ( actionEvent.getActionCommand( ).equals( "edit" ) ) {
                         // Allow to edit the selected row
@@ -566,17 +541,17 @@ public class EditRekening extends JInternalFrame {
     }
 
     private void setupRekeningTableModel( ) {
-        // Setup the rekening table
+        // Set up the rekening table
         rekeningTableModel.setupRekeningTableModel( rekeningTextField.getText( ),
                                                     rekeningNummerTextField.getText( ),
                                                     selectedRekeningTypeId,
                                                     selectedCurrencyId,
                                                     selectedRekeningHouderId,
                                                     onlyActiveAccounts );
-        // Setup the tableSorter
+        // Set up the tableSorter
         rekeningTableSorter.setTableModel( rekeningTableModel );
 
-        // Setup the table columns and editors
+        // Set up the table columns and editors
         setupRekeningTable( );
     }
 }
