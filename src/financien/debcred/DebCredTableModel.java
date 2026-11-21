@@ -17,412 +17,441 @@ import java.util.regex.*;
  * TableModel for records in deb_cred
  */
 class DebCredTableModel extends AbstractTableModel {
-    private static final long serialVersionUID = 7782709968547613151L;
-    private final Logger logger = Logger.getLogger( DebCredTableModel.class.getCanonicalName() );
+	private final Logger logger = Logger.getLogger( DebCredTableModel.class.getCanonicalName() );
 
-    private Connection connection;
-    private final String[ ] headings = { "Id", "Deb/Cred", "Omschrijving", "Rekening",
-                                         "Rubriek", "GT Omschr. Nr." };
+	private final Connection connection;
+	private final String[ ] headings = { "Id", "Deb/Cred", "Omschrijving", "Zoekterm", "Rekening",
+										 "Rubriek", "GT Omschr. Nr." };
 
-    private class DebCredRecord {
-	int	debCredId;
-	String  debCredString;
-	String  omschrijvingString;
-	String  rekeningString;
-	int	rubriekId;
-	String  rubriekString;
-	int	gtOmschrijvingNr;
+	private static class DebCredRecord {
+		int	debCredId;
+		String  debCredString;
+		String  omschrijvingString;
+		String  zoektermString;
+		String  rekeningString;
+		int	    rubriekId;
+		String  rubriekString;
+		int	    gtOmschrijvingNr;
 
-	DebCredRecord( int    debCredId,
-                       String debCredString,
-                       String omschrijvingString,
-                       String rekeningString,
-                       int    rubriekId,
-                       String rubriekString,
-                       int    gtOmschrijvingNr ) {
-	    this.debCredId = debCredId;
-	    this.debCredString = debCredString;
-	    this.omschrijvingString = omschrijvingString;
-	    this.rekeningString = rekeningString;
-	    this.rubriekId = rubriekId;
-	    this.rubriekString = rubriekString;
-	    this.gtOmschrijvingNr = gtOmschrijvingNr;
-	}
-
-	// Copy constructor
-	DebCredRecord( DebCredRecord debCredRecord ) {
-	    this.debCredId = debCredRecord.debCredId;
-	    this.debCredString = debCredRecord.debCredString;
-	    this.omschrijvingString = debCredRecord.omschrijvingString;
-	    this.rekeningString = debCredRecord.rekeningString;
-	    this.rubriekId = debCredRecord.rubriekId;
-	    this.rubriekString = debCredRecord.rubriekString;
-	    this.gtOmschrijvingNr = debCredRecord.gtOmschrijvingNr;
-	}
-    }
-
-    private ArrayList< DebCredRecord > debCredRecordList = new ArrayList< >( 1300 );
-
-    // Create rubriek combo box to get rubriek ID from rubriek string
-    private RubriekComboBox rubriekComboBox;
-
-    private JButton cancelDebCredButton;
-    private JButton saveDebCredButton;
-
-    private boolean	  rowModified = false;
-    private int		  editRow = -1;
-    private DebCredRecord debCredRecord = null;
-    private DebCredRecord originalDebCredRecord = null;
-
-    // Pattern to find a single quote in the titel, to be replaced
-    // with escaped quote (the double slashes are really necessary)
-    private final static Pattern quotePattern = Pattern.compile( "\\'" );
-
-    // Constructor
-    DebCredTableModel( Connection connection,
-                       JButton    cancelDebCredButton,
-                       JButton    saveDebCredButton ) {
-	this.connection = connection;
-	this.cancelDebCredButton = cancelDebCredButton;
-	this.saveDebCredButton = saveDebCredButton;
-
-	rubriekComboBox = new RubriekComboBox( connection, 0, false );
-	setupDebCredTableModel( null );
-    }
-
-    void setupDebCredTableModel( String debCredFilterString ) {
-	// Setup the table for the specified rekening
-	try {
-	    String debCredQueryString =
-		"SELECT deb_cred.deb_cred_id, " +
-		"deb_cred.deb_cred, deb_cred.omschrijving, deb_cred.rekening, " +
-		"deb_cred.rubriek_id, rubriek.rubriek, deb_cred.omschrijving_nr " +
-		"FROM deb_cred " +
-		"LEFT JOIN rubriek ON rubriek.rubriek_id = deb_cred.rubriek_id ";
-
-	    if ( ( debCredFilterString != null ) && ( debCredFilterString.length( ) > 0 ) ) {
-		// Matcher to find single quotes in debCredFilterString, in order to replace these
-		// with escaped quotes (the quadruple slashes are really necessary)
-		Matcher quoteMatcher = quotePattern.matcher( debCredFilterString );
-		debCredQueryString += "WHERE deb_cred.deb_cred LIKE \"%" + quoteMatcher.replaceAll( "\\\\'" ) + "%\" ";
-	    }
-
-	    debCredQueryString += "ORDER BY deb_cred.deb_cred, deb_cred.rekening";
-
-
-	    Statement statement = connection.createStatement( );
-	    ResultSet resultSet = statement.executeQuery( debCredQueryString );
-
-	    // Clear the list
-	    debCredRecordList.clear( );
-
-	    // Add all query results to the list
-	    while ( resultSet.next( ) ) {
-		debCredRecordList.add( new DebCredRecord( resultSet.getInt( 1 ),
-							  resultSet.getString( 2 ),
-							  resultSet.getString( 3 ),
-							  resultSet.getString( 4 ),
-							  resultSet.getInt( 5 ),
-							  resultSet.getString( 6 ),
-							  resultSet.getInt( 7 ) ) );
-	    }
-
-	    debCredRecordList.trimToSize( );
-            logger.info("Table shows " + debCredRecordList.size() + " deb_cred records");
-
-	    // Trigger update of table data
-	    fireTableDataChanged( );
-	} catch ( SQLException sqlException ) {
-	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
-	}
-    }
-
-    public int getRowCount( ) { return debCredRecordList.size( ); }
-
-    public int getColumnCount( ) { return 6; }
-
-    // Indicate the class for each column for setting the correct default renderer
-    // see file:///home/cvengelen/java/tutorial/uiswing/components/table.html
-    public Class getColumnClass( int column ) {
-	switch ( column ) {
-	case 0: // Id
-	case 5:	// Nummer
-	    return Integer.class;
-	}
-
-	return String.class;
-    }
-
-    public boolean isCellEditable( int row, int column ) {
-	// Only allow editing for the selected edit row
-	if ( row != editRow ) return false;
-
-	switch ( column ) {
-	case 0: // Id
-	    // Do not allow editing
-	    return false;
-	}
-
-	return true;
-    }
-
-    public Object getValueAt( int row, int column ) {
-	if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
-	    logger.severe( "Invalid row: " + row );
-	    return null;
-	}
-
-	final DebCredRecord debCredRecord = debCredRecordList.get( row );
-
-	if ( column == 0 ) return debCredRecord.debCredId;
-	if ( column == 1 ) return debCredRecord.debCredString;
-	if ( column == 2 ) return debCredRecord.omschrijvingString;
-	if ( column == 3 ) return debCredRecord.rekeningString;
-	if ( column == 4 ) return debCredRecord.rubriekString;
-	if ( column == 5 ) return debCredRecord.gtOmschrijvingNr;
-
-	return "";
-    }
-
-    public void setValueAt( Object object, int row, int column ) {
-	if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
-	    logger.severe( "Invalid row: " + row );
-	    return;
-	}
-
-	try {
-	    switch ( column ) {
-	    case 1:
-		String debCredString = ( String )object;
-		if ( ( debCredString == null ) && ( debCredRecord.debCredString != null ) ) {
-		    debCredRecord.debCredString = null;
-		    rowModified = true;
-		} else if ( ( debCredString != null ) &&
-			    ( !debCredString.equals( debCredRecord.debCredString ) ) ) {
-		    debCredRecord.debCredString = debCredString;
-		    rowModified = true;
+		DebCredRecord( int    debCredId,
+					   String debCredString,
+					   String omschrijvingString,
+					   String zoektermString,
+					   String rekeningString,
+					   int    rubriekId,
+					   String rubriekString,
+					   int    gtOmschrijvingNr ) {
+			this.debCredId = debCredId;
+			this.debCredString = debCredString;
+			this.omschrijvingString = omschrijvingString;
+			this.zoektermString = zoektermString;
+			this.rekeningString = rekeningString;
+			this.rubriekId = rubriekId;
+			this.rubriekString = rubriekString;
+			this.gtOmschrijvingNr = gtOmschrijvingNr;
 		}
-		break;
 
-	    case 2:
-		String omschrijvingString = ( String )object;
-		if ( ( omschrijvingString == null ) && ( debCredRecord.omschrijvingString != null ) ) {
-		    debCredRecord.omschrijvingString = omschrijvingString;
-		    rowModified = true;
-		} else if ( ( omschrijvingString != null ) &&
-			    ( !omschrijvingString.equals( debCredRecord.omschrijvingString ) ) ) {
-		    debCredRecord.omschrijvingString = omschrijvingString;
-		    rowModified = true;
+		// Copy constructor
+		DebCredRecord( DebCredRecord debCredRecord ) {
+			this.debCredId = debCredRecord.debCredId;
+			this.debCredString = debCredRecord.debCredString;
+			this.omschrijvingString = debCredRecord.omschrijvingString;
+			this.zoektermString = debCredRecord.zoektermString;
+			this.rekeningString = debCredRecord.rekeningString;
+			this.rubriekId = debCredRecord.rubriekId;
+			this.rubriekString = debCredRecord.rubriekString;
+			this.gtOmschrijvingNr = debCredRecord.gtOmschrijvingNr;
 		}
-		break;
-
-	    case 3:
-		String rekeningString = ( String )object;
-		if ( ( rekeningString == null ) && ( debCredRecord.rekeningString != null ) ) {
-		    debCredRecord.rekeningString = rekeningString;
-		    rowModified = true;
-		} else if ( ( rekeningString != null ) &&
-			    ( !rekeningString.equals( debCredRecord.rekeningString ) ) ) {
-		    debCredRecord.rekeningString = rekeningString;
-		    rowModified = true;
-		}
-		debCredRecord.rekeningString = rekeningString;
-		break;
-
-	    case 4:
-		int rubriekId = rubriekComboBox.getRubriekId( ( String )object );
-		if ( rubriekId != debCredRecord.rubriekId ) {
-		    debCredRecord.rubriekId = rubriekId;
-		    debCredRecord.rubriekString = ( String )object;
-		    rowModified = true;
-		}
-		break;
-
-	    case 5:
-		int gtOmschrijvingNr = ( Integer )object;
-		if ( gtOmschrijvingNr != debCredRecord.gtOmschrijvingNr ) {
-		    debCredRecord.gtOmschrijvingNr = gtOmschrijvingNr;
-		    rowModified = true;
-		}
-		break;
-
-	    default:
-		logger.severe( "Invalid column: " + column );
-		return;
-	    }
-	} catch ( Exception exception ) {
-	    logger.severe( "could not get value from " +
-			   object + " for column " + column + " in row " + row );
-	    return;
 	}
 
-	// Store record in list
-	debCredRecordList.set( row, debCredRecord );
+	private final ArrayList< DebCredRecord > debCredRecordList = new ArrayList< >( 2000 );
 
-	if ( rowModified ) {
-	    // Enable cancel and save buttons
-	    cancelDebCredButton.setEnabled( true );
-	    saveDebCredButton.setEnabled( true );
+	// Create rubriek combo box to get rubriek ID from rubriek string
+	private final RubriekComboBox rubriekComboBox;
+
+	private final JButton cancelDebCredButton;
+	private final JButton saveDebCredButton;
+
+	private boolean	  rowModified = false;
+	private int		  editRow = -1;
+	private DebCredRecord debCredRecord = null;
+	private DebCredRecord originalDebCredRecord = null;
+
+	// Pattern to find a single quote in the titel, to be replaced
+	// with escaped quote (the double slashes are really necessary)
+	private final static Pattern quotePattern = Pattern.compile( "\\'" );
+
+	// Constructor
+	DebCredTableModel( Connection connection,
+					   JButton    cancelDebCredButton,
+					   JButton    saveDebCredButton ) {
+		this.connection = connection;
+		this.cancelDebCredButton = cancelDebCredButton;
+		this.saveDebCredButton = saveDebCredButton;
+
+		rubriekComboBox = new RubriekComboBox( connection, 0, false );
+		setupDebCredTableModel( null );
 	}
 
-	fireTableCellUpdated( row, column );
-    }
+	void setupDebCredTableModel( String debCredFilterString ) {
+		// Set up the table for the specified rekening
+		try {
+			String debCredQueryString =
+				"SELECT deb_cred.deb_cred_id, " +
+				"deb_cred.deb_cred, deb_cred.omschrijving, deb_cred.zoekterm, deb_cred.rekening, " +
+				"deb_cred.rubriek_id, rubriek.rubriek, deb_cred.omschrijving_nr " +
+				"FROM deb_cred " +
+				"LEFT JOIN rubriek ON rubriek.rubriek_id = deb_cred.rubriek_id ";
 
-    public String getColumnName( int column ) {
+			if ( ( debCredFilterString != null ) && (!debCredFilterString.isEmpty()) ) {
+				// Matcher to find single quotes in debCredFilterString, in order to replace these
+				// with escaped quotes (the quadruple slashes are really necessary)
+				Matcher quoteMatcher = quotePattern.matcher( debCredFilterString );
+				debCredQueryString += "WHERE deb_cred.deb_cred LIKE \"%" + quoteMatcher.replaceAll( "\\\\'" ) + "%\" ";
+			}
+
+			debCredQueryString += "ORDER BY deb_cred.deb_cred, deb_cred.rekening";
+
+			Statement statement = connection.createStatement( );
+			ResultSet resultSet = statement.executeQuery( debCredQueryString );
+
+			// Clear the list
+			debCredRecordList.clear( );
+
+			// Add all query results to the list
+			while ( resultSet.next( ) ) {
+			debCredRecordList.add(new DebCredRecord(resultSet.getInt(1),
+					resultSet.getString(2),
+					resultSet.getString(3),
+					resultSet.getString(4),
+					resultSet.getString(5),
+					resultSet.getInt(6),
+					resultSet.getString(7),
+					resultSet.getInt(8)));
+			}
+
+			debCredRecordList.trimToSize( );
+			logger.info("Table shows " + debCredRecordList.size() + " deb_cred records");
+
+			// Trigger update of table data
+			fireTableDataChanged( );
+		} catch ( SQLException sqlException ) {
+			logger.severe( "SQLException: " + sqlException.getMessage( ) );
+		}
+	}
+
+	public int getRowCount( ) { return debCredRecordList.size( ); }
+
+	public int getColumnCount( ) { return 7; }
+
+	// Indicate the class for each column for setting the correct default renderer
+	// see file:///home/cvengelen/java/tutorial/uiswing/components/table.html
+	public Class getColumnClass( int column ) {
+		switch ( column ) {
+			case 0: // Id
+			case 6:	// GT omschrijving nummer
+				return Integer.class;
+		}
+		return String.class;
+	}
+
+	public boolean isCellEditable( int row, int column ) {
+		// Only allow editing for the selected edit row
+		if ( row != editRow ) return false;
+
+		switch ( column ) {
+			case 0: // Id
+				// Do not allow editing
+				return false;
+		}
+
+		return true;
+	}
+
+	public Object getValueAt( int row, int column ) {
+		if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
+			logger.severe( "Invalid row: " + row );
+			return null;
+		}
+
+		final DebCredRecord debCredRecord = debCredRecordList.get( row );
+
+		if ( column == 0 ) return debCredRecord.debCredId;
+		if ( column == 1 ) return debCredRecord.debCredString;
+		if ( column == 2 ) return debCredRecord.omschrijvingString;
+		if ( column == 3 ) return debCredRecord.zoektermString;
+		if ( column == 4 ) return debCredRecord.rekeningString;
+		if ( column == 5 ) return debCredRecord.rubriekString;
+		if ( column == 6 ) return debCredRecord.gtOmschrijvingNr;
+
+		return "";
+	}
+
+	public void setValueAt( Object object, int row, int column ) {
+		if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
+			logger.severe( "Invalid row: " + row );
+			return;
+		}
+
+		try {
+			switch ( column ) {
+				case 1:
+					String debCredString = ( String )object;
+					if ( ( debCredString == null ) && ( debCredRecord.debCredString != null ) ) {
+						debCredRecord.debCredString = null;
+						rowModified = true;
+					} else if ( ( debCredString != null ) &&
+							( !debCredString.equals( debCredRecord.debCredString ) ) ) {
+						debCredRecord.debCredString = debCredString;
+						rowModified = true;
+					}
+					break;
+
+				case 2:
+					String omschrijvingString = ( String )object;
+					if ( ( omschrijvingString == null ) && ( debCredRecord.omschrijvingString != null ) ) {
+						debCredRecord.omschrijvingString = omschrijvingString;
+						rowModified = true;
+					} else if ( ( omschrijvingString != null ) &&
+							( !omschrijvingString.equals( debCredRecord.omschrijvingString ) ) ) {
+						debCredRecord.omschrijvingString = omschrijvingString;
+						rowModified = true;
+					}
+					break;
+
+				case 3:
+					String zoektermString = ( String )object;
+					if ( ( zoektermString == null ) && ( debCredRecord.zoektermString != null ) ) {
+						debCredRecord.zoektermString = zoektermString;
+						rowModified = true;
+					} else if ( ( zoektermString != null ) &&
+							( !zoektermString.equals( debCredRecord.zoektermString ) ) ) {
+						debCredRecord.zoektermString = zoektermString;
+						rowModified = true;
+					}
+					break;
+
+				case 4:
+					String rekeningString = ( String )object;
+					if ( ( rekeningString == null ) && ( debCredRecord.rekeningString != null ) ) {
+						debCredRecord.rekeningString = rekeningString;
+						rowModified = true;
+					} else if ( ( rekeningString != null ) &&
+							( !rekeningString.equals( debCredRecord.rekeningString ) ) ) {
+						debCredRecord.rekeningString = rekeningString;
+						rowModified = true;
+					}
+					debCredRecord.rekeningString = rekeningString;
+					break;
+
+				case 5:
+					int rubriekId = rubriekComboBox.getRubriekId( ( String )object );
+					if ( rubriekId != debCredRecord.rubriekId ) {
+						debCredRecord.rubriekId = rubriekId;
+						debCredRecord.rubriekString = ( String )object;
+						rowModified = true;
+					}
+					break;
+
+				case 6:
+					int gtOmschrijvingNr = ( Integer )object;
+					if ( gtOmschrijvingNr != debCredRecord.gtOmschrijvingNr ) {
+						debCredRecord.gtOmschrijvingNr = gtOmschrijvingNr;
+						rowModified = true;
+					}
+					break;
+
+				default:
+					logger.severe( "Invalid column: " + column );
+					return;
+			}
+		} catch ( Exception exception ) {
+			logger.severe( "could not set value from " +
+				   object + " for column " + column + " in row " + row );
+			return;
+		}
+
+		// Store record in list
+		debCredRecordList.set( row, debCredRecord );
+
+		if ( rowModified ) {
+			// Enable cancel and save buttons
+			cancelDebCredButton.setEnabled( true );
+			saveDebCredButton.setEnabled( true );
+		}
+
+		fireTableCellUpdated( row, column );
+	}
+
+	public String getColumnName( int column ) {
 	return headings[ column ];
-    }
-
-    int getDebCredId( int row ) {
-	if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
-	    logger.severe( "Invalid row: " + row );
-	    return 0;
 	}
 
-	return debCredRecordList.get( row ).debCredId;
-    }
+	int getDebCredId( int row ) {
+		if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
+			logger.severe( "Invalid row: " + row );
+			return 0;
+		}
 
-    String getDebCredString( int row ) {
-	if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
-	    logger.severe( "Invalid row: " + row );
-	    return null;
+		return debCredRecordList.get( row ).debCredId;
 	}
 
-	return debCredRecordList.get( row ).debCredString;
-    }
+	String getDebCredString( int row ) {
+		if ( ( row < 0 ) || ( row >= debCredRecordList.size( ) ) ) {
+			logger.severe( "Invalid row: " + row );
+			return null;
+		}
 
-    void setEditRow( int editRow ) {
-	// Initialize record to be edited
-	debCredRecord = debCredRecordList.get( editRow );
+		return debCredRecordList.get( row ).debCredString;
+	}
 
-	// Copy record to use as key in table update
-	originalDebCredRecord = new DebCredRecord( debCredRecord );
+	void setEditRow( int editRow ) {
+		// Initialise record to be edited
+		debCredRecord = debCredRecordList.get( editRow );
 
-	// Initialize row modified status
-	rowModified = false;
+		// Copy record to use as key in table update
+		originalDebCredRecord = new DebCredRecord(debCredRecord);
 
-	// Allow editing for the selected row
-	this.editRow = editRow;
-    }
+		// Initialise row modified status
+		rowModified = false;
 
-    void unsetEditRow( ) {
+		// Allow editing for the selected row
+		this.editRow = editRow;
+	}
+
+	void unsetEditRow( ) {
 	this.editRow = -1;
-    }
-
-    void cancelEditRow( int row ) {
-	// Check if row being canceled equals the row currently being edited
-	if ( row != editRow ) return;
-
-	// Check if row was modified
-	if ( !rowModified ) return;
-
-	// Initialize row modified status
-	rowModified = false;
-
-	// Store original record in list
-	debCredRecordList.set( row, originalDebCredRecord );
-
-	// Trigger update of table row data
-	fireTableRowUpdated( row );
-    }
-
-    private String addToUpdateString( String updateString, String additionalUpdateString ) {
-	if ( updateString != null ) {
-	    return updateString + ", " + additionalUpdateString;
-	}
-	return additionalUpdateString;
-    }
-
-    void saveEditRow( int row ) {
-	String updateString = null;
-
-	// Compare each field with the value in the original record
-	// If modified, add entry to update query string
-
-	String debCredString = debCredRecord.debCredString;
-	if ( ( ( debCredString == null ) || ( debCredString.length( ) == 0 ) ) &&
-	     ( originalDebCredRecord.debCredString != null ) &&
-	     ( originalDebCredRecord.debCredString.length( ) != 0 ) ) {
-	    updateString = "deb_cred = NULL ";
-	} else if ( ( debCredString != null ) &&
-		    ( !debCredString.equals( originalDebCredRecord.debCredString ) ) ) {
-	    // Matcher to find single quotes in debCred, in order to replace these
-	    // with escaped quotes (the quadruple slashes are really necessary)
-	    final Matcher quoteMatcher = quotePattern.matcher( debCredString );
-	    originalDebCredRecord.debCredString = debCredString;
-	    updateString = "deb_cred = '" + quoteMatcher.replaceAll( "\\\\'" ) + "'";
 	}
 
-	String omschrijvingString = debCredRecord.omschrijvingString;
-	if ( ( ( omschrijvingString == null ) || ( omschrijvingString.length( ) == 0 ) ) &&
-	     ( originalDebCredRecord.omschrijvingString != null ) &&
-	     ( originalDebCredRecord.omschrijvingString.length( ) != 0 ) ) {
-	    updateString = addToUpdateString( updateString, "omschrijving = NULL " );
-	} else if ( ( omschrijvingString != null ) &&
-		    ( !omschrijvingString.equals( originalDebCredRecord.omschrijvingString ) ) ) {
-	    // Matcher to find single quotes in omschrijving, in order to replace these
-	    // with escaped quotes (the quadruple slashes are really necessary)
-	    final Matcher quoteMatcher = quotePattern.matcher( omschrijvingString );
-	    updateString = addToUpdateString( updateString,
-					      "omschrijving = '" + quoteMatcher.replaceAll( "\\\\'" ) + "'" );
+	void cancelEditRow( int row ) {
+		// Check if row being cancelled equals the row currently being edited
+		if ( row != editRow ) return;
+
+		// Check if row was modified
+		if ( !rowModified ) return;
+
+		// Initialise row modified status
+		rowModified = false;
+
+		// Store original record in list
+		debCredRecordList.set( row, originalDebCredRecord );
+
+		// Trigger update of table row data
+		fireTableRowUpdated( row );
 	}
 
-	String rekeningString = debCredRecord.rekeningString;
-	if ( ( ( rekeningString == null ) || ( rekeningString.length( ) == 0 ) ) &&
-	     ( originalDebCredRecord.rekeningString != null ) &&
-	     ( originalDebCredRecord.rekeningString.length( ) != 0 ) ) {
-	    updateString = addToUpdateString( updateString, "rekening = NULL " );
-	} else if ( ( rekeningString != null ) &&
-		    ( !rekeningString.equals( originalDebCredRecord.rekeningString ) ) ) {
-	    updateString = addToUpdateString( updateString, "rekening = '" + rekeningString + "'" );
+	private String addToUpdateString( String updateString, String additionalUpdateString ) {
+		if ( updateString != null ) {
+			return updateString + ", " + additionalUpdateString;
+		}
+		return additionalUpdateString;
 	}
 
-	if ( debCredRecord.rubriekId != originalDebCredRecord.rubriekId ) {
-	    updateString = addToUpdateString( updateString, "rubriek_id = " + debCredRecord.rubriekId );
+	void saveEditRow( int row ) {
+		String updateString = null;
+
+		// Compare each field with the value in the original record
+		// If modified, add entry to update query string
+
+		String debCredString = debCredRecord.debCredString;
+		if ( ( ( debCredString == null ) || ( debCredString.isEmpty( ) ) ) &&
+			 ( originalDebCredRecord.debCredString != null ) &&
+			 ( !originalDebCredRecord.debCredString.isEmpty( ) ) ) {
+			updateString = "deb_cred = NULL ";
+		} else if ( ( debCredString != null ) &&
+				( !debCredString.equals( originalDebCredRecord.debCredString ) ) ) {
+			// Matcher to find single quotes in debCred, in order to replace these
+			// with escaped quotes (the quadruple slashes are really necessary)
+			final Matcher quoteMatcher = quotePattern.matcher( debCredString );
+			originalDebCredRecord.debCredString = debCredString;
+			updateString = "deb_cred = '" + quoteMatcher.replaceAll( "\\\\'" ) + "'";
+		}
+
+		String omschrijvingString = debCredRecord.omschrijvingString;
+		if ( ( ( omschrijvingString == null ) || ( omschrijvingString.isEmpty( ) ) ) &&
+			 ( originalDebCredRecord.omschrijvingString != null ) &&
+			 ( !originalDebCredRecord.omschrijvingString.isEmpty( ) ) ) {
+			updateString = addToUpdateString( updateString, "omschrijving = NULL " );
+		} else if ( ( omschrijvingString != null ) &&
+				( !omschrijvingString.equals( originalDebCredRecord.omschrijvingString ) ) ) {
+			// Matcher to find single quotes in omschrijving, in order to replace these
+			// with escaped quotes (the quadruple slashes are really necessary)
+			final Matcher quoteMatcher = quotePattern.matcher( omschrijvingString );
+			updateString = addToUpdateString( updateString,
+							  "omschrijving = '" + quoteMatcher.replaceAll( "\\\\'" ) + "'" );
+		}
+
+		String zoektermString = debCredRecord.zoektermString;
+		if ( ( ( zoektermString == null ) || ( zoektermString.isEmpty( ) ) ) &&
+				( originalDebCredRecord.zoektermString != null ) &&
+				( !originalDebCredRecord.zoektermString.isEmpty( ) ) ) {
+			updateString = addToUpdateString( updateString, "zoekterm = NULL " );
+		} else if ( ( zoektermString != null ) &&
+				( !zoektermString.equals( originalDebCredRecord.zoektermString ) ) ) {
+			// Matcher to find single quotes in zoekterm, in order to replace these
+			// with escaped quotes (the quadruple slashes are really necessary)
+			final Matcher quoteMatcher = quotePattern.matcher( zoektermString );
+			updateString = addToUpdateString( updateString,
+					"zoekterm = '" + quoteMatcher.replaceAll( "\\\\'" ) + "'" );
+		}
+
+		String rekeningString = debCredRecord.rekeningString;
+		if ( ( ( rekeningString == null ) || ( rekeningString.isEmpty( ) ) ) &&
+			 ( originalDebCredRecord.rekeningString != null ) &&
+			 ( !originalDebCredRecord.rekeningString.isEmpty( ) ) ) {
+			updateString = addToUpdateString( updateString, "rekening = NULL " );
+		} else if ( ( rekeningString != null ) &&
+				( !rekeningString.equals( originalDebCredRecord.rekeningString ) ) ) {
+			updateString = addToUpdateString( updateString, "rekening = '" + rekeningString + "'" );
+		}
+
+		if ( debCredRecord.rubriekId != originalDebCredRecord.rubriekId ) {
+			updateString = addToUpdateString( updateString, "rubriek_id = " + debCredRecord.rubriekId );
+		}
+
+		if ( debCredRecord.gtOmschrijvingNr != originalDebCredRecord.gtOmschrijvingNr ) {
+			updateString = addToUpdateString( updateString,
+							  "omschrijving_nr = " + debCredRecord.gtOmschrijvingNr );
+		}
+
+		// Check if update is not necessary
+		if ( updateString == null ) return;
+
+		updateString = ( "UPDATE deb_cred SET " + updateString +
+				 " WHERE deb_cred_id = " + originalDebCredRecord.debCredId );
+
+		logger.info( "updateString: " + updateString );
+
+		try {
+			Statement statement = connection.createStatement( );
+			int nUpdate = statement.executeUpdate( updateString );
+			if ( nUpdate != 1 ) {
+				logger.severe( "Could not update record with deb_cred_id " +
+					   originalDebCredRecord.debCredId +
+					   " in deb_cred, nUpdate = " + nUpdate );
+				return;
+			}
+		} catch ( SQLException sqlException ) {
+			logger.severe( "SQLException: " + sqlException.getMessage( ) );
+			return;
+		}
+
+		// Store record in list
+		// logger.info( "storing record at row " + row );
+		debCredRecordList.set( row, debCredRecord );
+
+		// Initialise row modified status
+		rowModified = false;
+
+		// Trigger update of table row data
+		fireTableRowUpdated( row );
 	}
 
-	if ( debCredRecord.gtOmschrijvingNr != originalDebCredRecord.gtOmschrijvingNr ) {
-	    updateString = addToUpdateString( updateString,
-					      "omschrijving_nr = " + debCredRecord.gtOmschrijvingNr );
+	private void fireTableRowUpdated( int row ) {
+		for ( int column = 0; column < getColumnCount( ); column++ ) {
+			fireTableCellUpdated( row, column );
+		}
 	}
 
-	// Check if update is not necessary
-	if ( updateString == null ) return;
-
-	updateString = ( "UPDATE deb_cred SET " + updateString +
-			 " WHERE deb_cred_id = " + originalDebCredRecord.debCredId );
-
-	logger.info( "updateString: " + updateString );
-
-	try {
-	    Statement statement = connection.createStatement( );
-	    int nUpdate = statement.executeUpdate( updateString );
-	    if ( nUpdate != 1 ) {
-	    	logger.severe( "Could not update record with deb_cred_id " +
-			       originalDebCredRecord.debCredId +
-			       " in deb_cred, nUpdate = " + nUpdate );
-	    	return;
-	    }
-	} catch ( SQLException sqlException ) {
-	    logger.severe( "SQLException: " + sqlException.getMessage( ) );
-	    return;
-	}
-
-	// Store record in list
-	// logger.info( "storing record at row " + row );
-	debCredRecordList.set( row, debCredRecord );
-
-	// Initialize row modified status
-	rowModified = false;
-
-	// Trigger update of table row data
-	fireTableRowUpdated( row );
-    }
-
-    private void fireTableRowUpdated( int row ) {
-	for ( int column = 0; column < getColumnCount( ); column++ ) {
-	    fireTableCellUpdated( row, column );
-	}
-    }
-
-    boolean getRowModified( ) { return rowModified; }
+	boolean getRowModified( ) { return rowModified; }
 }
