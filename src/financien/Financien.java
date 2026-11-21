@@ -118,6 +118,22 @@ public class Financien extends JFrame implements ActionListener {
         menuItem.addActionListener(this);
         menu.add(menuItem);
 
+        // Set up the Millennium menu
+        menu = new JMenu("Millennium");
+        menuBar.add(menu);
+
+        // Load Millennium mutaties
+        menuItem = new JMenuItem("Load Millennium mutaties");
+        menuItem.setActionCommand("loadMillenniumMutaties");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
+        // Process Millennium mutaties
+        menuItem = new JMenuItem("Process Millennium mutaties");
+        menuItem.setActionCommand("processMillenniumMutaties");
+        menuItem.addActionListener(this);
+        menu.add(menuItem);
+
         // Set up the Rekeningen menu
         menu = new JMenu("Edit");
         menuBar.add(menu);
@@ -199,10 +215,12 @@ public class Financien extends JFrame implements ActionListener {
             internalFrame = new financien.rabobankmutaties.LoadRabobankMutaties(password, xOffset*openFrameCount, yOffset*openFrameCount);
         } else if ("processRabobankMutaties".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.rabobankmutaties.ProcessRabobankMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
+        } else if ("loadMillenniumMutaties".equals(actionEvent.getActionCommand())) {
+            internalFrame = new financien.millenniummutaties.LoadMillenniumMutaties(password, xOffset*openFrameCount, yOffset*openFrameCount);
+        } else if ("processMillenniumMutaties".equals(actionEvent.getActionCommand())) {
+            internalFrame = new financien.millenniummutaties.ProcessMillenniumMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("editRekeningMutaties".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.rekeningmutaties.EditRekeningMutaties( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
-        } else if ("editRekeningMutatiesRubriek".equals(actionEvent.getActionCommand())) {
-            internalFrame = new financien.rekeningmutatiesrubriek.EditRekeningMutatiesRubriek( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("editRekening".equals(actionEvent.getActionCommand())) {
             internalFrame = new financien.rekening.EditRekening( connection, this, xOffset * openFrameCount, yOffset * openFrameCount );
         } else if ("editDebCred".equals(actionEvent.getActionCommand())) {
