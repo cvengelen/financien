@@ -351,6 +351,8 @@ public class DebCredDialog {
 		// Any other actionCommand, including cancel, has no action
 		if ( result ) {
 		    dialog.setVisible( false );
+			// Release all dialog resources
+			dialog.dispose();
 		}
 	    }
 	}
@@ -679,7 +681,11 @@ public class DebCredDialog {
 	return rubriekComboBox.getSelectedRubriekId( );
     }
 
-    public String getDebCredString( ) {
-        return debCredString;
-    }
+	public String getDebCredString( ) {
+		return debCredString;
+	}
+
+	public String getDebCredRekeningString( ) {
+	return debCredRekeningString;
+	}
 }
