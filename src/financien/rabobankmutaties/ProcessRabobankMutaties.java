@@ -63,7 +63,8 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 	private final JTextField mutatieMededelingenTextField;
 
 	private String mutatieEigenRekeningString;
-	private int eigenRekeningId = 0;
+	private int mutatieEigenRekeningId = 0;
+	private final JLabel mutatieEigenRekeningLabel;
 
 	private int rubriekId = 0;
 	private final RubriekComboBox rubriekComboBox;
@@ -114,9 +115,22 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 		constraints.insets = insetsRight;
 		container.add( mutatieDatumLabel, constraints );
 
-		// Debiteur/Crediteur
+		// Eigen rekening
 		constraints.gridx = 0;
 		constraints.gridy = 1;
+		constraints.insets = insetsLeft;
+		container.add( new JLabel( "Eigen rekening:" ), constraints );
+
+		mutatieEigenRekeningLabel = new JLabel( );
+		constraints.gridx = GridBagConstraints.RELATIVE;
+		constraints.insets = insetsRight;
+		constraints.gridwidth = 2;
+		container.add( mutatieEigenRekeningLabel, constraints );
+		constraints.gridwidth = 1;
+
+		// Debiteur/Crediteur
+		constraints.gridx = 0;
+		constraints.gridy = 2;
 		constraints.insets = insetsLeft;
 		container.add( new JLabel( "Deb/Cred:" ), constraints );
 
@@ -138,7 +152,7 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 
 		// Mutatie
 		constraints.gridx = 0;
-		constraints.gridy = 2;
+		constraints.gridy = 3;
 		constraints.insets = insetsLeft;
 		container.add( new JLabel( "Mutatie:" ), constraints );
 
@@ -149,7 +163,7 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 
 		// Volgnummer
 		constraints.gridx = 0;
-		constraints.gridy = 3;
+		constraints.gridy = 4;
 		constraints.insets = insetsLeft;
 		container.add( new JLabel( "VolgNummer:" ), constraints );
 		volgNummerSpinnerNumberModel = new SpinnerNumberModel( 0, 0, 10, 1 );
@@ -167,7 +181,7 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 
 		// Jaar/Maand
 		constraints.gridx = 0;
-		constraints.gridy = 4;
+		constraints.gridy = 5;
 		constraints.insets = insetsLeft;
 		container.add( new JLabel( "Jaar, Maand:" ), constraints );
 
@@ -199,7 +213,7 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 
 		// Omschrijving
 		constraints.gridx = 0;
-		constraints.gridy = 5;
+		constraints.gridy = 6;
 		constraints.insets = insetsLeft;
 		container.add( new JLabel( "Omschrijving:" ), constraints );
 
@@ -215,7 +229,7 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 
 		// Rubriek
 		constraints.gridx = 0;
-		constraints.gridy = 6;
+		constraints.gridy = 7;
 		constraints.gridwidth = 1;
 		constraints.insets = insetsLeft;
 		constraints.fill = GridBagConstraints.NONE;
@@ -249,10 +263,9 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 					mutatieNaamOmschrijvingString,
 					mutatieMededelingenString );
 
+			// Get the deb/cred data from the deb/cred dialog
 			debCredId = debCredDialog.getDebCredId( );
 			rubriekId = debCredDialog.getRubriekId( );
-
-			// Store the Deb/Cred found in the Deb/Cred label
 			mutatieTegenRekeningString = debCredDialog.getDebCredRekeningString( );
 			mutatieNaamOmschrijvingString = debCredDialog.getDebCredString( );
 			setMutatieDebCredLabels( );
@@ -325,7 +338,7 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 		// scrollPane.getViewport( ).setBackground( Color.white );
 
 		constraints.gridx = 0;
-		constraints.gridy = 7;
+		constraints.gridy = 8;
 		constraints.gridwidth = 6;
 		constraints.insets = new Insets( 10, 20, 5, 20 );
 		// Setting weightx, weighty and fill is necessary for proper filling the frame when resized.
@@ -637,14 +650,14 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 		buttonPanel.add( closeButton );
 
 		constraints.gridx = 0;
-		constraints.gridy = 8;
+		constraints.gridy = 9;
 		constraints.weightx = 0d;
 		constraints.weighty = 0d;
 		constraints.fill = GridBagConstraints.NONE;
 		constraints.insets = new Insets( 5, 20, 20, 20 );
 		container.add( buttonPanel, constraints );
 
-		setSize( 1280, 550 );
+		setSize( 1280, 600 );
 		setLocation(x, y);
 		setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 		getRootPane().setDefaultButton( copyButton );
@@ -676,7 +689,7 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 
 		// Insert de rekening mutatie
 		// TODO: Gebruik StringBuilder
-		String insertString = "INSERT INTO rekening_mutatie SET rekening_id = " + eigenRekeningId;
+		String insertString = "INSERT INTO rekening_mutatie SET rekening_id = " + mutatieEigenRekeningId;
 		insertString += ", rubriek_id = " + rubriekId;
 		insertString += ", datum = '" + mutatieDatumString + "'";
 		insertString += ", deb_cred_id = " + debCredId;
@@ -770,14 +783,16 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 			// Haal de rekening ID op van de eigen rekening
 			mutatieEigenRekeningString = mutatieResultSet.getString( 6 );
 			try {
-				final String queryEigenRekening = String.format( "SELECT rekening_id FROM rekening WHERE nummer = '%s'", mutatieEigenRekeningString );
+				final String queryEigenRekening = String.format( "SELECT rekening_id, rekening FROM rekening WHERE nummer = '%s'", mutatieEigenRekeningString );
 
 				final Statement statement = connection.createStatement( );
 				final ResultSet resultSet = statement.executeQuery( queryEigenRekening );
 
 				// Controleer of de eigen rekening gevonden is
 				if ( resultSet.next( ) ) {
-					eigenRekeningId = resultSet.getInt( 1 );
+					mutatieEigenRekeningId = resultSet.getInt( 1 );
+					mutatieEigenRekeningLabel.setText( mutatieEigenRekeningString + " - " +
+							resultSet.getString( 2 ) + " (id=" + mutatieEigenRekeningId + ")" );
 				} else {
 					throw new Exception( String.format( "Eigen rekening met nummer %s niet gevonden", mutatieEigenRekeningString ) );
 				}
@@ -807,6 +822,13 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 			volgNummerSpinner.setValue( mutatieResultSet.getInt(12) );
 
 			if ( !( getDebCredId( ) ) ) {
+				// Deb/cred not found: reset fields
+				debCredId = 0;
+				rubriekId = 0;
+				rubriekComboBox.setSelectedRubriekId( rubriekId );
+				setMutatieDebCredLabels( );
+				setupRekeningMutatieTable( );
+
 				JOptionPane.showMessageDialog( parentFrame,
 						"No Deb/Cred match found for " + mutatieNaamOmschrijvingString,
 						"Process Rabobank mutaties",
@@ -818,14 +840,15 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 						mutatieNaamOmschrijvingString,
 						mutatieMededelingenString );
 
+				// Get the deb/cred data from the deb/cred dialog
 				debCredId = debCredDialog.getDebCredId( );
 				rubriekId = debCredDialog.getRubriekId( );
-
-				// Store the Deb/Cred found in the Deb/Cred label
 				mutatieTegenRekeningString = debCredDialog.getDebCredRekeningString( );
 				mutatieNaamOmschrijvingString = debCredDialog.getDebCredString( );
-				setMutatieDebCredLabels( );
 			}
+
+			// Set the deb/cred name and id labels
+			setMutatieDebCredLabels();
 
 			// Set up the rubriek combobox and rekening_mutatie table for the selected rubriek and deb-cred id
 			rubriekComboBox.setSelectedRubriekId( rubriekId );
@@ -865,11 +888,6 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 					rubriekId = resultSet.getInt( 2 );
 					mutatieTegenRekeningString = resultSet.getString( 3 );
 					mutatieNaamOmschrijvingString = resultSet.getString( 4 );
-					setMutatieDebCredLabels( );
-
-					// Set up the rubriek combobox and rekening_mutatie table for the selected rubriek and deb-cred id
-					rubriekComboBox.setSelectedRubriekId( rubriekId );
-					setupRekeningMutatieTable( );
 					return true;
 				}
 			} catch ( Exception exception ) {
@@ -893,11 +911,6 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 					rubriekId = resultSet.getInt( 2 );
 					mutatieTegenRekeningString = resultSet.getString( 3 );
 					mutatieNaamOmschrijvingString = resultSet.getString( 4 );
-					setMutatieDebCredLabels( );
-
-					// Set up the rubriek combobox and rekening_mutatie table for the selected rubriek and deb-cred id
-					rubriekComboBox.setSelectedRubriekId( rubriekId );
-					setupRekeningMutatieTable( );
 					return true;
 				}
 			} catch ( Exception exception ) {
@@ -934,11 +947,6 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 							rubriekId = resultSet.getInt(2);
 							mutatieTegenRekeningString = resultSet.getString(3);
 							mutatieNaamOmschrijvingString = debCredString;
-							setMutatieDebCredLabels( );
-
-							// Set up the rubriek combobox and rekening_mutatie table for the selected rubriek and deb-cred id
-							rubriekComboBox.setSelectedRubriekId( rubriekId );
-							setupRekeningMutatieTable( );
 							return true;
 						}
 
@@ -952,11 +960,6 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 							rubriekId = resultSet.getInt(2);
 							mutatieTegenRekeningString = resultSet.getString(3);
 							mutatieNaamOmschrijvingString = debCredString;
-							setMutatieDebCredLabels( );
-
-							// Set up the rubriek combobox and rekening_mutatie table for the selected rubriek and deb-cred id
-							rubriekComboBox.setSelectedRubriekId( rubriekId );
-							setupRekeningMutatieTable( );
 							return true;
 						}
 					}
@@ -982,11 +985,6 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 				rubriekId = resultSet.getInt( 2 );
 				mutatieTegenRekeningString = resultSet.getString( 3 );
 				mutatieNaamOmschrijvingString = resultSet.getString( 4 );
-				setMutatieDebCredLabels( );
-
-				// Set up the rubriek combobox and rekening_mutatie table for the selected rubriek and deb-cred id
-				rubriekComboBox.setSelectedRubriekId( rubriekId );
-				setupRekeningMutatieTable( );
 				return true;
 			}
 		} catch ( Exception exception ) {
@@ -999,7 +997,8 @@ public class ProcessRabobankMutaties extends JInternalFrame {
 	private void setupRekeningMutatieTable( ) {
 		// Set up the rekening_mutatie table for the selected rubriek
 		// zonder selectie op de rekeninghouder, omdat er al selectie is op de eigen rekening.
-		rekeningMutatieTableModel.setupRekeningMutatieTableModel( 0, eigenRekeningId, rubriekId, debCredId, null );
+		rekeningMutatieTableModel.setupRekeningMutatieTableModel( 0, mutatieEigenRekeningId,
+				rubriekId, debCredId, null );
 
 		// Set up the tableSorter again so that the TableSorter gets the new table size (# rows)
 		rekeningMutatieTableSorter.setTableModel( rekeningMutatieTableModel );
